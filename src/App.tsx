@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useTodos } from './hooks/useTodos';
 import { TodoInput } from './components/TodoInput';
 import { TodoList } from './components/TodoList';
+import type { Todo } from './types/electron';
 import './App.css';
 
 function App() {
@@ -9,10 +10,18 @@ function App() {
 
   // メモ化してフィルタリングの再計算を最小化
   const { activeTodos, completedTodos } = useMemo(() => {
-    return {
-      activeTodos: todos.filter((todo) => !todo.completed),
-      completedTodos: todos.filter((todo) => todo.completed),
-    };
+    const active: Todo[] = [];
+    const completed: Todo[] = [];
+
+    for (const todo of todos) {
+      if (todo.completed) {
+        completed.push(todo);
+      } else {
+        active.push(todo);
+      }
+    }
+
+    return { activeTodos: active, completedTodos: completed };
   }, [todos]);
 
   if (isLoading) {
@@ -30,11 +39,7 @@ function App() {
         <p className="stats">
           アクティブ: {activeTodos.length} / 完了: {completedTodos.length}
         </p>
-        {saveError && (
-          <p className="error-message" style={{ color: 'red', fontSize: '14px', marginTop: '8px' }}>
-            {saveError}
-          </p>
-        )}
+        {saveError && <p className="error-message">{saveError}</p>}
       </header>
 
       <main className="app-main">

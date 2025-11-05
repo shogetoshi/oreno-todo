@@ -18,12 +18,14 @@ export const TodoItem = ({ todo, onToggle, onDelete, onEdit }: TodoItemProps) =>
     setIsEditing(true);
   };
 
+  const cancelEdit = () => {
+    setIsEditing(false);
+  };
+
   const handleEdit = () => {
-    if (editText.trim() && editText !== todo.text) {
-      onEdit(todo.id, editText.trim());
-    } else {
-      // 変更がない場合や無効な入力の場合は元に戻す
-      setEditText(todo.text);
+    const trimmed = editText.trim();
+    if (trimmed && trimmed !== todo.text) {
+      onEdit(todo.id, trimmed);
     }
     setIsEditing(false);
   };
@@ -32,8 +34,7 @@ export const TodoItem = ({ todo, onToggle, onDelete, onEdit }: TodoItemProps) =>
     if (e.key === 'Enter') {
       handleEdit();
     } else if (e.key === 'Escape') {
-      setEditText(todo.text);
-      setIsEditing(false);
+      cancelEdit();
     }
   };
 

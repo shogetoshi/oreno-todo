@@ -39,6 +39,12 @@ body {
   font-size: 0.9rem;
 }
 
+.error-message {
+  color: #dc3545;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
 .app-main {
   background: white;
   padding: 30px;

@@ -9,10 +9,6 @@ interface TodoListProps {
 }
 
 export const TodoList = ({ todos, onToggle, onDelete, onEdit }: TodoListProps) => {
-  if (todos.length === 0) {
-    return <p className="empty-message">タスクがありません</p>;
-  }
-
   return (
     <ul className="todo-list">
       {todos.map((todo) => (

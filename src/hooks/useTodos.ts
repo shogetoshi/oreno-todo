@@ -38,50 +38,37 @@ export const useTodos = () => {
   }, []);
 
   // 新しいTODOを追加
-  const addTodo = useCallback(
-    (text: string) => {
-      const newTodo: Todo = {
-        id: crypto.randomUUID(),
-        text,
-        completed: false,
-        createdAt: new Date().toISOString(),
-      };
-      updateTodos((prev) => [...prev, newTodo]);
-    },
-    [updateTodos]
-  );
+  const addTodo = useCallback((text: string) => {
+    const newTodo: Todo = {
+      id: crypto.randomUUID(),
+      text,
+      completed: false,
+    };
+    updateTodos((prev) => [...prev, newTodo]);
+  }, []);
 
   // TODOの完了状態を切り替え
-  const toggleTodo = useCallback(
-    (id: string) => {
-      updateTodos((prev) =>
-        prev.map((todo) =>
-          todo.id === id ? { ...todo, completed: !todo.completed } : todo
-        )
-      );
-    },
-    [updateTodos]
-  );
+  const toggleTodo = useCallback((id: string) => {
+    updateTodos((prev) =>
+      prev.map((todo) =>
+        todo.id === id ? { ...todo, completed: !todo.completed } : todo
+      )
+    );
+  }, []);
 
   // TODOを削除
-  const deleteTodo = useCallback(
-    (id: string) => {
-      updateTodos((prev) => prev.filter((todo) => todo.id !== id));
-    },
-    [updateTodos]
-  );
+  const deleteTodo = useCallback((id: string) => {
+    updateTodos((prev) => prev.filter((todo) => todo.id !== id));
+  }, []);
 
   // TODOのテキストを編集
-  const editTodo = useCallback(
-    (id: string, newText: string) => {
-      updateTodos((prev) =>
-        prev.map((todo) =>
-          todo.id === id ? { ...todo, text: newText } : todo
-        )
-      );
-    },
-    [updateTodos]
-  );
+  const editTodo = useCallback((id: string, newText: string) => {
+    updateTodos((prev) =>
+      prev.map((todo) =>
+        todo.id === id ? { ...todo, text: newText } : todo
+      )
+    );
+  }, []);
 
   return {
     todos,
