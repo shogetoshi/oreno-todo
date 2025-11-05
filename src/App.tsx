@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useTodos } from './hooks/useTodos';
 import { TodoInput } from './components/TodoInput';
 import { TodoList } from './components/TodoList';
@@ -6,6 +7,14 @@ import './App.css';
 function App() {
   const { todos, isLoading, addTodo, toggleTodo, deleteTodo, editTodo } = useTodos();
 
+  // メモ化してフィルタリングの再計算を最小化
+  const { activeTodos, completedTodos } = useMemo(() => {
+    return {
+      activeTodos: todos.filter((todo) => !todo.completed),
+      completedTodos: todos.filter((todo) => todo.completed),
+    };
+  }, [todos]);
+
   if (isLoading) {
     return (
       <div className="app">
@@ -13,9 +22,6 @@ function App() {
       </div>
     );
   }
-
-  const activeTodos = todos.filter((todo) => !todo.completed);
-  const completedTodos = todos.filter((todo) => todo.completed);
 
   return (
     <div className="app">

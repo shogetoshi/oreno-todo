@@ -21,13 +21,16 @@ export const useTodos = () => {
     loadTodos();
   }, []);
 
-  // TODOが変更されたら保存
-  const saveTodos = useCallback(async (newTodos: Todo[]) => {
-    try {
-      await window.electronAPI.saveTodos(newTodos);
-    } catch (error) {
-      console.error('Failed to save todos:', error);
-    }
+  // 状態更新と保存を一元管理
+  const updateTodos = useCallback(async (updater: (prev: Todo[]) => Todo[]) => {
+    setTodos((prevTodos) => {
+      const newTodos = updater(prevTodos);
+      // 非同期で保存（UIブロックを避ける）
+      window.electronAPI.saveTodos(newTodos).catch((error) => {
+        console.error('Failed to save todos:', error);
+      });
+      return newTodos;
+    });
   }, []);
 
   // 新しいTODOを追加
@@ -39,45 +42,41 @@ export const useTodos = () => {
         completed: false,
         createdAt: new Date().toISOString(),
       };
-      const newTodos = [...todos, newTodo];
-      setTodos(newTodos);
-      saveTodos(newTodos);
+      updateTodos((prev) => [...prev, newTodo]);
     },
-    [todos, saveTodos]
+    [updateTodos]
   );
 
   // TODOの完了状態を切り替え
   const toggleTodo = useCallback(
     (id: string) => {
-      const newTodos = todos.map((todo) =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo
+      updateTodos((prev) =>
+        prev.map((todo) =>
+          todo.id === id ? { ...todo, completed: !todo.completed } : todo
+        )
       );
-      setTodos(newTodos);
-      saveTodos(newTodos);
     },
-    [todos, saveTodos]
+    [updateTodos]
   );
 
   // TODOを削除
   const deleteTodo = useCallback(
     (id: string) => {
-      const newTodos = todos.filter((todo) => todo.id !== id);
-      setTodos(newTodos);
-      saveTodos(newTodos);
+      updateTodos((prev) => prev.filter((todo) => todo.id !== id));
     },
-    [todos, saveTodos]
+    [updateTodos]
   );
 
   // TODOのテキストを編集
   const editTodo = useCallback(
     (id: string, newText: string) => {
-      const newTodos = todos.map((todo) =>
-        todo.id === id ? { ...todo, text: newText } : todo
+      updateTodos((prev) =>
+        prev.map((todo) =>
+          todo.id === id ? { ...todo, text: newText } : todo
+        )
       );
-      setTodos(newTodos);
-      saveTodos(newTodos);
     },
-    [todos, saveTodos]
+    [updateTodos]
   );
 
   return {

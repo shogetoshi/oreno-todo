@@ -1,11 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-
-export type Todo = {
-  id: string;
-  text: string;
-  completed: boolean;
-  createdAt: string;
-};
+import type { Todo } from '../src/types/electron';
 
 contextBridge.exposeInMainWorld('electronAPI', {
   loadTodos: (): Promise<Todo[]> => ipcRenderer.invoke('load-todos'),
