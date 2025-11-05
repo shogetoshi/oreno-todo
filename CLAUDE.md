@@ -21,9 +21,9 @@ npm run electron:build  # 上記ビルド + electron-builderでパッケージ�
 
 ビルドスクリプト（推奨）:
 ```bash
-./build.sh           # 通常ビルド
-./build.sh clean     # クリーンビルド
-./build.sh package   # ビルド + パッケージング
+./build.sh           # ビルド + パッケージング（リリース版作成）
+./build.sh clean     # クリーンビルド + パッケージング
+./build.sh dev       # 開発ビルドのみ（パッケージングなし）
 ```
 
 ## アーキテクチャ

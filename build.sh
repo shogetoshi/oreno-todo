@@ -2,9 +2,9 @@
 
 # OrenoTodo ビルドスクリプト
 # 使用方法:
-#   ./build.sh          - 通常ビルド
-#   ./build.sh clean    - クリーンビルド
-#   ./build.sh package  - ビルド + パッケージング
+#   ./build.sh          - ビルド + パッケージング（リリース版作成）
+#   ./build.sh clean    - クリーンビルド + パッケージング
+#   ./build.sh dev      - 開発ビルドのみ（パッケージングなし）
 
 set -e  # エラーが発生したら即座に終了
 
@@ -121,29 +121,31 @@ trap 'log_error "ビルドが失敗しました"; exit 1' ERR
 # コマンドライン引数の処理
 case "${1:-}" in
     clean)
-        log_info "クリーンビルドを実行します"
+        log_info "クリーンビルド + パッケージングを実行します"
         clean_build
-        build_main
-        ;;
-    package)
-        log_info "ビルド + パッケージングを実行します"
         build_main
         package_app
         ;;
+    dev)
+        log_info "開発ビルド（パッケージングなし）を実行します"
+        build_main
+        ;;
     help|--help|-h)
         echo "使用方法:"
-        echo "  ./build.sh          - 通常ビルド"
-        echo "  ./build.sh clean    - クリーンビルド"
-        echo "  ./build.sh package  - ビルド + パッケージング"
+        echo "  ./build.sh          - ビルド + パッケージング（リリース版作成）"
+        echo "  ./build.sh clean    - クリーンビルド + パッケージング"
+        echo "  ./build.sh dev      - 開発ビルドのみ（パッケージングなし）"
         echo "  ./build.sh help     - このヘルプを表示"
         exit 0
         ;;
     "")
+        log_info "ビルド + パッケージングを実行します"
         build_main
+        package_app
         ;;
     *)
         log_error "不明なオプション: $1"
-        echo "使用方法: ./build.sh [clean|package|help]"
+        echo "使用方法: ./build.sh [clean|dev|help]"
         exit 1
         ;;
 esac
