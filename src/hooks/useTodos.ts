@@ -4,6 +4,7 @@ import type { Todo } from '../types/electron';
 export const useTodos = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // 初期化時にTODOを読み込む
   useEffect(() => {
@@ -28,6 +29,9 @@ export const useTodos = () => {
       // 非同期で保存（UIブロックを避ける）
       window.electronAPI.saveTodos(newTodos).catch((error) => {
         console.error('Failed to save todos:', error);
+        setSaveError('保存に失敗しました。変更が失われる可能性があります。');
+        // 3秒後にエラーメッセージをクリア
+        setTimeout(() => setSaveError(null), 3000);
       });
       return newTodos;
     });
@@ -82,6 +86,7 @@ export const useTodos = () => {
   return {
     todos,
     isLoading,
+    saveError,
     addTodo,
     toggleTodo,
     deleteTodo,

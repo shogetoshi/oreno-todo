@@ -12,9 +12,18 @@ export const TodoItem = ({ todo, onToggle, onDelete, onEdit }: TodoItemProps) =>
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(todo.text);
 
+  // 編集モード開始時に最新のテキストを反映
+  const startEditing = () => {
+    setEditText(todo.text);
+    setIsEditing(true);
+  };
+
   const handleEdit = () => {
     if (editText.trim() && editText !== todo.text) {
       onEdit(todo.id, editText.trim());
+    } else {
+      // 変更がない場合や無効な入力の場合は元に戻す
+      setEditText(todo.text);
     }
     setIsEditing(false);
   };
@@ -49,14 +58,14 @@ export const TodoItem = ({ todo, onToggle, onDelete, onEdit }: TodoItemProps) =>
       ) : (
         <span
           className="todo-text"
-          onDoubleClick={() => !todo.completed && setIsEditing(true)}
+          onDoubleClick={() => !todo.completed && startEditing()}
         >
           {todo.text}
         </span>
       )}
       <div className="todo-actions">
         {!isEditing && !todo.completed && (
-          <button onClick={() => setIsEditing(true)} className="edit-button">
+          <button onClick={startEditing} className="edit-button">
             編集
           </button>
         )}

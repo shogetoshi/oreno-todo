@@ -5,7 +5,7 @@ import { TodoList } from './components/TodoList';
 import './App.css';
 
 function App() {
-  const { todos, isLoading, addTodo, toggleTodo, deleteTodo, editTodo } = useTodos();
+  const { todos, isLoading, saveError, addTodo, toggleTodo, deleteTodo, editTodo } = useTodos();
 
   // メモ化してフィルタリングの再計算を最小化
   const { activeTodos, completedTodos } = useMemo(() => {
@@ -30,6 +30,11 @@ function App() {
         <p className="stats">
           アクティブ: {activeTodos.length} / 完了: {completedTodos.length}
         </p>
+        {saveError && (
+          <p className="error-message" style={{ color: 'red', fontSize: '14px', marginTop: '8px' }}>
+            {saveError}
+          </p>
+        )}
       </header>
 
       <main className="app-main">

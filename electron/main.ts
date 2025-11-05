@@ -1,6 +1,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import * as path from 'path';
-import * as fs from 'fs';
+import { promises as fsPromises } from 'fs';
 
 const isDev = !app.isPackaged;
 const dataPath = path.join(app.getPath('userData'), 'todos.json');
@@ -27,12 +27,34 @@ function createWindow() {
 // TODOデータの読み込み
 ipcMain.handle('load-todos', async () => {
   try {
-    if (fs.existsSync(dataPath)) {
-      const data = fs.readFileSync(dataPath, 'utf-8');
-      return JSON.parse(data);
+    const data = await fsPromises.readFile(dataPath, 'utf-8');
+    const parsed = JSON.parse(data);
+
+    // データ形式の検証
+    if (!Array.isArray(parsed)) {
+      console.error('Invalid data format: not an array');
+      return [];
     }
-    return [];
+
+    return parsed;
   } catch (error) {
+    // ファイルが存在しない場合は空配列を返す
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      return [];
+    }
+
+    // JSON パースエラーの場合はバックアップを作成
+    if (error instanceof SyntaxError) {
+      console.error('JSON parse error, creating backup');
+      try {
+        const backupPath = `${dataPath}.backup.${Date.now()}`;
+        await fsPromises.copyFile(dataPath, backupPath);
+        console.log(`Backup created at: ${backupPath}`);
+      } catch (backupError) {
+        console.error('Failed to create backup:', backupError);
+      }
+    }
+
     console.error('Failed to load todos:', error);
     return [];
   }
@@ -41,7 +63,7 @@ ipcMain.handle('load-todos', async () => {
 // TODOデータの保存
 ipcMain.handle('save-todos', async (_, todos) => {
   try {
-    fs.writeFileSync(dataPath, JSON.stringify(todos, null, 2), 'utf-8');
+    await fsPromises.writeFile(dataPath, JSON.stringify(todos, null, 2), 'utf-8');
     return { success: true };
   } catch (error) {
     console.error('Failed to save todos:', error);
