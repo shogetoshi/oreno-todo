@@ -15,6 +15,8 @@ export const TodoInput = ({ onAdd }: TodoInputProps) => {
     }
   };
 
+  const isDisabled = !inputValue.trim();
+
   return (
     <form onSubmit={handleSubmit} className="todo-input-form">
       <input
@@ -24,7 +26,11 @@ export const TodoInput = ({ onAdd }: TodoInputProps) => {
         placeholder="新しいタスクを入力..."
         className="todo-input"
       />
-      <button type="submit" className="add-button">
+      <button
+        type="submit"
+        className="add-button"
+        disabled={isDisabled}
+      >
         追加
       </button>
     </form>
