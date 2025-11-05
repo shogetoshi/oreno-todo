@@ -60,13 +60,23 @@ ipcMain.handle('load-todos', async () => {
   }
 });
 
-// TODOデータの保存
+// TODOデータの保存（アトミックな書き込み）
 ipcMain.handle('save-todos', async (_, todos) => {
+  const tempPath = `${dataPath}.tmp`;
   try {
-    await fsPromises.writeFile(dataPath, JSON.stringify(todos, null, 2), 'utf-8');
+    // 一時ファイルに完全に書き込み
+    await fsPromises.writeFile(tempPath, JSON.stringify(todos, null, 2), 'utf-8');
+    // アトミックにリネーム（OSレベルでアトミック操作）
+    await fsPromises.rename(tempPath, dataPath);
     return { success: true };
   } catch (error) {
     console.error('Failed to save todos:', error);
+    // 一時ファイルのクリーンアップ
+    try {
+      await fsPromises.unlink(tempPath);
+    } catch (unlinkError) {
+      // クリーンアップ失敗は無視（既に存在しない可能性）
+    }
     return { success: false, error: String(error) };
   }
 });
