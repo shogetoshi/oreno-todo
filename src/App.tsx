@@ -27,9 +27,6 @@ function App() {
     <div className="app">
       <header className="app-header">
         <h1>OrenoTodo</h1>
-        <p className="stats">
-          アクティブ: {activeTodos.length} / 完了: {completedTodos.length}
-        </p>
       </header>
 
       <main className="app-main">
@@ -57,10 +54,6 @@ function App() {
               onEdit={editTodo}
             />
           </section>
-        )}
-
-        {todos.length === 0 && (
-          <p className="empty-message">タスクを追加してください</p>
         )}
       </main>
     </div>
