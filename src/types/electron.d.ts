@@ -1,12 +1,10 @@
-export type Todo = {
-  id: string;
-  text: string;
-  completed: boolean;
-};
+import { Todo } from '../models/Todo';
+
+export type { Todo };
 
 export interface ElectronAPI {
-  loadTodos: () => Promise<Todo[]>;
-  saveTodos: (todos: Todo[]) => Promise<{ success: boolean; error?: string }>;
+  loadTodos: () => Promise<any[]>;
+  saveTodos: (todos: any[]) => Promise<{ success: boolean; error?: string }>;
 }
 
 declare global {

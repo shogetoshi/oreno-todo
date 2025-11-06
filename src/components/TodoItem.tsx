@@ -10,11 +10,15 @@ interface TodoItemProps {
 
 export const TodoItem = ({ todo, onToggle, onDelete, onEdit }: TodoItemProps) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editText, setEditText] = useState(todo.text);
+  const [editText, setEditText] = useState(todo.getText());
+
+  const todoId = todo.getId();
+  const todoText = todo.getText();
+  const completed = todo.isCompleted();
 
   // 編集モード開始時に最新のテキストを反映
   const startEditing = () => {
-    setEditText(todo.text);
+    setEditText(todo.getText());
     setIsEditing(true);
   };
 
@@ -24,8 +28,8 @@ export const TodoItem = ({ todo, onToggle, onDelete, onEdit }: TodoItemProps) =>
 
   const handleEdit = () => {
     const trimmed = editText.trim();
-    if (trimmed && trimmed !== todo.text) {
-      onEdit(todo.id, trimmed);
+    if (trimmed && trimmed !== todoText) {
+      onEdit(todoId, trimmed);
     }
     setIsEditing(false);
   };
@@ -39,11 +43,11 @@ export const TodoItem = ({ todo, onToggle, onDelete, onEdit }: TodoItemProps) =>
   };
 
   return (
-    <li className={`todo-item ${todo.completed ? 'completed' : ''}`}>
+    <li className={`todo-item ${completed ? 'completed' : ''}`}>
       <input
         type="checkbox"
-        checked={todo.completed}
-        onChange={() => onToggle(todo.id)}
+        checked={completed}
+        onChange={() => onToggle(todoId)}
         className="todo-checkbox"
       />
       {isEditing ? (
@@ -59,18 +63,18 @@ export const TodoItem = ({ todo, onToggle, onDelete, onEdit }: TodoItemProps) =>
       ) : (
         <span
           className="todo-text"
-          onDoubleClick={() => !todo.completed && startEditing()}
+          onDoubleClick={() => !completed && startEditing()}
         >
-          {todo.text}
+          {todoText}
         </span>
       )}
       <div className="todo-actions">
-        {!isEditing && !todo.completed && (
+        {!isEditing && !completed && (
           <button onClick={startEditing} className="edit-button">
             編集
           </button>
         )}
-        <button onClick={() => onDelete(todo.id)} className="delete-button">
+        <button onClick={() => onDelete(todoId)} className="delete-button">
           削除
         </button>
       </div>

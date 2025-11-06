@@ -13,7 +13,7 @@ export const TodoList = ({ todos, onToggle, onDelete, onEdit }: TodoListProps) =
     <ul className="todo-list">
       {todos.map((todo) => (
         <TodoItem
-          key={todo.id}
+          key={todo.getId()}
           todo={todo}
           onToggle={onToggle}
           onDelete={onDelete}
