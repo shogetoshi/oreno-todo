@@ -44,12 +44,6 @@ export const TodoItem = ({ todo, onToggle, onDelete, onEdit }: TodoItemProps) =>
 
   return (
     <li className={`todo-item ${completed ? 'completed' : ''}`}>
-      <input
-        type="checkbox"
-        checked={completed}
-        onChange={() => onToggle(todoId)}
-        className="todo-checkbox"
-      />
       {isEditing ? (
         <input
           type="text"
@@ -69,6 +63,9 @@ export const TodoItem = ({ todo, onToggle, onDelete, onEdit }: TodoItemProps) =>
         </span>
       )}
       <div className="todo-actions">
+        <button onClick={() => onToggle(todoId)} className="complete-button">
+          {completed ? '未完了に戻す' : '完了'}
+        </button>
         <button onClick={() => onDelete(todoId)} className="delete-button">
           削除
         </button>
