@@ -64,10 +64,10 @@ export const TodoItem = ({ todo, onToggle, onDelete, onEdit }: TodoItemProps) =>
       )}
       <div className="todo-actions">
         <button onClick={() => onToggle(todoId)} className="complete-button">
-          {completed ? '未完了に戻す' : '完了'}
+          ✅
         </button>
         <button onClick={() => onDelete(todoId)} className="delete-button">
-          削除
+          🗑️
         </button>
       </div>
     </li>
