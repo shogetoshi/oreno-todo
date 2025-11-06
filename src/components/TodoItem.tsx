@@ -69,11 +69,6 @@ export const TodoItem = ({ todo, onToggle, onDelete, onEdit }: TodoItemProps) =>
         </span>
       )}
       <div className="todo-actions">
-        {!isEditing && !completed && (
-          <button onClick={startEditing} className="edit-button">
-            編集
-          </button>
-        )}
         <button onClick={() => onDelete(todoId)} className="delete-button">
           削除
         </button>
