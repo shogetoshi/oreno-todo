@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Todo } from '../types/electron';
 import { TodoItem } from './TodoItem';
 
@@ -6,18 +7,50 @@ interface TodoListProps {
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (id: string, newText: string) => void;
+  onReorder: (newOrder: Todo[]) => void;
 }
 
-export const TodoList = ({ todos, onToggle, onDelete, onEdit }: TodoListProps) => {
+export const TodoList = ({ todos, onToggle, onDelete, onEdit, onReorder }: TodoListProps) => {
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (dropIndex: number) => {
+    if (draggedIndex === null || draggedIndex === dropIndex) return;
+
+    const newTodos = [...todos];
+    const [draggedTodo] = newTodos.splice(draggedIndex, 1);
+    newTodos.splice(dropIndex, 0, draggedTodo);
+
+    onReorder(newTodos);
+    setDraggedIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+  };
+
   return (
     <ul className="todo-list">
-      {todos.map((todo) => (
+      {todos.map((todo, index) => (
         <TodoItem
           key={todo.getId()}
           todo={todo}
+          index={index}
+          isDragging={draggedIndex === index}
           onToggle={onToggle}
           onDelete={onDelete}
           onEdit={onEdit}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+          onDragEnd={handleDragEnd}
         />
       ))}
     </ul>

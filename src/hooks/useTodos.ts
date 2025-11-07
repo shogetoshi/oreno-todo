@@ -76,6 +76,11 @@ export const useTodos = () => {
     );
   }, [setTodosWithPersist]);
 
+  // TODOの順序を並び替え
+  const reorderTodos = useCallback((newOrder: Todo[]) => {
+    setTodosWithPersist(() => newOrder);
+  }, [setTodosWithPersist]);
+
   return {
     todos,
     isLoading,
@@ -83,5 +88,6 @@ export const useTodos = () => {
     toggleTodo,
     deleteTodo,
     editTodo,
+    reorderTodos,
   };
 };

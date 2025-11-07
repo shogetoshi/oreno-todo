@@ -3,12 +3,18 @@ import type { Todo } from '../types/electron';
 
 interface TodoItemProps {
   todo: Todo;
+  index: number;
+  isDragging: boolean;
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (id: string, newText: string) => void;
+  onDragStart: (index: number) => void;
+  onDragOver: (e: React.DragEvent) => void;
+  onDrop: (index: number) => void;
+  onDragEnd: () => void;
 }
 
-export const TodoItem = ({ todo, onToggle, onDelete, onEdit }: TodoItemProps) => {
+export const TodoItem = ({ todo, index, isDragging, onToggle, onDelete, onEdit, onDragStart, onDragOver, onDrop, onDragEnd }: TodoItemProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(todo.getText());
 
@@ -43,7 +49,15 @@ export const TodoItem = ({ todo, onToggle, onDelete, onEdit }: TodoItemProps) =>
   };
 
   return (
-    <li className={`todo-item ${completed ? 'completed' : ''}`}>
+    <li
+      className={`todo-item ${completed ? 'completed' : ''}`}
+      draggable={true}
+      onDragStart={() => onDragStart(index)}
+      onDragOver={onDragOver}
+      onDrop={() => onDrop(index)}
+      onDragEnd={onDragEnd}
+      style={{ opacity: isDragging ? 0.5 : 1 }}
+    >
       {isEditing ? (
         <input
           type="text"

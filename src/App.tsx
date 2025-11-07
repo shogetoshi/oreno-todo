@@ -4,7 +4,7 @@ import { TodoList } from './components/TodoList';
 import './App.css';
 
 function App() {
-  const { todos, isLoading, addTodo, toggleTodo, deleteTodo, editTodo } = useTodos();
+  const { todos, isLoading, addTodo, toggleTodo, deleteTodo, editTodo, reorderTodos } = useTodos();
 
   if (isLoading) {
     return (
@@ -28,6 +28,7 @@ function App() {
           onToggle={toggleTodo}
           onDelete={deleteTodo}
           onEdit={editTodo}
+          onReorder={reorderTodos}
         />
       </main>
     </div>
