@@ -5,6 +5,7 @@ export type { Todo };
 export interface ElectronAPI {
   loadTodos: () => Promise<any[]>;
   saveTodos: (todos: any[]) => Promise<{ success: boolean; error?: string }>;
+  onAddTodoRequest: (callback: (text: string) => void) => void;
 }
 
 declare global {

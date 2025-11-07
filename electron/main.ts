@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import * as path from 'path';
 import { promises as fsPromises } from 'fs';
+import express from 'express';
 
 const isDev = !app.isPackaged;
 const dataPath = path.join(app.getPath('userData'), 'todos.json');
@@ -20,7 +21,7 @@ function createWindow() {
     mainWindow.loadURL('http://localhost:5173');
     mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+    mainWindow.loadFile(path.join(__dirname, '../../dist/index.html'));
   }
 }
 
@@ -81,8 +82,37 @@ ipcMain.handle('save-todos', async (_, todos) => {
   }
 });
 
+// HTTPサーバーの起動
+function startHttpServer() {
+  const httpApp = express();
+  httpApp.use(express.json());
+
+  httpApp.post('/api/todos', (req, res) => {
+    const { text } = req.body;
+
+    // バリデーション
+    if (typeof text !== 'string' || text.trim() === '') {
+      return res.status(400).json({ success: false, error: 'Invalid text' });
+    }
+
+    // 全てのウィンドウにイベントを送信
+    const windows = BrowserWindow.getAllWindows();
+    windows.forEach(window => {
+      window.webContents.send('add-todo-request', text);
+    });
+
+    res.json({ success: true });
+  });
+
+  const PORT = 3000;
+  httpApp.listen(PORT, () => {
+    console.log(`HTTP server running on http://localhost:${PORT}`);
+  });
+}
+
 app.whenReady().then(() => {
   createWindow();
+  startHttpServer();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

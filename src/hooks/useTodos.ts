@@ -46,6 +46,13 @@ export const useTodos = () => {
     setTodosWithPersist((prev) => [...prev, newTodo]);
   }, [setTodosWithPersist]);
 
+  // HTTPサーバー経由のTODO追加リクエストを受信
+  useEffect(() => {
+    window.electronAPI.onAddTodoRequest((text: string) => {
+      addTodo(text);
+    });
+  }, [addTodo]);
+
   // TODOの完了状態を切り替え
   const toggleTodo = useCallback((id: string) => {
     setTodosWithPersist((prev) =>
