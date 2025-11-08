@@ -2,12 +2,10 @@ import { useState } from 'react';
 import { useTodos } from './hooks/useTodos';
 import { TodoInput } from './components/TodoInput';
 import { TodoList } from './components/TodoList';
-import { Todo } from './models/Todo';
-import { validateTodos } from './utils/validation';
 import './App.css';
 
 function App() {
-  const { todos, isLoading, addTodo, toggleTodo, deleteTodo, editTodo, reorderTodos } = useTodos();
+  const { todos, isLoading, addTodo, toggleTodo, deleteTodo, editTodo, reorderTodos, replaceFromJson } = useTodos();
   const [isJsonEditorOpen, setIsJsonEditorOpen] = useState(false);
   const [jsonText, setJsonText] = useState('');
   const [jsonError, setJsonError] = useState('');
@@ -27,23 +25,8 @@ function App() {
 
   const handleSaveJson = async () => {
     try {
-      // JSONのバリデーション
-      const parsed = JSON.parse(jsonText);
-
-      if (!validateTodos(parsed)) {
-        setJsonError('JSONの形式が正しくありません。各TODOには id, text, completedAt が必要です');
-        return;
-      }
-
-      // Todoオブジェクトに変換
-      const newTodos = parsed.map((json: any) => Todo.fromJSON(json));
-
-      // 保存処理
-      const jsonArray = newTodos.map(todo => todo.toJSON());
-      await window.electronAPI.saveTodos(jsonArray);
-
-      // UIを更新（ページをリロードして最新状態を読み込む）
-      window.location.reload();
+      await replaceFromJson(jsonText);
+      handleCloseJsonEditor();
     } catch (error) {
       if (error instanceof SyntaxError) {
         setJsonError('JSONの形式が正しくありません: ' + error.message);

@@ -91,6 +91,22 @@ export const useTodos = () => {
     setTodosWithPersist(() => newOrder);
   }, [setTodosWithPersist]);
 
+  // JSONテキストからTODOリストを復元
+  const replaceFromJson = useCallback(async (jsonText: string) => {
+    // JSONのバリデーション
+    const parsed = JSON.parse(jsonText);
+
+    if (!validateTodos(parsed)) {
+      throw new Error('JSONの形式が正しくありません。各TODOには id, text, completedAt が必要です');
+    }
+
+    // Todoオブジェクトに変換
+    const newTodos = parsed.map((json: any) => Todo.fromJSON(json));
+
+    // 状態更新と保存
+    setTodosWithPersist(() => newTodos);
+  }, [setTodosWithPersist]);
+
   return {
     todos,
     isLoading,
@@ -99,5 +115,6 @@ export const useTodos = () => {
     deleteTodo,
     editTodo,
     reorderTodos,
+    replaceFromJson,
   };
 };
