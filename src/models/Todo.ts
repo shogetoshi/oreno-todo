@@ -101,10 +101,6 @@ export class Todo {
    * 元のJSONデータをそのまま返す（text, completedAtは最新の値で更新）
    */
   toJSON() {
-    return {
-      ...this.rawData,
-      text: this.text,
-      completedAt: this.completedAt
-    };
+    return this.rawData;
   }
 }
