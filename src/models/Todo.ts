@@ -3,11 +3,17 @@
  * JSON互換の構造を持ち、内部表現と意味的なアクセスインターフェースを提供する
  */
 export class Todo {
+  private rawData: any; // 元のJSONデータを保持
+
   constructor(
     public readonly id: string,
     public readonly text: string,
-    public readonly completedAt: string | null
-  ) {}
+    public readonly completedAt: string | null,
+    rawData?: any
+  ) {
+    // 元データを保持（なければ基本プロパティのみ）
+    this.rawData = rawData || { id, text, completedAt };
+  }
 
   /**
    * TodoのIDを取得する
@@ -48,29 +54,26 @@ export class Todo {
    * テキストを更新した新しいTodoインスタンスを返す
    */
   setText(newText: string): Todo {
-    return new Todo(this.id, newText, this.completedAt);
+    const newRawData = { ...this.rawData, text: newText };
+    return new Todo(this.id, newText, this.completedAt, newRawData);
   }
 
   /**
    * 完了状態を切り替えた新しいTodoインスタンスを返す
    */
   toggleCompleted(): Todo {
-    return new Todo(
-      this.id,
-      this.text,
-      this.completedAt === null ? new Date().toISOString() : null
-    );
+    const newCompletedAt = this.completedAt === null ? new Date().toISOString() : null;
+    const newRawData = { ...this.rawData, completedAt: newCompletedAt };
+    return new Todo(this.id, this.text, newCompletedAt, newRawData);
   }
 
   /**
    * 完了状態を設定した新しいTodoインスタンスを返す
    */
   setCompleted(completed: boolean): Todo {
-    return new Todo(
-      this.id,
-      this.text,
-      completed ? new Date().toISOString() : null
-    );
+    const newCompletedAt = completed ? new Date().toISOString() : null;
+    const newRawData = { ...this.rawData, completedAt: newCompletedAt };
+    return new Todo(this.id, this.text, newCompletedAt, newRawData);
   }
 
   /**
@@ -89,16 +92,17 @@ export class Todo {
       completedAt = json.completedAt;
     }
 
-    return new Todo(json.id, json.text, completedAt);
+    // 元のJSONデータをそのまま保持
+    return new Todo(json.id, json.text, completedAt, json);
   }
 
   /**
    * JSON形式に変換する
-   * 新形式（completedAt）で保存
+   * 元のJSONデータをそのまま返す（text, completedAtは最新の値で更新）
    */
   toJSON() {
     return {
-      id: this.id,
+      ...this.rawData,
       text: this.text,
       completedAt: this.completedAt
     };

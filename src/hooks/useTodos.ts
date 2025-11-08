@@ -42,7 +42,8 @@ export const useTodos = () => {
 
   // 新しいTODOを追加
   const addTodo = useCallback((text: string) => {
-    const newTodo = new Todo(crypto.randomUUID(), text, null);
+    const id = crypto.randomUUID();
+    const newTodo = new Todo(id, text, null, { id, text, completedAt: null });
     setTodosWithPersist((prev) => [...prev, newTodo]);
   }, [setTodosWithPersist]);
 
