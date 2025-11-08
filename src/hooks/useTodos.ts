@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Todo } from '../models/Todo';
+import { validateTodos } from '../utils/validation';
 
 export const useTodos = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -10,6 +11,14 @@ export const useTodos = () => {
     const loadTodos = async () => {
       try {
         const jsonArray = await window.electronAPI.loadTodos();
+
+        // レンダラープロセスでバリデーション
+        if (!validateTodos(jsonArray)) {
+          console.error('Invalid data format received from main process');
+          setTodos([]);
+          return;
+        }
+
         const todos = jsonArray.map((json: any) => Todo.fromJSON(json));
         setTodos(todos);
       } catch (error) {

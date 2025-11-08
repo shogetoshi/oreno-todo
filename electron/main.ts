@@ -30,13 +30,6 @@ ipcMain.handle('load-todos', async () => {
   try {
     const data = await fsPromises.readFile(dataPath, 'utf-8');
     const parsed = JSON.parse(data);
-
-    // データ形式の検証
-    if (!Array.isArray(parsed)) {
-      console.error('Invalid data format: not an array');
-      return [];
-    }
-
     return parsed;
   } catch (error) {
     // ファイルが存在しない場合は空配列を返す

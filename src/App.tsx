@@ -3,6 +3,7 @@ import { useTodos } from './hooks/useTodos';
 import { TodoInput } from './components/TodoInput';
 import { TodoList } from './components/TodoList';
 import { Todo } from './models/Todo';
+import { validateTodos } from './utils/validation';
 import './App.css';
 
 function App() {
@@ -29,18 +30,13 @@ function App() {
       // JSONのバリデーション
       const parsed = JSON.parse(jsonText);
 
-      if (!Array.isArray(parsed)) {
-        setJsonError('JSONは配列形式である必要があります');
+      if (!validateTodos(parsed)) {
+        setJsonError('JSONの形式が正しくありません。各TODOには id, text, completedAt が必要です');
         return;
       }
 
       // Todoオブジェクトに変換
-      const newTodos = parsed.map((json: any) => {
-        if (!json.id || typeof json.text !== 'string') {
-          throw new Error('各TODOには id と text が必要です');
-        }
-        return Todo.fromJSON(json);
-      });
+      const newTodos = parsed.map((json: any) => Todo.fromJSON(json));
 
       // 保存処理
       const jsonArray = newTodos.map(todo => todo.toJSON());
