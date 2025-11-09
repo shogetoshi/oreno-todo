@@ -89,7 +89,10 @@ export const TodoItem = ({ todo, index, isDragging, onToggle, onDelete, onEdit, 
         </span>
       )}
       <div className="todo-actions">
-        <button onClick={handleTimerClick} className="timer-button">
+        <button
+          onClick={handleTimerClick}
+          className={`timer-button ${isTimerRunning ? 'timer-running' : ''}`}
+        >
           {isTimerRunning ? '⏸️' : '▶️'}
         </button>
         <button onClick={() => onToggle(todoId)} className="complete-button">

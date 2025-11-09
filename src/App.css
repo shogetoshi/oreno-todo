@@ -200,6 +200,31 @@ body {
   background: #f1aeb5;
 }
 
+.timer-button {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+  color: #6c757d;
+  background: #e9ecef;
+}
+
+.timer-button:hover {
+  background: #d3d6d8;
+}
+
+.timer-button.timer-running {
+  color: #0d6efd;
+  background: #cfe2ff;
+}
+
+.timer-button.timer-running:hover {
+  background: #b6d4fe;
+}
+
 .complete-button {
   padding: 6px 12px;
   font-size: 0.85rem;
