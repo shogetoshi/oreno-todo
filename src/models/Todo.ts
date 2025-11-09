@@ -1,4 +1,12 @@
 /**
+ * 時間計測の範囲を表す型
+ */
+export interface TimeRange {
+  start: string;
+  end: string | null;
+}
+
+/**
  * TODOアイテムを表すクラス
  * JSON互換の構造を持ち、内部表現と意味的なアクセスインターフェースを提供する
  */
@@ -11,8 +19,8 @@ export class Todo {
     public readonly completedAt: string | null,
     rawData?: any
   ) {
-    // 元データを保持（なければ基本プロパティのみ）
-    this.rawData = rawData || { id, text, completedAt };
+    // 元データを保持（なければ基本プロパティ + 空のtimeRanges）
+    this.rawData = rawData || { id, text, completedAt, timeRanges: [] };
   }
 
   /**
@@ -77,6 +85,64 @@ export class Todo {
   }
 
   /**
+   * 時間計測を開始した新しいTodoインスタンスを返す
+   * 新しいTimeRange要素を追加（endはnull）
+   */
+  startTimer(): Todo {
+    const existingRanges: TimeRange[] = this.rawData.timeRanges || [];
+    const newRange: TimeRange = {
+      start: new Date().toISOString(),
+      end: null
+    };
+    const newRawData = {
+      ...this.rawData,
+      timeRanges: [...existingRanges, newRange]
+    };
+    return new Todo(this.id, this.text, this.completedAt, newRawData);
+  }
+
+  /**
+   * 時間計測を停止した新しいTodoインスタンスを返す
+   * 最新のTimeRangeのendに現在時刻を設定
+   */
+  stopTimer(): Todo {
+    const existingRanges: TimeRange[] = this.rawData.timeRanges || [];
+    if (existingRanges.length === 0) {
+      return this; // タイマーが開始されていない場合は何もしない
+    }
+
+    const newRanges = [...existingRanges];
+    const lastRange = newRanges[newRanges.length - 1];
+
+    // 最後の要素のendがnullの場合のみ停止
+    if (lastRange.end === null) {
+      newRanges[newRanges.length - 1] = {
+        ...lastRange,
+        end: new Date().toISOString()
+      };
+    }
+
+    const newRawData = {
+      ...this.rawData,
+      timeRanges: newRanges
+    };
+    return new Todo(this.id, this.text, this.completedAt, newRawData);
+  }
+
+  /**
+   * タイマーが実行中かどうかを判定する
+   * 最新のTimeRangeのendがnullの場合、実行中と判定
+   */
+  isTimerRunning(): boolean {
+    const timeRanges: TimeRange[] = this.rawData.timeRanges || [];
+    if (timeRanges.length === 0) {
+      return false;
+    }
+    const lastRange = timeRanges[timeRanges.length - 1];
+    return lastRange.end === null;
+  }
+
+  /**
    * JSONからTodoインスタンスを作成する
    * 既存のboolean形式とstring形式の両方に対応
    */
@@ -92,8 +158,14 @@ export class Todo {
       completedAt = json.completedAt;
     }
 
+    // timeRangesが存在しない場合は空配列で初期化
+    const jsonWithDefaults = {
+      ...json,
+      timeRanges: json.timeRanges || []
+    };
+
     // 元のJSONデータをそのまま保持
-    return new Todo(json.id, json.text, completedAt, json);
+    return new Todo(json.id, json.text, completedAt, jsonWithDefaults);
   }
 
   /**

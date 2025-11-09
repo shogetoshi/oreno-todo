@@ -4,6 +4,32 @@
  */
 
 /**
+ * TimeRange型のバリデーション
+ *
+ * @param data - バリデーション対象のデータ
+ * @returns dataがTimeRange型に準拠している場合true
+ */
+function validateTimeRange(data: unknown): data is { start: string; end: string | null } {
+  if (typeof data !== 'object' || data === null) {
+    return false;
+  }
+
+  const obj = data as Record<string, unknown>;
+
+  // startは必須のstring
+  if (typeof obj.start !== 'string') {
+    return false;
+  }
+
+  // endはstring | null
+  if (obj.end !== null && typeof obj.end !== 'string') {
+    return false;
+  }
+
+  return true;
+}
+
+/**
  * 個別のTodoオブジェクトをバリデーション
  *
  * @param data - バリデーション対象のデータ
@@ -27,6 +53,15 @@ export function validateTodo(data: unknown): data is { id: string; text: string;
 
   // completedAtはstring | nullを許容
   if (obj.completedAt !== null && typeof obj.completedAt !== 'string') {
+    return false;
+  }
+
+  // timeRangesは必須の配列（空配列でも可）
+  if (!Array.isArray(obj.timeRanges)) {
+    return false;
+  }
+  // 全要素が正しいTimeRange型かチェック
+  if (!obj.timeRanges.every(item => validateTimeRange(item))) {
     return false;
   }
 

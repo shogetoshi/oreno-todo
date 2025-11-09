@@ -107,6 +107,24 @@ export const useTodos = () => {
     setTodosWithPersist(() => newTodos);
   }, [setTodosWithPersist]);
 
+  // タイマーを開始
+  const startTimer = useCallback((id: string) => {
+    setTodosWithPersist((prev) =>
+      prev.map((todo) =>
+        todo.getId() === id ? todo.startTimer() : todo
+      )
+    );
+  }, [setTodosWithPersist]);
+
+  // タイマーを停止
+  const stopTimer = useCallback((id: string) => {
+    setTodosWithPersist((prev) =>
+      prev.map((todo) =>
+        todo.getId() === id ? todo.stopTimer() : todo
+      )
+    );
+  }, [setTodosWithPersist]);
+
   return {
     todos,
     isLoading,
@@ -116,5 +134,7 @@ export const useTodos = () => {
     editTodo,
     reorderTodos,
     replaceFromJson,
+    startTimer,
+    stopTimer,
   };
 };

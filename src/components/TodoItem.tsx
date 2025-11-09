@@ -8,19 +8,31 @@ interface TodoItemProps {
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (id: string, newText: string) => void;
+  onStartTimer: (id: string) => void;
+  onStopTimer: (id: string) => void;
   onDragStart: (index: number) => void;
   onDragOver: (e: React.DragEvent) => void;
   onDrop: (index: number) => void;
   onDragEnd: () => void;
 }
 
-export const TodoItem = ({ todo, index, isDragging, onToggle, onDelete, onEdit, onDragStart, onDragOver, onDrop, onDragEnd }: TodoItemProps) => {
+export const TodoItem = ({ todo, index, isDragging, onToggle, onDelete, onEdit, onStartTimer, onStopTimer, onDragStart, onDragOver, onDrop, onDragEnd }: TodoItemProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(todo.getText());
 
   const todoId = todo.getId();
   const todoText = todo.getText();
   const completed = todo.isCompleted();
+  const isTimerRunning = todo.isTimerRunning();
+
+  // タイマーボタンのクリックハンドラ
+  const handleTimerClick = () => {
+    if (isTimerRunning) {
+      onStopTimer(todoId);
+    } else {
+      onStartTimer(todoId);
+    }
+  };
 
   // 編集モード開始時に最新のテキストを反映
   const startEditing = () => {
@@ -77,6 +89,9 @@ export const TodoItem = ({ todo, index, isDragging, onToggle, onDelete, onEdit, 
         </span>
       )}
       <div className="todo-actions">
+        <button onClick={handleTimerClick} className="timer-button">
+          {isTimerRunning ? '⏸️' : '▶️'}
+        </button>
         <button onClick={() => onToggle(todoId)} className="complete-button">
           ✅
         </button>
