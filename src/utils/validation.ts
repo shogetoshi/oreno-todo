@@ -56,13 +56,15 @@ export function validateTodo(data: unknown): data is { id: string; text: string;
     return false;
   }
 
-  // timeRangesは必須の配列（空配列でも可）
-  if (!Array.isArray(obj.timeRanges)) {
-    return false;
-  }
-  // 全要素が正しいTimeRange型かチェック
-  if (!obj.timeRanges.every(item => validateTimeRange(item))) {
-    return false;
+  // timeRangesはオプショナル（既存データとの互換性のため）
+  // 存在する場合のみ、配列であり全要素が正しいTimeRange型かチェック
+  if (obj.timeRanges !== undefined) {
+    if (!Array.isArray(obj.timeRanges)) {
+      return false;
+    }
+    if (!obj.timeRanges.every(item => validateTimeRange(item))) {
+      return false;
+    }
   }
 
   return true;
