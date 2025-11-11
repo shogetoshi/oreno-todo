@@ -143,6 +143,29 @@ export class Todo {
   }
 
   /**
+   * 合計実行時間を分単位で取得する
+   * timeRanges配列内の全ての時間範囲を秒単位で計算し、分に変換して返す
+   * endがnullの場合（実行中）は現在時刻までを含めて計算する
+   */
+  getTotalExecutionTimeInMinutes(): number {
+    const timeRanges: TimeRange[] = this.rawData.timeRanges || [];
+    if (timeRanges.length === 0) {
+      return 0;
+    }
+
+    const totalSeconds = timeRanges.reduce((total, range) => {
+      const startTime = new Date(range.start).getTime();
+      const endTime = range.end ? new Date(range.end).getTime() : new Date().getTime();
+      const durationMs = endTime - startTime;
+      const durationSeconds = Math.floor(durationMs / 1000);
+      return total + durationSeconds;
+    }, 0);
+
+    // 秒を分に変換（小数第1位まで）
+    return Math.round(totalSeconds / 60 * 10) / 10;
+  }
+
+  /**
    * JSONからTodoインスタンスを作成する
    * 既存のboolean形式とstring形式の両方に対応
    */
