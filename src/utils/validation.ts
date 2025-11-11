@@ -56,6 +56,16 @@ export function validateTodo(data: unknown): data is { id: string; text: string;
     return false;
   }
 
+  // createdAtとupdatedAtはオプショナル（既存データとの互換性のため）
+  // 存在する場合は文字列型である必要がある
+  if (obj.createdAt !== undefined && typeof obj.createdAt !== 'string') {
+    return false;
+  }
+
+  if (obj.updatedAt !== undefined && typeof obj.updatedAt !== 'string') {
+    return false;
+  }
+
   // timeRangesはオプショナル（既存データとの互換性のため）
   // 存在する場合のみ、配列であり全要素が正しいTimeRange型かチェック
   if (obj.timeRanges !== undefined) {

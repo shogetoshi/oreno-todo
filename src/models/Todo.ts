@@ -19,10 +19,12 @@ export class Todo {
     public readonly id: string,
     public readonly text: string,
     public readonly completedAt: string | null,
+    public readonly createdAt: string,
+    public readonly updatedAt: string,
     rawData?: any
   ) {
-    // 元データを保持（なければ基本プロパティ + 空のtimeRanges）
-    this.rawData = rawData || { id, text, completedAt, timeRanges: [] };
+    // 元データを保持（なければ基本プロパティ + 空のtimeRanges + タイムスタンプ）
+    this.rawData = rawData || { id, text, completedAt, createdAt, updatedAt, timeRanges: [] };
   }
 
   /**
@@ -64,26 +66,29 @@ export class Todo {
    * テキストを更新した新しいTodoインスタンスを返す
    */
   setText(newText: string): Todo {
-    const newRawData = { ...this.rawData, text: newText };
-    return new Todo(this.id, newText, this.completedAt, newRawData);
+    const now = getCurrentJSTTime();
+    const newRawData = { ...this.rawData, text: newText, updatedAt: now };
+    return new Todo(this.id, newText, this.completedAt, this.createdAt, now, newRawData);
   }
 
   /**
    * 完了状態を切り替えた新しいTodoインスタンスを返す
    */
   toggleCompleted(): Todo {
-    const newCompletedAt = this.completedAt === null ? getCurrentJSTTime() : null;
-    const newRawData = { ...this.rawData, completedAt: newCompletedAt };
-    return new Todo(this.id, this.text, newCompletedAt, newRawData);
+    const now = getCurrentJSTTime();
+    const newCompletedAt = this.completedAt === null ? now : null;
+    const newRawData = { ...this.rawData, completedAt: newCompletedAt, updatedAt: now };
+    return new Todo(this.id, this.text, newCompletedAt, this.createdAt, now, newRawData);
   }
 
   /**
    * 完了状態を設定した新しいTodoインスタンスを返す
    */
   setCompleted(completed: boolean): Todo {
-    const newCompletedAt = completed ? getCurrentJSTTime() : null;
-    const newRawData = { ...this.rawData, completedAt: newCompletedAt };
-    return new Todo(this.id, this.text, newCompletedAt, newRawData);
+    const now = getCurrentJSTTime();
+    const newCompletedAt = completed ? now : null;
+    const newRawData = { ...this.rawData, completedAt: newCompletedAt, updatedAt: now };
+    return new Todo(this.id, this.text, newCompletedAt, this.createdAt, now, newRawData);
   }
 
   /**
@@ -91,16 +96,18 @@ export class Todo {
    * 新しいTimeRange要素を追加（endはnull）
    */
   startTimer(): Todo {
+    const now = getCurrentJSTTime();
     const existingRanges: TimeRange[] = this.rawData.timeRanges || [];
     const newRange: TimeRange = {
-      start: getCurrentJSTTime(),
+      start: now,
       end: null
     };
     const newRawData = {
       ...this.rawData,
-      timeRanges: [...existingRanges, newRange]
+      timeRanges: [...existingRanges, newRange],
+      updatedAt: now
     };
-    return new Todo(this.id, this.text, this.completedAt, newRawData);
+    return new Todo(this.id, this.text, this.completedAt, this.createdAt, now, newRawData);
   }
 
   /**
@@ -118,17 +125,21 @@ export class Todo {
 
     // 最後の要素のendがnullの場合のみ停止
     if (lastRange.end === null) {
+      const now = getCurrentJSTTime();
       newRanges[newRanges.length - 1] = {
         ...lastRange,
-        end: getCurrentJSTTime()
+        end: now
       };
+
+      const newRawData = {
+        ...this.rawData,
+        timeRanges: newRanges,
+        updatedAt: now
+      };
+      return new Todo(this.id, this.text, this.completedAt, this.createdAt, now, newRawData);
     }
 
-    const newRawData = {
-      ...this.rawData,
-      timeRanges: newRanges
-    };
-    return new Todo(this.id, this.text, this.completedAt, newRawData);
+    return this;
   }
 
   /**
@@ -172,25 +183,33 @@ export class Todo {
    * 既存のboolean形式とstring形式の両方に対応
    */
   static fromJSON(json: any): Todo {
+    const now = getCurrentJSTTime();
+
     // 既存データとの互換性のため、completedがbooleanの場合も対応
     let completedAt: string | null = null;
 
     if (typeof json.completed === 'boolean') {
       // 旧形式: completed: boolean
-      completedAt = json.completed ? (json.createdAt || getCurrentJSTTime()) : null;
+      completedAt = json.completed ? (json.createdAt || now) : null;
     } else if (json.completedAt) {
       // 新形式: completedAt: string | null
       completedAt = json.completedAt;
     }
 
+    // タイムスタンプのフォールバック処理
+    const createdAt = json.createdAt || now;
+    const updatedAt = json.updatedAt || now;
+
     // timeRangesが存在しない場合は空配列で初期化
     const jsonWithDefaults = {
       ...json,
-      timeRanges: json.timeRanges || []
+      timeRanges: json.timeRanges || [],
+      createdAt,
+      updatedAt
     };
 
     // 元のJSONデータをそのまま保持
-    return new Todo(json.id, json.text, completedAt, jsonWithDefaults);
+    return new Todo(json.id, json.text, completedAt, createdAt, updatedAt, jsonWithDefaults);
   }
 
   /**
