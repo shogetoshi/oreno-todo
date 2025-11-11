@@ -157,7 +157,7 @@ export class Todo {
 
     const totalSeconds = timeRanges.reduce((total, range) => {
       const startTime = parseJSTString(range.start).getTime();
-      const endTime = range.end ? parseJSTString(range.end).getTime() : Date.now();
+      const endTime = range.end ? parseJSTString(range.end).getTime() : parseJSTString(getCurrentJSTTime()).getTime();
       const durationMs = endTime - startTime;
       const durationSeconds = Math.floor(durationMs / 1000);
       return total + durationSeconds;
