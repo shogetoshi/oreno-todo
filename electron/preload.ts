@@ -5,7 +5,7 @@ const electronAPI: ElectronAPI = {
   loadTodos: () => ipcRenderer.invoke('load-todos'),
   saveTodos: (todos) => ipcRenderer.invoke('save-todos', todos),
   onAddTodoRequest: (callback) => {
-    ipcRenderer.on('add-todo-request', (_event, text) => callback(text));
+    ipcRenderer.on('add-todo-request', (_event, taskcode, text) => callback(taskcode, text));
   },
 };
 

@@ -1,30 +1,39 @@
 import { useState } from 'react';
 
 interface TodoInputProps {
-  onAdd: (text: string) => void;
+  onAdd: (taskcode: string, text: string) => void;
 }
 
 export const TodoInput = ({ onAdd }: TodoInputProps) => {
-  const [inputValue, setInputValue] = useState('');
+  const [taskcodeValue, setTaskcodeValue] = useState('');
+  const [textValue, setTextValue] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (inputValue.trim()) {
-      onAdd(inputValue.trim());
-      setInputValue('');
+    if (textValue.trim()) {
+      onAdd(taskcodeValue, textValue.trim());
+      setTaskcodeValue('');
+      setTextValue('');
     }
   };
 
-  const isDisabled = !inputValue.trim();
+  const isDisabled = !textValue.trim();
 
   return (
     <form onSubmit={handleSubmit} className="todo-input-form">
       <input
         type="text"
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
+        value={taskcodeValue}
+        onChange={(e) => setTaskcodeValue(e.target.value)}
+        placeholder="タスクコード"
+        className="todo-input taskcode-input"
+      />
+      <input
+        type="text"
+        value={textValue}
+        onChange={(e) => setTextValue(e.target.value)}
         placeholder="新しいタスクを入力..."
-        className="todo-input"
+        className="todo-input text-input"
       />
       <button
         type="submit"

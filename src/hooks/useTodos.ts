@@ -51,17 +51,17 @@ export const useTodos = () => {
   }, []);
 
   // 新しいTODOを追加
-  const addTodo = useCallback((text: string) => {
+  const addTodo = useCallback((taskcode: string, text: string) => {
     const id = crypto.randomUUID();
     const now = getCurrentJSTTime();
-    const newTodo = new Todo(id, text, null, now, now, { id, text, completedAt: null, createdAt: now, updatedAt: now, timeRanges: [] });
+    const newTodo = new Todo(id, taskcode, text, null, now, now, { id, taskcode, text, completedAt: null, createdAt: now, updatedAt: now, timeRanges: [] });
     setTodosWithPersist((prev) => [...prev, newTodo]);
   }, [setTodosWithPersist]);
 
   // HTTPサーバー経由のTODO追加リクエストを受信
   useEffect(() => {
-    window.electronAPI.onAddTodoRequest((text: string) => {
-      addTodo(text);
+    window.electronAPI.onAddTodoRequest((taskcode: string, text: string) => {
+      addTodo(taskcode, text);
     });
   }, [addTodo]);
 
@@ -84,6 +84,15 @@ export const useTodos = () => {
     setTodosWithPersist((prev) =>
       prev.map((todo) =>
         todo.getId() === id ? todo.setText(newText) : todo
+      )
+    );
+  }, [setTodosWithPersist]);
+
+  // TODOのタスクコードを編集
+  const editTaskcode = useCallback((id: string, newTaskcode: string) => {
+    setTodosWithPersist((prev) =>
+      prev.map((todo) =>
+        todo.getId() === id ? todo.setTaskcode(newTaskcode) : todo
       )
     );
   }, [setTodosWithPersist]);
@@ -134,6 +143,7 @@ export const useTodos = () => {
     toggleTodo,
     deleteTodo,
     editTodo,
+    editTaskcode,
     reorderTodos,
     replaceFromJson,
     startTimer,

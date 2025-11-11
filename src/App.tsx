@@ -5,7 +5,7 @@ import { TodoList } from './components/TodoList';
 import './App.css';
 
 function App() {
-  const { todos, isLoading, addTodo, toggleTodo, deleteTodo, editTodo, reorderTodos, replaceFromJson, startTimer, stopTimer } = useTodos();
+  const { todos, isLoading, addTodo, toggleTodo, deleteTodo, editTodo, editTaskcode, reorderTodos, replaceFromJson, startTimer, stopTimer } = useTodos();
   const [isJsonEditorOpen, setIsJsonEditorOpen] = useState(false);
   const [jsonText, setJsonText] = useState('');
   const [jsonError, setJsonError] = useState('');
@@ -68,6 +68,7 @@ function App() {
           onToggle={toggleTodo}
           onDelete={deleteTodo}
           onEdit={editTodo}
+          onEditTaskcode={editTaskcode}
           onReorder={reorderTodos}
           onStartTimer={startTimer}
           onStopTimer={stopTimer}

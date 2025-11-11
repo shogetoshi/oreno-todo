@@ -81,9 +81,14 @@ function startHttpServer() {
   httpApp.use(express.json());
 
   httpApp.post('/api/todos', (req, res) => {
-    const { text } = req.body;
+    const { taskcode, text } = req.body;
 
     // バリデーション
+    // taskcodeは必須だが空文字列を許容
+    if (typeof taskcode !== 'string') {
+      return res.status(400).json({ success: false, error: 'Invalid taskcode' });
+    }
+
     if (typeof text !== 'string' || text.trim() === '') {
       return res.status(400).json({ success: false, error: 'Invalid text' });
     }
@@ -91,7 +96,7 @@ function startHttpServer() {
     // 全てのウィンドウにイベントを送信
     const windows = BrowserWindow.getAllWindows();
     windows.forEach(window => {
-      window.webContents.send('add-todo-request', text);
+      window.webContents.send('add-todo-request', taskcode, text);
     });
 
     res.json({ success: true });

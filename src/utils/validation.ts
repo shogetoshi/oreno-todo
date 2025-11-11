@@ -35,7 +35,7 @@ function validateTimeRange(data: unknown): data is { start: string; end: string 
  * @param data - バリデーション対象のデータ
  * @returns dataがTodo型に準拠している場合true
  */
-export function validateTodo(data: unknown): data is { id: string; text: string; completedAt: string | null } {
+export function validateTodo(data: unknown): data is { id: string; taskcode: string; text: string; completedAt: string | null } {
   if (typeof data !== 'object' || data === null) {
     return false;
   }
@@ -44,6 +44,11 @@ export function validateTodo(data: unknown): data is { id: string; text: string;
 
   // 必須プロパティのチェック
   if (typeof obj.id !== 'string') {
+    return false;
+  }
+
+  // taskcodeは文字列型である必要がある
+  if (typeof obj.taskcode !== 'string') {
     return false;
   }
 
@@ -86,7 +91,7 @@ export function validateTodo(data: unknown): data is { id: string; text: string;
  * @param data - バリデーション対象のデータ
  * @returns dataがTodo配列に準拠している場合true
  */
-export function validateTodos(data: unknown): data is Array<{ id: string; text: string; completedAt: string | null }> {
+export function validateTodos(data: unknown): data is Array<{ id: string; taskcode: string; text: string; completedAt: string | null }> {
   if (!Array.isArray(data)) {
     return false;
   }
