@@ -1,6 +1,8 @@
 /**
+ * Model Layer: Validation Utility
  * Todoデータのバリデーション関数
  * JSONパース後のデータが正しいTodo型に準拠しているかをチェックする
+ * ビジネスルールに基づくデータ整合性を保証
  */
 
 /**

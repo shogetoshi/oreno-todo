@@ -2,8 +2,14 @@ import { useState } from 'react';
 import { useTodos } from './hooks/useTodos';
 import { TodoInput } from './components/TodoInput';
 import { TodoList } from './components/TodoList';
+import { TodoRepository } from './models/TodoRepository';
 import './App.css';
 
+/**
+ * View Layer: App Component
+ * アプリケーションのメインUIとJSON編集モーダルを提供
+ * JSON編集関連のローカル状態のみを管理
+ */
 function App() {
   const { todos, isLoading, addTodo, toggleTodo, deleteTodo, editTodo, editTaskcode, reorderTodos, replaceFromJson, startTimer, stopTimer } = useTodos();
   const [isJsonEditorOpen, setIsJsonEditorOpen] = useState(false);
@@ -11,8 +17,7 @@ function App() {
   const [jsonError, setJsonError] = useState('');
 
   const handleOpenJsonEditor = () => {
-    const jsonArray = todos.map(todo => todo.toJSON());
-    setJsonText(JSON.stringify(jsonArray, null, 2));
+    setJsonText(TodoRepository.toJsonText(todos));
     setJsonError('');
     setIsJsonEditorOpen(true);
   };

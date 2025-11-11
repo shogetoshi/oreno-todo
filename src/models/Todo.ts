@@ -1,6 +1,11 @@
 import { getCurrentJSTTime, parseJSTString } from '../utils/timeFormat';
 
 /**
+ * Model Layer: Todo Entity
+ * TODOアイテムのドメインモデル
+ */
+
+/**
  * 時間計測の範囲を表す型
  */
 export interface TimeRange {
@@ -11,6 +16,7 @@ export interface TimeRange {
 /**
  * TODOアイテムを表すクラス
  * JSON互換の構造を持ち、内部表現と意味的なアクセスインターフェースを提供する
+ * イミュータブルな設計: すべての更新メソッドは新しいインスタンスを返す
  */
 export class Todo {
   private rawData: any; // 元のJSONデータを保持

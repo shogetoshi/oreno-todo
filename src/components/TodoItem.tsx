@@ -1,6 +1,11 @@
 import { useState } from 'react';
 import type { Todo } from '../types/electron';
 
+/**
+ * View Layer: TodoItem Component
+ * 個別のTodoアイテムの表示と編集UIを提供
+ * 編集中のローカル状態のみを管理
+ */
 interface TodoItemProps {
   todo: Todo;
   index: number;
