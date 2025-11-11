@@ -130,6 +130,13 @@ body {
   transition: all 0.3s;
 }
 
+.todo-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .todo-item:hover {
   background: #e9ecef;
   transform: translateX(5px);
@@ -146,7 +153,6 @@ body {
 }
 
 .todo-text {
-  flex: 1;
   font-size: 1rem;
   color: #333;
   cursor: default;
@@ -155,6 +161,20 @@ body {
 .todo-item.completed .todo-text {
   text-decoration: line-through;
   color: #999;
+}
+
+.execution-time {
+  font-size: 0.85rem;
+  color: #6c757d;
+  background: #e9ecef;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.todo-item.completed .execution-time {
+  opacity: 0.7;
 }
 
 .todo-edit-input {
