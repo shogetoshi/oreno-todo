@@ -1,0 +1,5 @@
+- Todoをまとめるような概念である「taskcode」を導入します。
+    - 「taskcode」「text」を入力してtodoを作成します。
+    - グループであるtaskcodeの方がtextよりも前に登場します。
+    - taskcodeの値が描画されるようにして
+    - textと同じようにダブルクリックしたら変更可能に。
