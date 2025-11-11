@@ -47,9 +47,8 @@ export function validateTodo(data: unknown): data is { id: string; taskcode: str
     return false;
   }
 
-  // taskcodeはオプショナル（既存データとの互換性のため）
-  // 存在する場合は文字列型である必要がある
-  if (obj.taskcode !== undefined && typeof obj.taskcode !== 'string') {
+  // taskcodeは文字列型である必要がある
+  if (typeof obj.taskcode !== 'string') {
     return false;
   }
 
