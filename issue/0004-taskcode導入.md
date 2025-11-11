@@ -1,5 +1,7 @@
 - Todoをまとめるような概念である「taskcode」を導入します。
     - 「taskcode」「text」を入力してtodoを作成します。
-    - グループであるtaskcodeの方がtextよりも前に登場します。
-    - taskcodeの値が描画されるようにして
+        - HTTPサーバを経由したtodo追加でもtaskcodeとtextを受け取ります。
+    - コードにおいてもUIに置いても、グループであるtaskcodeの方がtextよりも前に登場します。
+    - taskcodeの値がtextの左側に描画されるようにして
     - textと同じようにダブルクリックしたら変更可能に。
+    - taskcodeはプログラム的には必須ですが、空文字列を認めます。
