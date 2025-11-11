@@ -89,11 +89,10 @@ export const TodoItem = ({ todo, index, isDragging, onToggle, onDelete, onEdit, 
           >
             {todoText}
           </span>
-          {executionTimeMinutes > 0 && (
-            <span className="execution-time">
-              {executionTimeMinutes}分
+          {<span className="execution-time">
+              {executionTimeMinutes}
             </span>
-          )}
+          }
         </div>
       )}
       <div className="todo-actions">

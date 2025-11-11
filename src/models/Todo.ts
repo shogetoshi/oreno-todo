@@ -162,7 +162,7 @@ export class Todo {
     }, 0);
 
     // 秒を分に変換（小数第1位まで）
-    return Math.round(totalSeconds / 60 * 10) / 10;
+    return Math.round(totalSeconds / 60);
   }
 
   /**
