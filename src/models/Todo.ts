@@ -1,3 +1,5 @@
+import { getCurrentJSTTime, parseJSTString } from '../utils/timeFormat';
+
 /**
  * 時間計測の範囲を表す型
  */
@@ -70,7 +72,7 @@ export class Todo {
    * 完了状態を切り替えた新しいTodoインスタンスを返す
    */
   toggleCompleted(): Todo {
-    const newCompletedAt = this.completedAt === null ? new Date().toISOString() : null;
+    const newCompletedAt = this.completedAt === null ? getCurrentJSTTime() : null;
     const newRawData = { ...this.rawData, completedAt: newCompletedAt };
     return new Todo(this.id, this.text, newCompletedAt, newRawData);
   }
@@ -79,7 +81,7 @@ export class Todo {
    * 完了状態を設定した新しいTodoインスタンスを返す
    */
   setCompleted(completed: boolean): Todo {
-    const newCompletedAt = completed ? new Date().toISOString() : null;
+    const newCompletedAt = completed ? getCurrentJSTTime() : null;
     const newRawData = { ...this.rawData, completedAt: newCompletedAt };
     return new Todo(this.id, this.text, newCompletedAt, newRawData);
   }
@@ -91,7 +93,7 @@ export class Todo {
   startTimer(): Todo {
     const existingRanges: TimeRange[] = this.rawData.timeRanges || [];
     const newRange: TimeRange = {
-      start: new Date().toISOString(),
+      start: getCurrentJSTTime(),
       end: null
     };
     const newRawData = {
@@ -118,7 +120,7 @@ export class Todo {
     if (lastRange.end === null) {
       newRanges[newRanges.length - 1] = {
         ...lastRange,
-        end: new Date().toISOString()
+        end: getCurrentJSTTime()
       };
     }
 
@@ -175,7 +177,7 @@ export class Todo {
 
     if (typeof json.completed === 'boolean') {
       // 旧形式: completed: boolean
-      completedAt = json.completed ? (json.createdAt || new Date().toISOString()) : null;
+      completedAt = json.completed ? (json.createdAt || getCurrentJSTTime()) : null;
     } else if (json.completedAt) {
       // 新形式: completedAt: string | null
       completedAt = json.completedAt;
