@@ -17,6 +17,7 @@ export class Todo {
 
   constructor(
     public readonly id: string,
+    public readonly taskcode: string,
     public readonly text: string,
     public readonly completedAt: string | null,
     public readonly createdAt: string,
@@ -24,7 +25,7 @@ export class Todo {
     rawData?: any
   ) {
     // 元データを保持（なければ基本プロパティ + 空のtimeRanges + タイムスタンプ）
-    this.rawData = rawData || { id, text, completedAt, createdAt, updatedAt, timeRanges: [] };
+    this.rawData = rawData || { id, taskcode, text, completedAt, createdAt, updatedAt, timeRanges: [] };
   }
 
   /**
@@ -32,6 +33,13 @@ export class Todo {
    */
   getId(): string {
     return this.id;
+  }
+
+  /**
+   * Todoのタスクコードを取得する
+   */
+  getTaskcode(): string {
+    return this.taskcode;
   }
 
   /**
@@ -63,12 +71,21 @@ export class Todo {
   }
 
   /**
+   * タスクコードを更新した新しいTodoインスタンスを返す
+   */
+  setTaskcode(newTaskcode: string): Todo {
+    const now = getCurrentJSTTime();
+    const newRawData = { ...this.rawData, taskcode: newTaskcode, updatedAt: now };
+    return new Todo(this.id, newTaskcode, this.text, this.completedAt, this.createdAt, now, newRawData);
+  }
+
+  /**
    * テキストを更新した新しいTodoインスタンスを返す
    */
   setText(newText: string): Todo {
     const now = getCurrentJSTTime();
     const newRawData = { ...this.rawData, text: newText, updatedAt: now };
-    return new Todo(this.id, newText, this.completedAt, this.createdAt, now, newRawData);
+    return new Todo(this.id, this.taskcode, newText, this.completedAt, this.createdAt, now, newRawData);
   }
 
   /**
@@ -78,7 +95,7 @@ export class Todo {
     const now = getCurrentJSTTime();
     const newCompletedAt = this.completedAt === null ? now : null;
     const newRawData = { ...this.rawData, completedAt: newCompletedAt, updatedAt: now };
-    return new Todo(this.id, this.text, newCompletedAt, this.createdAt, now, newRawData);
+    return new Todo(this.id, this.taskcode, this.text, newCompletedAt, this.createdAt, now, newRawData);
   }
 
   /**
@@ -88,7 +105,7 @@ export class Todo {
     const now = getCurrentJSTTime();
     const newCompletedAt = completed ? now : null;
     const newRawData = { ...this.rawData, completedAt: newCompletedAt, updatedAt: now };
-    return new Todo(this.id, this.text, newCompletedAt, this.createdAt, now, newRawData);
+    return new Todo(this.id, this.taskcode, this.text, newCompletedAt, this.createdAt, now, newRawData);
   }
 
   /**
@@ -107,7 +124,7 @@ export class Todo {
       timeRanges: [...existingRanges, newRange],
       updatedAt: now
     };
-    return new Todo(this.id, this.text, this.completedAt, this.createdAt, now, newRawData);
+    return new Todo(this.id, this.taskcode, this.text, this.completedAt, this.createdAt, now, newRawData);
   }
 
   /**
@@ -136,7 +153,7 @@ export class Todo {
         timeRanges: newRanges,
         updatedAt: now
       };
-      return new Todo(this.id, this.text, this.completedAt, this.createdAt, now, newRawData);
+      return new Todo(this.id, this.taskcode, this.text, this.completedAt, this.createdAt, now, newRawData);
     }
 
     return this;
@@ -200,16 +217,20 @@ export class Todo {
     const createdAt = json.createdAt || now;
     const updatedAt = json.updatedAt || now;
 
+    // taskcodeが存在しない場合は空文字列で初期化（既存データとの互換性）
+    const taskcode = json.taskcode || '';
+
     // timeRangesが存在しない場合は空配列で初期化
     const jsonWithDefaults = {
       ...json,
+      taskcode,
       timeRanges: json.timeRanges || [],
       createdAt,
       updatedAt
     };
 
     // 元のJSONデータをそのまま保持
-    return new Todo(json.id, json.text, completedAt, createdAt, updatedAt, jsonWithDefaults);
+    return new Todo(json.id, taskcode, json.text, completedAt, createdAt, updatedAt, jsonWithDefaults);
   }
 
   /**
