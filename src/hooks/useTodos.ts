@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Todo } from '../models/Todo';
 import { validateTodos } from '../utils/validation';
+import { getCurrentJSTTime } from '../utils/timeFormat';
 
 export const useTodos = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -52,7 +53,8 @@ export const useTodos = () => {
   // 新しいTODOを追加
   const addTodo = useCallback((text: string) => {
     const id = crypto.randomUUID();
-    const newTodo = new Todo(id, text, null, { id, text, completedAt: null });
+    const now = getCurrentJSTTime();
+    const newTodo = new Todo(id, text, null, now, now, { id, text, completedAt: null, createdAt: now, updatedAt: now, timeRanges: [] });
     setTodosWithPersist((prev) => [...prev, newTodo]);
   }, [setTodosWithPersist]);
 
