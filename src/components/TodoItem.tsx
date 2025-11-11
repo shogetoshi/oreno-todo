@@ -24,6 +24,7 @@ export const TodoItem = ({ todo, index, isDragging, onToggle, onDelete, onEdit, 
   const todoText = todo.getText();
   const completed = todo.isCompleted();
   const isTimerRunning = todo.isTimerRunning();
+  const executionTimeMinutes = todo.getTotalExecutionTimeInMinutes();
 
   // タイマーボタンのクリックハンドラ
   const handleTimerClick = () => {
@@ -81,12 +82,19 @@ export const TodoItem = ({ todo, index, isDragging, onToggle, onDelete, onEdit, 
           autoFocus
         />
       ) : (
-        <span
-          className="todo-text"
-          onDoubleClick={() => !completed && startEditing()}
-        >
-          {todoText}
-        </span>
+        <div className="todo-content">
+          <span
+            className="todo-text"
+            onDoubleClick={() => !completed && startEditing()}
+          >
+            {todoText}
+          </span>
+          {executionTimeMinutes > 0 && (
+            <span className="execution-time">
+              {executionTimeMinutes}分
+            </span>
+          )}
+        </div>
       )}
       <div className="todo-actions">
         <button
