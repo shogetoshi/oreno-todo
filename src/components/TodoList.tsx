@@ -2,13 +2,17 @@ import { useState } from 'react';
 import type { Todo } from '../types/electron';
 import { TodoItem } from './TodoItem';
 
+/**
+ * View Layer: TodoList Component
+ * Todoリストの表示とドラッグ&ドロップによる並び替えを担当
+ */
 interface TodoListProps {
   todos: Todo[];
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (id: string, newText: string) => void;
   onEditTaskcode: (id: string, newTaskcode: string) => void;
-  onReorder: (newOrder: Todo[]) => void;
+  onReorder: (fromIndex: number, toIndex: number) => void;
   onStartTimer: (id: string) => void;
   onStopTimer: (id: string) => void;
 }
@@ -27,11 +31,7 @@ export const TodoList = ({ todos, onToggle, onDelete, onEdit, onEditTaskcode, on
   const handleDrop = (dropIndex: number) => {
     if (draggedIndex === null || draggedIndex === dropIndex) return;
 
-    const newTodos = [...todos];
-    const [draggedTodo] = newTodos.splice(draggedIndex, 1);
-    newTodos.splice(dropIndex, 0, draggedTodo);
-
-    onReorder(newTodos);
+    onReorder(draggedIndex, dropIndex);
     setDraggedIndex(null);
   };
 

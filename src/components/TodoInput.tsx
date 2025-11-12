@@ -1,5 +1,10 @@
 import { useState } from 'react';
 
+/**
+ * View Layer: TodoInput Component
+ * 新しいTodoを入力するフォームを提供
+ * ローカルのフォーム状態のみを管理
+ */
 interface TodoInputProps {
   onAdd: (taskcode: string, text: string) => void;
 }
