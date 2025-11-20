@@ -172,19 +172,66 @@ export class TodoRepository {
   }
 
   /**
+   * カレンダーイベントからIDを生成する
+   * @returns 生成されたUUID
+   */
+  private static getIdFromCalendarEvent(): string {
+    return crypto.randomUUID();
+  }
+
+  /**
+   * カレンダーイベントからtaskcodeを生成する
+   * @param _event カレンダーイベント（現在は未使用）
+   * @returns taskcode（現在は空文字列）
+   */
+  private static getTaskcodeFromCalendarEvent(_event: CalendarEvent): string {
+    return '';
+  }
+
+  /**
+   * カレンダーイベントからテキストを抽出する
+   * @param event カレンダーイベント
+   * @returns Todoのテキスト
+   */
+  private static getTextFromCalendarEvent(event: CalendarEvent): string {
+    return event.summary;
+  }
+
+  /**
+   * カレンダーイベントから作成日時を抽出する
+   * @param event カレンダーイベント
+   * @returns ISO 8601形式の作成日時
+   */
+  private static getCreatedAtFromCalendarEvent(event: CalendarEvent): string {
+    return new Date(event.created).toISOString();
+  }
+
+  /**
+   * カレンダーイベントから更新日時を抽出する
+   * @param event カレンダーイベント
+   * @returns ISO 8601形式の更新日時
+   */
+  private static getUpdatedAtFromCalendarEvent(event: CalendarEvent): string {
+    return new Date(event.updated).toISOString();
+  }
+
+  /**
    * カレンダーイベントからTodoを生成する（テスト可能な純粋関数）
    * @param event カレンダーイベント
    * @returns 生成されたTodo
    */
   static createTodoFromCalendarEvent(event: CalendarEvent): Todo {
-    const id = crypto.randomUUID();
-    const taskcode = '';
-    const text = event.summary;
+    const id = this.getIdFromCalendarEvent();
+    const taskcode = this.getTaskcodeFromCalendarEvent(event);
+    const text = this.getTextFromCalendarEvent(event);
     const completedAt = null;
-    const createdAt = new Date(event.created).toISOString();
-    const updatedAt = new Date(event.updated).toISOString();
-    const timeRanges: any[] = [];
+    const createdAt = this.getCreatedAtFromCalendarEvent(event);
+    const updatedAt = this.getUpdatedAtFromCalendarEvent(event);
 
+    // カレンダーイベントのidを別名で保存（TodoのidとGoogleカレンダーのidを区別）
+    const { id: calendarEventId, ...eventWithoutId } = event;
+
+    // rawDataはTodoの基本構造 + Googleカレンダーイベントの全データを保持
     const rawData = {
       id,
       taskcode,
@@ -192,7 +239,11 @@ export class TodoRepository {
       completedAt,
       createdAt,
       updatedAt,
-      timeRanges
+      timeRanges: [],
+      // カレンダーイベントの全データを展開して保持（idは除く）
+      ...eventWithoutId,
+      // カレンダーイベントのidは別名で保存
+      calendarEventId
     };
 
     return new Todo(id, taskcode, text, completedAt, createdAt, updatedAt, rawData);

@@ -980,6 +980,74 @@ describe('TodoRepository', () => {
 
       expect(json.timeRanges).toEqual([]);
     });
+
+    it('rawDataにはカレンダーイベントのJSONがそのまま格納される', () => {
+      const event: CalendarEvent = {
+        kind: 'calendar#event',
+        etag: '"3123456789012345"',
+        id: '12345abcde67890fghij12345',
+        status: 'confirmed',
+        htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
+        created: '2023-10-20T09:00:00.000Z',
+        updated: '2023-10-20T09:30:00.000Z',
+        summary: '週次定例ミーティング',
+        description: 'プロジェクトAの進捗確認',
+        location: 'オンライン (Zoom)',
+        creator: {
+          email: 'user@example.com',
+          self: true
+        },
+        organizer: {
+          email: 'user@example.com',
+          self: true
+        },
+        start: {
+          dateTime: '2023-11-01T10:00:00+09:00',
+          timeZone: 'Asia/Tokyo'
+        },
+        end: {
+          dateTime: '2023-11-01T11:00:00+09:00',
+          timeZone: 'Asia/Tokyo'
+        },
+        iCalUID: '12345abcde67890fghij12345@google.com',
+        sequence: 0,
+        attendees: [
+          {
+            email: 'member1@example.com',
+            responseStatus: 'accepted'
+          }
+        ],
+        reminders: {
+          useDefault: false,
+          overrides: [
+            {
+              method: 'email',
+              minutes: 30
+            }
+          ]
+        },
+        eventType: 'default'
+      };
+
+      const todo = TodoRepository.createTodoFromCalendarEvent(event);
+      const json = todo.toJSON();
+
+      // rawDataにカレンダーイベントの情報が格納されていることを確認
+      expect(json.kind).toBe('calendar#event');
+      expect(json.summary).toBe('週次定例ミーティング');
+      expect(json.description).toBe('プロジェクトAの進捗確認');
+      expect(json.location).toBe('オンライン (Zoom)');
+      expect(json.start).toEqual({
+        dateTime: '2023-11-01T10:00:00+09:00',
+        timeZone: 'Asia/Tokyo'
+      });
+      expect(json.end).toEqual({
+        dateTime: '2023-11-01T11:00:00+09:00',
+        timeZone: 'Asia/Tokyo'
+      });
+      expect(json.attendees).toHaveLength(1);
+      expect(json.reminders).toBeDefined();
+    });
   });
 
   describe('createTodosFromCalendarEvents', () => {
