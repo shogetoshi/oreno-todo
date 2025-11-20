@@ -151,3 +151,6 @@ const useTodos = () => {
 - ブラウザでは動作しない（Electron専用）
 - `contextIsolation: true`, `nodeIntegration: false`によるセキュアな設定
 - 開発時は`http://localhost:5173`、本番時は`dist/index.html`をロード
+
+## 特記事項
+- ソースコードを変更した場合は、必ずそれに対応するテスト・ドキュメントを合わせて更新すること
