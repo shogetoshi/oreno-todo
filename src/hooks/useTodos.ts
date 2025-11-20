@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Todo } from '../models/Todo';
 import { TodoRepository } from '../models/TodoRepository';
+import { fetchCalendarEventsSample } from '../utils/calendarSample';
 
 /**
  * Controller Layer: useTodos Hook
@@ -100,6 +101,12 @@ export const useTodos = () => {
     setTodosWithPersist((prev) => TodoRepository.stopTimer(prev, id));
   }, [setTodosWithPersist]);
 
+  // Googleカレンダーからイベントを取得してTodoを追加
+  const importCalendarEvents = useCallback(() => {
+    const events = fetchCalendarEventsSample();
+    setTodosWithPersist((prev) => TodoRepository.addTodosFromCalendarEvents(prev, events));
+  }, [setTodosWithPersist]);
+
   return {
     todos,
     isLoading,
@@ -112,5 +119,6 @@ export const useTodos = () => {
     replaceFromJson,
     startTimer,
     stopTimer,
+    importCalendarEvents,
   };
 };

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { TodoRepository } from './TodoRepository';
 import { Todo } from './Todo';
+import { CalendarEvent } from '../types/calendar';
 
 describe('TodoRepository', () => {
   beforeEach(() => {
@@ -825,6 +826,356 @@ describe('TodoRepository', () => {
       expect(parsed).toHaveLength(2);
       expect(parsed[0].taskcode).toBe('TASK-001');
       expect(parsed[1].taskcode).toBe('TASK-002');
+    });
+  });
+
+  describe('createTodoFromCalendarEvent', () => {
+    it('カレンダーイベントからTodoを生成できる', () => {
+      const event: CalendarEvent = {
+        kind: 'calendar#event',
+        etag: '"3123456789012345"',
+        id: '12345abcde67890fghij12345',
+        status: 'confirmed',
+        htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
+        created: '2023-10-20T09:00:00.000Z',
+        updated: '2023-10-20T09:30:00.000Z',
+        summary: '週次定例ミーティング',
+        description: 'プロジェクトAの進捗確認',
+        location: 'オンライン (Zoom)',
+        creator: {
+          email: 'user@example.com',
+          self: true
+        },
+        organizer: {
+          email: 'user@example.com',
+          self: true
+        },
+        start: {
+          dateTime: '2023-11-01T10:00:00+09:00',
+          timeZone: 'Asia/Tokyo'
+        },
+        end: {
+          dateTime: '2023-11-01T11:00:00+09:00',
+          timeZone: 'Asia/Tokyo'
+        },
+        iCalUID: '12345abcde67890fghij12345@google.com',
+        sequence: 0,
+        eventType: 'default'
+      };
+
+      const todo = TodoRepository.createTodoFromCalendarEvent(event);
+
+      expect(todo.getTaskcode()).toBe('');
+      expect(todo.getText()).toBe('週次定例ミーティング');
+      expect(todo.isCompleted()).toBe(false);
+      expect(todo.getCompletedAt()).toBe(null);
+      expect(todo.createdAt).toBe('2023-10-20T09:00:00.000Z');
+      expect(todo.updatedAt).toBe('2023-10-20T09:30:00.000Z');
+    });
+
+    it('終日イベントからTodoを生成できる', () => {
+      const event: CalendarEvent = {
+        kind: 'calendar#event',
+        etag: '"3987654321098765"',
+        id: '98765zyxwv43210utsrq98765',
+        status: 'confirmed',
+        htmlLink: 'https://www.google.com/calendar/event?eid=yyyyyyy',
+        created: '2023-10-21T15:00:00.000Z',
+        updated: '2023-10-21T15:00:00.000Z',
+        summary: '誕生日（終日イベントの例）',
+        creator: {
+          email: 'user@example.com',
+          self: true
+        },
+        organizer: {
+          email: 'user@example.com',
+          self: true
+        },
+        start: {
+          date: '2023-11-05'
+        },
+        end: {
+          date: '2023-11-06'
+        },
+        transparency: 'transparent',
+        iCalUID: '98765zyxwv43210utsrq98765@google.com',
+        sequence: 0,
+        reminders: {
+          useDefault: true
+        },
+        eventType: 'default'
+      };
+
+      const todo = TodoRepository.createTodoFromCalendarEvent(event);
+
+      expect(todo.getTaskcode()).toBe('');
+      expect(todo.getText()).toBe('誕生日（終日イベントの例）');
+      expect(todo.isCompleted()).toBe(false);
+      expect(todo.getCompletedAt()).toBe(null);
+    });
+
+    it('生成されたTodoにはUUIDが設定される', () => {
+      const event: CalendarEvent = {
+        kind: 'calendar#event',
+        etag: '"3123456789012345"',
+        id: '12345abcde67890fghij12345',
+        status: 'confirmed',
+        htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
+        created: '2023-10-20T09:00:00.000Z',
+        updated: '2023-10-20T09:30:00.000Z',
+        summary: 'テストイベント',
+        creator: {
+          email: 'user@example.com'
+        },
+        organizer: {
+          email: 'user@example.com'
+        },
+        start: {
+          dateTime: '2023-11-01T10:00:00+09:00'
+        },
+        end: {
+          dateTime: '2023-11-01T11:00:00+09:00'
+        },
+        iCalUID: '12345abcde67890fghij12345@google.com',
+        sequence: 0,
+        eventType: 'default'
+      };
+
+      const todo = TodoRepository.createTodoFromCalendarEvent(event);
+      const id = todo.getId();
+
+      // UUID形式
+      expect(id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+    });
+
+    it('生成されたTodoにはtimeRangesが空配列で初期化される', () => {
+      const event: CalendarEvent = {
+        kind: 'calendar#event',
+        etag: '"3123456789012345"',
+        id: '12345abcde67890fghij12345',
+        status: 'confirmed',
+        htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
+        created: '2023-10-20T09:00:00.000Z',
+        updated: '2023-10-20T09:30:00.000Z',
+        summary: 'テストイベント',
+        creator: {
+          email: 'user@example.com'
+        },
+        organizer: {
+          email: 'user@example.com'
+        },
+        start: {
+          dateTime: '2023-11-01T10:00:00+09:00'
+        },
+        end: {
+          dateTime: '2023-11-01T11:00:00+09:00'
+        },
+        iCalUID: '12345abcde67890fghij12345@google.com',
+        sequence: 0,
+        eventType: 'default'
+      };
+
+      const todo = TodoRepository.createTodoFromCalendarEvent(event);
+      const json = todo.toJSON();
+
+      expect(json.timeRanges).toEqual([]);
+    });
+  });
+
+  describe('createTodosFromCalendarEvents', () => {
+    it('カレンダーイベント配列からTodoリストを生成できる', () => {
+      const events: CalendarEvent[] = [
+        {
+          kind: 'calendar#event',
+          etag: '"3123456789012345"',
+          id: '12345abcde67890fghij12345',
+          status: 'confirmed',
+          htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
+          created: '2023-10-20T09:00:00.000Z',
+          updated: '2023-10-20T09:30:00.000Z',
+          summary: '週次定例ミーティング',
+          creator: {
+            email: 'user@example.com'
+          },
+          organizer: {
+            email: 'user@example.com'
+          },
+          start: {
+            dateTime: '2023-11-01T10:00:00+09:00'
+          },
+          end: {
+            dateTime: '2023-11-01T11:00:00+09:00'
+          },
+          iCalUID: '12345abcde67890fghij12345@google.com',
+          sequence: 0,
+          eventType: 'default'
+        },
+        {
+          kind: 'calendar#event',
+          etag: '"3987654321098765"',
+          id: '98765zyxwv43210utsrq98765',
+          status: 'confirmed',
+          htmlLink: 'https://www.google.com/calendar/event?eid=yyyyyyy',
+          created: '2023-10-21T15:00:00.000Z',
+          updated: '2023-10-21T15:00:00.000Z',
+          summary: '誕生日',
+          creator: {
+            email: 'user@example.com'
+          },
+          organizer: {
+            email: 'user@example.com'
+          },
+          start: {
+            date: '2023-11-05'
+          },
+          end: {
+            date: '2023-11-06'
+          },
+          iCalUID: '98765zyxwv43210utsrq98765@google.com',
+          sequence: 0,
+          eventType: 'default'
+        }
+      ];
+
+      const todos = TodoRepository.createTodosFromCalendarEvents(events);
+
+      expect(todos).toHaveLength(2);
+      expect(todos[0].getText()).toBe('週次定例ミーティング');
+      expect(todos[1].getText()).toBe('誕生日');
+    });
+
+    it('空の配列からは空のTodoリストが生成される', () => {
+      const events: CalendarEvent[] = [];
+      const todos = TodoRepository.createTodosFromCalendarEvents(events);
+
+      expect(todos).toEqual([]);
+    });
+  });
+
+  describe('addTodosFromCalendarEvents', () => {
+    it('既存のTodoリストにカレンダーイベントからTodoを追加できる', () => {
+      const existingTodo = TodoRepository.createTodo('TASK-001', 'Existing task');
+      const todos = [existingTodo];
+
+      const events: CalendarEvent[] = [
+        {
+          kind: 'calendar#event',
+          etag: '"3123456789012345"',
+          id: '12345abcde67890fghij12345',
+          status: 'confirmed',
+          htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
+          created: '2023-10-20T09:00:00.000Z',
+          updated: '2023-10-20T09:30:00.000Z',
+          summary: '週次定例ミーティング',
+          creator: {
+            email: 'user@example.com'
+          },
+          organizer: {
+            email: 'user@example.com'
+          },
+          start: {
+            dateTime: '2023-11-01T10:00:00+09:00'
+          },
+          end: {
+            dateTime: '2023-11-01T11:00:00+09:00'
+          },
+          iCalUID: '12345abcde67890fghij12345@google.com',
+          sequence: 0,
+          eventType: 'default'
+        }
+      ];
+
+      const newTodos = TodoRepository.addTodosFromCalendarEvents(todos, events);
+
+      expect(newTodos).toHaveLength(2);
+      expect(newTodos[0].getText()).toBe('Existing task');
+      expect(newTodos[1].getText()).toBe('週次定例ミーティング');
+    });
+
+    it('元の配列は変更されない（イミュータブル）', () => {
+      const existingTodo = TodoRepository.createTodo('TASK-001', 'Existing task');
+      const todos = [existingTodo];
+
+      const events: CalendarEvent[] = [
+        {
+          kind: 'calendar#event',
+          etag: '"3123456789012345"',
+          id: '12345abcde67890fghij12345',
+          status: 'confirmed',
+          htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
+          created: '2023-10-20T09:00:00.000Z',
+          updated: '2023-10-20T09:30:00.000Z',
+          summary: '週次定例ミーティング',
+          creator: {
+            email: 'user@example.com'
+          },
+          organizer: {
+            email: 'user@example.com'
+          },
+          start: {
+            dateTime: '2023-11-01T10:00:00+09:00'
+          },
+          end: {
+            dateTime: '2023-11-01T11:00:00+09:00'
+          },
+          iCalUID: '12345abcde67890fghij12345@google.com',
+          sequence: 0,
+          eventType: 'default'
+        }
+      ];
+
+      const newTodos = TodoRepository.addTodosFromCalendarEvents(todos, events);
+
+      expect(todos).toHaveLength(1);
+      expect(newTodos).toHaveLength(2);
+    });
+
+    it('空のイベント配列を追加しても既存のTodoリストは変わらない', () => {
+      const existingTodo = TodoRepository.createTodo('TASK-001', 'Existing task');
+      const todos = [existingTodo];
+
+      const events: CalendarEvent[] = [];
+      const newTodos = TodoRepository.addTodosFromCalendarEvents(todos, events);
+
+      expect(newTodos).toHaveLength(1);
+      expect(newTodos[0].getText()).toBe('Existing task');
+    });
+
+    it('空のTodoリストにカレンダーイベントを追加できる', () => {
+      const todos: Todo[] = [];
+
+      const events: CalendarEvent[] = [
+        {
+          kind: 'calendar#event',
+          etag: '"3123456789012345"',
+          id: '12345abcde67890fghij12345',
+          status: 'confirmed',
+          htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
+          created: '2023-10-20T09:00:00.000Z',
+          updated: '2023-10-20T09:30:00.000Z',
+          summary: '週次定例ミーティング',
+          creator: {
+            email: 'user@example.com'
+          },
+          organizer: {
+            email: 'user@example.com'
+          },
+          start: {
+            dateTime: '2023-11-01T10:00:00+09:00'
+          },
+          end: {
+            dateTime: '2023-11-01T11:00:00+09:00'
+          },
+          iCalUID: '12345abcde67890fghij12345@google.com',
+          sequence: 0,
+          eventType: 'default'
+        }
+      ];
+
+      const newTodos = TodoRepository.addTodosFromCalendarEvents(todos, events);
+
+      expect(newTodos).toHaveLength(1);
+      expect(newTodos[0].getText()).toBe('週次定例ミーティング');
     });
   });
 });
