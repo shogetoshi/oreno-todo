@@ -113,18 +113,6 @@ describe('Todo', () => {
     });
   });
 
-  describe('isActive', () => {
-    it('completedAtがnullの場合、trueを返す', () => {
-      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00');
-      expect(todo.isActive()).toBe(true);
-    });
-
-    it('completedAtがnullでない場合、falseを返す', () => {
-      const todo = new Todo('id-123', 'TASK-001', 'Sample task', '2025-01-15 11:00:00', '2025-01-15 10:00:00', '2025-01-15 11:00:00');
-      expect(todo.isActive()).toBe(false);
-    });
-  });
-
   describe('setTaskcode', () => {
     it('新しいタスクコードで新しいTodoインスタンスを返す', () => {
       const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00');
@@ -623,35 +611,6 @@ describe('Todo', () => {
 
       expect(todo.isCompleted()).toBe(true);
       expect(todo.getCompletedAt()).toBe('2025-01-15 11:00:00');
-    });
-
-    it('旧形式（completed: boolean）を新形式に変換できる', () => {
-      const json = {
-        id: 'id-123',
-        taskcode: 'TASK-001',
-        text: 'Sample task',
-        completed: true,
-        createdAt: '2025-01-15 10:00:00'
-      };
-
-      const todo = Todo.fromJSON(json);
-
-      expect(todo.isCompleted()).toBe(true);
-      expect(todo.getCompletedAt()).toBe('2025-01-15 10:00:00'); // createdAtを使用
-    });
-
-    it('旧形式（completed: false）を新形式に変換できる', () => {
-      const json = {
-        id: 'id-123',
-        taskcode: 'TASK-001',
-        text: 'Sample task',
-        completed: false
-      };
-
-      const todo = Todo.fromJSON(json);
-
-      expect(todo.isCompleted()).toBe(false);
-      expect(todo.getCompletedAt()).toBe(null);
     });
 
     it('taskcodeが欠けている場合、空文字列で初期化される', () => {

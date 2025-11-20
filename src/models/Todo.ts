@@ -63,13 +63,6 @@ export class Todo {
   }
 
   /**
-   * Todoが未完了かどうかを判定する
-   */
-  isActive(): boolean {
-    return this.completedAt === null;
-  }
-
-  /**
    * 完了日時を取得する
    */
   getCompletedAt(): string | null {
@@ -203,21 +196,12 @@ export class Todo {
 
   /**
    * JSONからTodoインスタンスを作成する
-   * 既存のboolean形式とstring形式の両方に対応
    */
   static fromJSON(json: any): Todo {
     const now = getCurrentJSTTime();
 
-    // 既存データとの互換性のため、completedがbooleanの場合も対応
-    let completedAt: string | null = null;
-
-    if (typeof json.completed === 'boolean') {
-      // 旧形式: completed: boolean
-      completedAt = json.completed ? (json.createdAt || now) : null;
-    } else if (json.completedAt) {
-      // 新形式: completedAt: string | null
-      completedAt = json.completedAt;
-    }
+    // completedAt: string | null
+    const completedAt: string | null = json.completedAt || null;
 
     // タイムスタンプのフォールバック処理
     const createdAt = json.createdAt || now;
@@ -226,7 +210,7 @@ export class Todo {
     // taskcodeが存在しない場合は空文字列で初期化（既存データとの互換性）
     const taskcode = json.taskcode || '';
 
-    // timeRangesが存在しない場合は空配列で初期化
+    // timeRangesは必須プロパティ（デフォルト値は空配列）
     const jsonWithDefaults = {
       ...json,
       taskcode,
