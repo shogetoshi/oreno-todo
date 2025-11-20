@@ -60,18 +60,20 @@ function App() {
       <main className="app-main">
         <div className="input-header">
           <TodoInput onAdd={addTodo} />
-          <button
-            className="json-edit-button"
-            onClick={handleOpenJsonEditor}
-          >
-            JSON編集
-          </button>
-          <button
-            className="calendar-import-button"
-            onClick={importCalendarEvents}
-          >
-            カレンダーから取得
-          </button>
+          <div className="input-header-buttons">
+            <button
+              className="json-edit-button"
+              onClick={handleOpenJsonEditor}
+            >
+              JSON編集
+            </button>
+            <button
+              className="calendar-import-button"
+              onClick={importCalendarEvents}
+            >
+              カレンダーから取得
+            </button>
+          </div>
         </div>
 
         <TodoList

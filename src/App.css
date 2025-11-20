@@ -376,14 +376,18 @@ body {
 /* JSON編集機能のスタイル */
 .input-header {
   display: flex;
-  gap: 10px;
+  flex-direction: column;
+  gap: 15px;
   margin-bottom: 30px;
-  align-items: stretch;
 }
 
 .input-header .todo-input-form {
-  flex: 1;
   margin-bottom: 0;
+}
+
+.input-header-buttons {
+  display: flex;
+  gap: 10px;
 }
 
 .json-edit-button {
