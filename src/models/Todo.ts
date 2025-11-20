@@ -19,8 +19,6 @@ export interface TimeRange {
  * イミュータブルな設計: すべての更新メソッドは新しいインスタンスを返す
  */
 export class Todo {
-  private rawData: any; // 元のJSONデータを保持
-
   constructor(
     public readonly id: string,
     public readonly taskcode: string,
@@ -28,11 +26,8 @@ export class Todo {
     public readonly completedAt: string | null,
     public readonly createdAt: string,
     public readonly updatedAt: string,
-    rawData?: any
-  ) {
-    // 元データを保持（なければ基本プロパティ + 空のtimeRanges + タイムスタンプ）
-    this.rawData = rawData || { id, taskcode, text, completedAt, createdAt, updatedAt, timeRanges: [] };
-  }
+    public readonly timeRanges: TimeRange[]
+  ) {}
 
   /**
    * TodoのIDを取得する
@@ -74,8 +69,7 @@ export class Todo {
    */
   setTaskcode(newTaskcode: string): Todo {
     const now = getCurrentJSTTime();
-    const newRawData = { ...this.rawData, taskcode: newTaskcode, updatedAt: now };
-    return new Todo(this.id, newTaskcode, this.text, this.completedAt, this.createdAt, now, newRawData);
+    return new Todo(this.id, newTaskcode, this.text, this.completedAt, this.createdAt, now, this.timeRanges);
   }
 
   /**
@@ -83,8 +77,7 @@ export class Todo {
    */
   setText(newText: string): Todo {
     const now = getCurrentJSTTime();
-    const newRawData = { ...this.rawData, text: newText, updatedAt: now };
-    return new Todo(this.id, this.taskcode, newText, this.completedAt, this.createdAt, now, newRawData);
+    return new Todo(this.id, this.taskcode, newText, this.completedAt, this.createdAt, now, this.timeRanges);
   }
 
   /**
@@ -93,8 +86,7 @@ export class Todo {
   toggleCompleted(): Todo {
     const now = getCurrentJSTTime();
     const newCompletedAt = this.completedAt === null ? now : null;
-    const newRawData = { ...this.rawData, completedAt: newCompletedAt, updatedAt: now };
-    return new Todo(this.id, this.taskcode, this.text, newCompletedAt, this.createdAt, now, newRawData);
+    return new Todo(this.id, this.taskcode, this.text, newCompletedAt, this.createdAt, now, this.timeRanges);
   }
 
   /**
@@ -103,8 +95,7 @@ export class Todo {
   setCompleted(completed: boolean): Todo {
     const now = getCurrentJSTTime();
     const newCompletedAt = completed ? now : null;
-    const newRawData = { ...this.rawData, completedAt: newCompletedAt, updatedAt: now };
-    return new Todo(this.id, this.taskcode, this.text, newCompletedAt, this.createdAt, now, newRawData);
+    return new Todo(this.id, this.taskcode, this.text, newCompletedAt, this.createdAt, now, this.timeRanges);
   }
 
   /**
@@ -113,17 +104,12 @@ export class Todo {
    */
   startTimer(): Todo {
     const now = getCurrentJSTTime();
-    const existingRanges: TimeRange[] = this.rawData.timeRanges || [];
     const newRange: TimeRange = {
       start: now,
       end: null
     };
-    const newRawData = {
-      ...this.rawData,
-      timeRanges: [...existingRanges, newRange],
-      updatedAt: now
-    };
-    return new Todo(this.id, this.taskcode, this.text, this.completedAt, this.createdAt, now, newRawData);
+    const newTimeRanges = [...this.timeRanges, newRange];
+    return new Todo(this.id, this.taskcode, this.text, this.completedAt, this.createdAt, now, newTimeRanges);
   }
 
   /**
@@ -131,12 +117,11 @@ export class Todo {
    * 最新のTimeRangeのendに現在時刻を設定
    */
   stopTimer(): Todo {
-    const existingRanges: TimeRange[] = this.rawData.timeRanges || [];
-    if (existingRanges.length === 0) {
+    if (this.timeRanges.length === 0) {
       return this; // タイマーが開始されていない場合は何もしない
     }
 
-    const newRanges = [...existingRanges];
+    const newRanges = [...this.timeRanges];
     const lastRange = newRanges[newRanges.length - 1];
 
     // 最後の要素のendがnullの場合のみ停止
@@ -146,13 +131,7 @@ export class Todo {
         ...lastRange,
         end: now
       };
-
-      const newRawData = {
-        ...this.rawData,
-        timeRanges: newRanges,
-        updatedAt: now
-      };
-      return new Todo(this.id, this.taskcode, this.text, this.completedAt, this.createdAt, now, newRawData);
+      return new Todo(this.id, this.taskcode, this.text, this.completedAt, this.createdAt, now, newRanges);
     }
 
     return this;
@@ -163,11 +142,10 @@ export class Todo {
    * 最新のTimeRangeのendがnullの場合、実行中と判定
    */
   isTimerRunning(): boolean {
-    const timeRanges: TimeRange[] = this.rawData.timeRanges || [];
-    if (timeRanges.length === 0) {
+    if (this.timeRanges.length === 0) {
       return false;
     }
-    const lastRange = timeRanges[timeRanges.length - 1];
+    const lastRange = this.timeRanges[this.timeRanges.length - 1];
     return lastRange.end === null;
   }
 
@@ -177,12 +155,11 @@ export class Todo {
    * endがnullの場合（実行中）は現在時刻までを含めて計算する
    */
   getTotalExecutionTimeInMinutes(): number {
-    const timeRanges: TimeRange[] = this.rawData.timeRanges || [];
-    if (timeRanges.length === 0) {
+    if (this.timeRanges.length === 0) {
       return 0;
     }
 
-    const totalSeconds = timeRanges.reduce((total, range) => {
+    const totalSeconds = this.timeRanges.reduce((total, range) => {
       const startTime = parseJSTString(range.start).getTime();
       const endTime = range.end ? parseJSTString(range.end).getTime() : parseJSTString(getCurrentJSTTime()).getTime();
       const durationMs = endTime - startTime;
@@ -211,23 +188,23 @@ export class Todo {
     const taskcode = json.taskcode || '';
 
     // timeRangesは必須プロパティ（デフォルト値は空配列）
-    const jsonWithDefaults = {
-      ...json,
-      taskcode,
-      timeRanges: json.timeRanges || [],
-      createdAt,
-      updatedAt
-    };
+    const timeRanges: TimeRange[] = json.timeRanges || [];
 
-    // 元のJSONデータをそのまま保持
-    return new Todo(json.id, taskcode, json.text, completedAt, createdAt, updatedAt, jsonWithDefaults);
+    return new Todo(json.id, taskcode, json.text, completedAt, createdAt, updatedAt, timeRanges);
   }
 
   /**
    * JSON形式に変換する
-   * 元のJSONデータをそのまま返す（text, completedAtは最新の値で更新）
    */
   toJSON() {
-    return this.rawData;
+    return {
+      id: this.id,
+      taskcode: this.taskcode,
+      text: this.text,
+      completedAt: this.completedAt,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+      timeRanges: this.timeRanges
+    };
   }
 }

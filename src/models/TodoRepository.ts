@@ -1,4 +1,4 @@
-import { Todo } from './Todo';
+import { Todo, TimeRange } from './Todo';
 import { validateTodos } from '../utils/validation';
 import { getCurrentJSTTime } from '../utils/timeFormat';
 import { CalendarEvent } from '../types/calendar';
@@ -17,16 +17,8 @@ export class TodoRepository {
   static createTodo(taskcode: string, text: string): Todo {
     const id = crypto.randomUUID();
     const now = getCurrentJSTTime();
-    const rawData = {
-      id,
-      taskcode,
-      text,
-      completedAt: null,
-      createdAt: now,
-      updatedAt: now,
-      timeRanges: []
-    };
-    return new Todo(id, taskcode, text, null, now, now, rawData);
+    const timeRanges: TimeRange[] = [];
+    return new Todo(id, taskcode, text, null, now, now, timeRanges);
   }
 
   /**
@@ -227,26 +219,9 @@ export class TodoRepository {
     const completedAt = null;
     const createdAt = this.getCreatedAtFromCalendarEvent(event);
     const updatedAt = this.getUpdatedAtFromCalendarEvent(event);
+    const timeRanges: TimeRange[] = [];
 
-    // カレンダーイベントのidを別名で保存（TodoのidとGoogleカレンダーのidを区別）
-    const { id: calendarEventId, ...eventWithoutId } = event;
-
-    // rawDataはTodoの基本構造 + Googleカレンダーイベントの全データを保持
-    const rawData = {
-      id,
-      taskcode,
-      text,
-      completedAt,
-      createdAt,
-      updatedAt,
-      timeRanges: [],
-      // カレンダーイベントの全データを展開して保持（idは除く）
-      ...eventWithoutId,
-      // カレンダーイベントのidは別名で保存
-      calendarEventId
-    };
-
-    return new Todo(id, taskcode, text, completedAt, createdAt, updatedAt, rawData);
+    return new Todo(id, taskcode, text, completedAt, createdAt, updatedAt, timeRanges);
   }
 
   /**
