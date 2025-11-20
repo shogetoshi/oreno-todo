@@ -20,7 +20,8 @@ describe('Todo', () => {
         'Sample task',
         null,
         '2025-01-15 10:00:00',
-        '2025-01-15 10:00:00'
+        '2025-01-15 10:00:00',
+        []
       );
 
       expect(todo.id).toBe('id-123');
@@ -31,14 +32,15 @@ describe('Todo', () => {
       expect(todo.updatedAt).toBe('2025-01-15 10:00:00');
     });
 
-    it('rawDataを指定しない場合、デフォルト値で初期化される', () => {
+    it('timeRangesを指定しない場合、デフォルト値で初期化される', () => {
       const todo = new Todo(
         'id-123',
         'TASK-001',
         'Sample task',
         null,
         '2025-01-15 10:00:00',
-        '2025-01-15 10:00:00'
+        '2025-01-15 10:00:00',
+        []
       );
 
       const json = todo.toJSON();
@@ -46,17 +48,8 @@ describe('Todo', () => {
       expect(json.id).toBe('id-123');
     });
 
-    it('rawDataを指定した場合、それが保持される', () => {
-      const rawData = {
-        id: 'id-123',
-        taskcode: 'TASK-001',
-        text: 'Sample task',
-        completedAt: null,
-        createdAt: '2025-01-15 10:00:00',
-        updatedAt: '2025-01-15 10:00:00',
-        timeRanges: [{ start: '2025-01-15 10:00:00', end: null }],
-        customField: 'custom value'
-      };
+    it('timeRangesを指定した場合、それが保持される', () => {
+      const timeRanges = [{ start: '2025-01-15 10:00:00', end: null }];
 
       const todo = new Todo(
         'id-123',
@@ -65,57 +58,58 @@ describe('Todo', () => {
         null,
         '2025-01-15 10:00:00',
         '2025-01-15 10:00:00',
-        rawData
+        timeRanges
       );
 
       const json = todo.toJSON();
-      expect(json.customField).toBe('custom value');
       expect(json.timeRanges).toHaveLength(1);
+      expect(json.timeRanges[0].start).toBe('2025-01-15 10:00:00');
+      expect(json.timeRanges[0].end).toBe(null);
     });
   });
 
   describe('getter methods', () => {
     it('getId() でIDを取得できる', () => {
-      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00');
+      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', []);
       expect(todo.getId()).toBe('id-123');
     });
 
     it('getTaskcode() でタスクコードを取得できる', () => {
-      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00');
+      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', []);
       expect(todo.getTaskcode()).toBe('TASK-001');
     });
 
     it('getText() でテキストを取得できる', () => {
-      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00');
+      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', []);
       expect(todo.getText()).toBe('Sample task');
     });
 
     it('getCompletedAt() で完了日時を取得できる', () => {
-      const todo = new Todo('id-123', 'TASK-001', 'Sample task', '2025-01-15 11:00:00', '2025-01-15 10:00:00', '2025-01-15 11:00:00');
+      const todo = new Todo('id-123', 'TASK-001', 'Sample task', '2025-01-15 11:00:00', '2025-01-15 10:00:00', '2025-01-15 11:00:00', []);
       expect(todo.getCompletedAt()).toBe('2025-01-15 11:00:00');
     });
 
     it('getCompletedAt() で未完了の場合nullを返す', () => {
-      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00');
+      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', []);
       expect(todo.getCompletedAt()).toBe(null);
     });
   });
 
   describe('isCompleted', () => {
     it('completedAtがnullでない場合、trueを返す', () => {
-      const todo = new Todo('id-123', 'TASK-001', 'Sample task', '2025-01-15 11:00:00', '2025-01-15 10:00:00', '2025-01-15 11:00:00');
+      const todo = new Todo('id-123', 'TASK-001', 'Sample task', '2025-01-15 11:00:00', '2025-01-15 10:00:00', '2025-01-15 11:00:00', []);
       expect(todo.isCompleted()).toBe(true);
     });
 
     it('completedAtがnullの場合、falseを返す', () => {
-      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00');
+      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', []);
       expect(todo.isCompleted()).toBe(false);
     });
   });
 
   describe('setTaskcode', () => {
     it('新しいタスクコードで新しいTodoインスタンスを返す', () => {
-      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00');
+      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', []);
       const updated = original.setTaskcode('TASK-999');
 
       expect(updated.getTaskcode()).toBe('TASK-999');
@@ -124,7 +118,7 @@ describe('Todo', () => {
     });
 
     it('元のインスタンスは変更されない（イミュータブル）', () => {
-      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00');
+      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', []);
       const updated = original.setTaskcode('TASK-999');
 
       expect(original.getTaskcode()).toBe('TASK-001'); // 元は変わらない
@@ -132,25 +126,17 @@ describe('Todo', () => {
     });
 
     it('updatedAtが現在時刻に更新される', () => {
-      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00');
+      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', []);
       const updated = original.setTaskcode('TASK-999');
 
       expect(updated.updatedAt).toBe('2025-01-15 12:34:56'); // 現在時刻（JST）
     });
 
-    it('rawDataが正しく更新される', () => {
-      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00');
-      const updated = original.setTaskcode('TASK-999');
-
-      const json = updated.toJSON();
-      expect(json.taskcode).toBe('TASK-999');
-      expect(json.updatedAt).toBe('2025-01-15 12:34:56');
-    });
   });
 
   describe('setText', () => {
     it('新しいテキストで新しいTodoインスタンスを返す', () => {
-      const original = new Todo('id-123', 'TASK-001', 'Original text', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00');
+      const original = new Todo('id-123', 'TASK-001', 'Original text', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', []);
       const updated = original.setText('Updated text');
 
       expect(updated.getText()).toBe('Updated text');
@@ -159,7 +145,7 @@ describe('Todo', () => {
     });
 
     it('元のインスタンスは変更されない（イミュータブル）', () => {
-      const original = new Todo('id-123', 'TASK-001', 'Original text', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00');
+      const original = new Todo('id-123', 'TASK-001', 'Original text', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', []);
       const updated = original.setText('Updated text');
 
       expect(original.getText()).toBe('Original text');
@@ -167,14 +153,14 @@ describe('Todo', () => {
     });
 
     it('updatedAtが現在時刻に更新される', () => {
-      const original = new Todo('id-123', 'TASK-001', 'Original text', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00');
+      const original = new Todo('id-123', 'TASK-001', 'Original text', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', []);
       const updated = original.setText('Updated text');
 
       expect(updated.updatedAt).toBe('2025-01-15 12:34:56');
     });
 
     it('空文字列を設定できる', () => {
-      const original = new Todo('id-123', 'TASK-001', 'Original text', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00');
+      const original = new Todo('id-123', 'TASK-001', 'Original text', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', []);
       const updated = original.setText('');
 
       expect(updated.getText()).toBe('');
@@ -183,7 +169,7 @@ describe('Todo', () => {
 
   describe('toggleCompleted', () => {
     it('未完了のTodoを完了にできる', () => {
-      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00');
+      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', []);
       const updated = original.toggleCompleted();
 
       expect(updated.isCompleted()).toBe(true);
@@ -191,7 +177,7 @@ describe('Todo', () => {
     });
 
     it('完了済みのTodoを未完了にできる', () => {
-      const original = new Todo('id-123', 'TASK-001', 'Sample task', '2025-01-15 11:00:00', '2025-01-15 10:00:00', '2025-01-15 11:00:00');
+      const original = new Todo('id-123', 'TASK-001', 'Sample task', '2025-01-15 11:00:00', '2025-01-15 10:00:00', '2025-01-15 11:00:00', []);
       const updated = original.toggleCompleted();
 
       expect(updated.isCompleted()).toBe(false);
@@ -199,7 +185,7 @@ describe('Todo', () => {
     });
 
     it('元のインスタンスは変更されない（イミュータブル）', () => {
-      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00');
+      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', []);
       const updated = original.toggleCompleted();
 
       expect(original.isCompleted()).toBe(false);
@@ -207,14 +193,14 @@ describe('Todo', () => {
     });
 
     it('updatedAtが現在時刻に更新される', () => {
-      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00');
+      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', []);
       const updated = original.toggleCompleted();
 
       expect(updated.updatedAt).toBe('2025-01-15 12:34:56');
     });
 
     it('トグルを2回行うと元の状態に戻る', () => {
-      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00');
+      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', []);
       const toggled1 = original.toggleCompleted();
       const toggled2 = toggled1.toggleCompleted();
 
@@ -226,7 +212,7 @@ describe('Todo', () => {
 
   describe('setCompleted', () => {
     it('未完了のTodoを完了に設定できる', () => {
-      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00');
+      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', []);
       const updated = original.setCompleted(true);
 
       expect(updated.isCompleted()).toBe(true);
@@ -234,7 +220,7 @@ describe('Todo', () => {
     });
 
     it('完了済みのTodoを未完了に設定できる', () => {
-      const original = new Todo('id-123', 'TASK-001', 'Sample task', '2025-01-15 11:00:00', '2025-01-15 10:00:00', '2025-01-15 11:00:00');
+      const original = new Todo('id-123', 'TASK-001', 'Sample task', '2025-01-15 11:00:00', '2025-01-15 10:00:00', '2025-01-15 11:00:00', []);
       const updated = original.setCompleted(false);
 
       expect(updated.isCompleted()).toBe(false);
@@ -242,7 +228,7 @@ describe('Todo', () => {
     });
 
     it('すでに完了済みのTodoに完了を設定しても問題ない', () => {
-      const original = new Todo('id-123', 'TASK-001', 'Sample task', '2025-01-15 11:00:00', '2025-01-15 10:00:00', '2025-01-15 11:00:00');
+      const original = new Todo('id-123', 'TASK-001', 'Sample task', '2025-01-15 11:00:00', '2025-01-15 10:00:00', '2025-01-15 11:00:00', []);
       const updated = original.setCompleted(true);
 
       expect(updated.isCompleted()).toBe(true);
@@ -250,7 +236,7 @@ describe('Todo', () => {
     });
 
     it('すでに未完了のTodoに未完了を設定しても問題ない', () => {
-      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00');
+      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', []);
       const updated = original.setCompleted(false);
 
       expect(updated.isCompleted()).toBe(false);
@@ -258,7 +244,7 @@ describe('Todo', () => {
     });
 
     it('元のインスタンスは変更されない（イミュータブル）', () => {
-      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00');
+      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', []);
       const updated = original.setCompleted(true);
 
       expect(original.isCompleted()).toBe(false);
@@ -268,7 +254,7 @@ describe('Todo', () => {
 
   describe('startTimer', () => {
     it('timeRangesに新しい要素を追加できる', () => {
-      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00');
+      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', []);
       const updated = original.startTimer();
 
       const json = updated.toJSON();
@@ -278,19 +264,11 @@ describe('Todo', () => {
     });
 
     it('すでにtimeRangesがある場合、新しい要素を追加する', () => {
-      const rawData = {
-        id: 'id-123',
-        taskcode: 'TASK-001',
-        text: 'Sample task',
-        completedAt: null,
-        createdAt: '2025-01-15 10:00:00',
-        updatedAt: '2025-01-15 10:00:00',
-        timeRanges: [
+      const timeRanges = [
           { start: '2025-01-15 10:00:00', end: '2025-01-15 11:00:00' }
-        ]
-      };
+        ];
 
-      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', rawData);
+      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', timeRanges);
       const updated = original.startTimer();
 
       const json = updated.toJSON();
@@ -300,7 +278,7 @@ describe('Todo', () => {
     });
 
     it('元のインスタンスは変更されない（イミュータブル）', () => {
-      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00');
+      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', []);
       const updated = original.startTimer();
 
       const originalJson = original.toJSON();
@@ -311,7 +289,7 @@ describe('Todo', () => {
     });
 
     it('updatedAtが現在時刻に更新される', () => {
-      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00');
+      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', []);
       const updated = original.startTimer();
 
       expect(updated.updatedAt).toBe('2025-01-15 12:34:56');
@@ -320,19 +298,11 @@ describe('Todo', () => {
 
   describe('stopTimer', () => {
     it('実行中のタイマーを停止できる', () => {
-      const rawData = {
-        id: 'id-123',
-        taskcode: 'TASK-001',
-        text: 'Sample task',
-        completedAt: null,
-        createdAt: '2025-01-15 10:00:00',
-        updatedAt: '2025-01-15 10:00:00',
-        timeRanges: [
+      const timeRanges = [
           { start: '2025-01-15 10:00:00', end: null }
-        ]
-      };
+        ];
 
-      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', rawData);
+      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', timeRanges);
       const updated = original.stopTimer();
 
       const json = updated.toJSON();
@@ -342,45 +312,29 @@ describe('Todo', () => {
     });
 
     it('timeRangesが空の場合、何もしない', () => {
-      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00');
+      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', []);
       const updated = original.stopTimer();
 
       expect(updated).toBe(original); // 同じインスタンスを返す
     });
 
     it('すでに停止済みのタイマーの場合、何もしない', () => {
-      const rawData = {
-        id: 'id-123',
-        taskcode: 'TASK-001',
-        text: 'Sample task',
-        completedAt: null,
-        createdAt: '2025-01-15 10:00:00',
-        updatedAt: '2025-01-15 10:00:00',
-        timeRanges: [
+      const timeRanges = [
           { start: '2025-01-15 10:00:00', end: '2025-01-15 11:00:00' }
-        ]
-      };
+        ];
 
-      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', rawData);
+      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', timeRanges);
       const updated = original.stopTimer();
 
       expect(updated).toBe(original); // 同じインスタンスを返す
     });
 
     it('元のインスタンスは変更されない（イミュータブル）', () => {
-      const rawData = {
-        id: 'id-123',
-        taskcode: 'TASK-001',
-        text: 'Sample task',
-        completedAt: null,
-        createdAt: '2025-01-15 10:00:00',
-        updatedAt: '2025-01-15 10:00:00',
-        timeRanges: [
+      const timeRanges = [
           { start: '2025-01-15 10:00:00', end: null }
-        ]
-      };
+        ];
 
-      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', rawData);
+      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', timeRanges);
       const updated = original.stopTimer();
 
       const originalJson = original.toJSON();
@@ -391,19 +345,11 @@ describe('Todo', () => {
     });
 
     it('updatedAtが現在時刻に更新される', () => {
-      const rawData = {
-        id: 'id-123',
-        taskcode: 'TASK-001',
-        text: 'Sample task',
-        completedAt: null,
-        createdAt: '2025-01-15 10:00:00',
-        updatedAt: '2025-01-15 10:00:00',
-        timeRanges: [
+      const timeRanges = [
           { start: '2025-01-15 10:00:00', end: null }
-        ]
-      };
+        ];
 
-      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', rawData);
+      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', timeRanges);
       const updated = original.stopTimer();
 
       expect(updated.updatedAt).toBe('2025-01-15 12:34:56');
@@ -412,170 +358,98 @@ describe('Todo', () => {
 
   describe('isTimerRunning', () => {
     it('タイマーが実行中の場合trueを返す', () => {
-      const rawData = {
-        id: 'id-123',
-        taskcode: 'TASK-001',
-        text: 'Sample task',
-        completedAt: null,
-        createdAt: '2025-01-15 10:00:00',
-        updatedAt: '2025-01-15 10:00:00',
-        timeRanges: [
+      const timeRanges = [
           { start: '2025-01-15 10:00:00', end: null }
-        ]
-      };
+        ];
 
-      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', rawData);
+      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', timeRanges);
       expect(todo.isTimerRunning()).toBe(true);
     });
 
     it('タイマーが停止済みの場合falseを返す', () => {
-      const rawData = {
-        id: 'id-123',
-        taskcode: 'TASK-001',
-        text: 'Sample task',
-        completedAt: null,
-        createdAt: '2025-01-15 10:00:00',
-        updatedAt: '2025-01-15 10:00:00',
-        timeRanges: [
+      const timeRanges = [
           { start: '2025-01-15 10:00:00', end: '2025-01-15 11:00:00' }
-        ]
-      };
+        ];
 
-      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', rawData);
+      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', timeRanges);
       expect(todo.isTimerRunning()).toBe(false);
     });
 
     it('timeRangesが空の場合falseを返す', () => {
-      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00');
+      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', []);
       expect(todo.isTimerRunning()).toBe(false);
     });
 
     it('複数のtimeRangesがある場合、最新のendがnullならtrueを返す', () => {
-      const rawData = {
-        id: 'id-123',
-        taskcode: 'TASK-001',
-        text: 'Sample task',
-        completedAt: null,
-        createdAt: '2025-01-15 10:00:00',
-        updatedAt: '2025-01-15 10:00:00',
-        timeRanges: [
+      const timeRanges = [
           { start: '2025-01-15 10:00:00', end: '2025-01-15 11:00:00' },
           { start: '2025-01-15 12:00:00', end: null }
-        ]
-      };
+        ];
 
-      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', rawData);
+      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', timeRanges);
       expect(todo.isTimerRunning()).toBe(true);
     });
   });
 
   describe('getTotalExecutionTimeInMinutes', () => {
     it('timeRangesが空の場合0を返す', () => {
-      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00');
+      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', []);
       expect(todo.getTotalExecutionTimeInMinutes()).toBe(0);
     });
 
     it('1時間の実行時間を正しく計算できる', () => {
-      const rawData = {
-        id: 'id-123',
-        taskcode: 'TASK-001',
-        text: 'Sample task',
-        completedAt: null,
-        createdAt: '2025-01-15 10:00:00',
-        updatedAt: '2025-01-15 10:00:00',
-        timeRanges: [
+      const timeRanges = [
           { start: '2025-01-15 10:00:00', end: '2025-01-15 11:00:00' } // 60分
-        ]
-      };
+        ];
 
-      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', rawData);
+      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', timeRanges);
       expect(todo.getTotalExecutionTimeInMinutes()).toBe(60);
     });
 
     it('30分の実行時間を正しく計算できる', () => {
-      const rawData = {
-        id: 'id-123',
-        taskcode: 'TASK-001',
-        text: 'Sample task',
-        completedAt: null,
-        createdAt: '2025-01-15 10:00:00',
-        updatedAt: '2025-01-15 10:00:00',
-        timeRanges: [
+      const timeRanges = [
           { start: '2025-01-15 10:00:00', end: '2025-01-15 10:30:00' } // 30分
-        ]
-      };
+        ];
 
-      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', rawData);
+      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', timeRanges);
       expect(todo.getTotalExecutionTimeInMinutes()).toBe(30);
     });
 
     it('複数のtimeRangesの合計を計算できる', () => {
-      const rawData = {
-        id: 'id-123',
-        taskcode: 'TASK-001',
-        text: 'Sample task',
-        completedAt: null,
-        createdAt: '2025-01-15 10:00:00',
-        updatedAt: '2025-01-15 10:00:00',
-        timeRanges: [
+      const timeRanges = [
           { start: '2025-01-15 10:00:00', end: '2025-01-15 10:30:00' }, // 30分
           { start: '2025-01-15 11:00:00', end: '2025-01-15 11:45:00' }  // 45分
-        ]
-      };
+        ];
 
-      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', rawData);
+      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', timeRanges);
       expect(todo.getTotalExecutionTimeInMinutes()).toBe(75); // 30 + 45 = 75
     });
 
     it('実行中のタイマー（endがnull）を現在時刻まで計算できる', () => {
       // 現在時刻: 2025-01-15 12:34:56 (JST)
-      const rawData = {
-        id: 'id-123',
-        taskcode: 'TASK-001',
-        text: 'Sample task',
-        completedAt: null,
-        createdAt: '2025-01-15 10:00:00',
-        updatedAt: '2025-01-15 10:00:00',
-        timeRanges: [
+      const timeRanges = [
           { start: '2025-01-15 12:00:00', end: null } // 34分56秒 ≈ 35分
-        ]
-      };
+        ];
 
-      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', rawData);
+      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', timeRanges);
       expect(todo.getTotalExecutionTimeInMinutes()).toBe(35); // 四捨五入で35分
     });
 
     it('59秒は1分として計算される', () => {
-      const rawData = {
-        id: 'id-123',
-        taskcode: 'TASK-001',
-        text: 'Sample task',
-        completedAt: null,
-        createdAt: '2025-01-15 10:00:00',
-        updatedAt: '2025-01-15 10:00:00',
-        timeRanges: [
+      const timeRanges = [
           { start: '2025-01-15 12:34:00', end: '2025-01-15 12:34:59' } // 59秒
-        ]
-      };
+        ];
 
-      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', rawData);
+      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', timeRanges);
       expect(todo.getTotalExecutionTimeInMinutes()).toBe(1); // 59/60 = 0.98... -> 四捨五入で1分
     });
 
     it('61秒は1分として計算される', () => {
-      const rawData = {
-        id: 'id-123',
-        taskcode: 'TASK-001',
-        text: 'Sample task',
-        completedAt: null,
-        createdAt: '2025-01-15 10:00:00',
-        updatedAt: '2025-01-15 10:00:00',
-        timeRanges: [
+      const timeRanges = [
           { start: '2025-01-15 12:34:00', end: '2025-01-15 12:35:01' } // 61秒
-        ]
-      };
+        ];
 
-      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', rawData);
+      const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', timeRanges);
       expect(todo.getTotalExecutionTimeInMinutes()).toBe(1); // 61/60 = 1.01... -> 四捨五入で1分
     });
   });
@@ -687,22 +561,6 @@ describe('Todo', () => {
       expect(jsonOutput.timeRanges[1].end).toBe(null);
     });
 
-    it('追加のプロパティを含むJSONを正しく保持できる', () => {
-      const json = {
-        id: 'id-123',
-        taskcode: 'TASK-001',
-        text: 'Sample task',
-        completedAt: null,
-        customField: 'custom value',
-        anotherField: 42
-      };
-
-      const todo = Todo.fromJSON(json);
-      const jsonOutput = todo.toJSON();
-
-      expect(jsonOutput.customField).toBe('custom value');
-      expect(jsonOutput.anotherField).toBe(42);
-    });
   });
 
   describe('toJSON', () => {
@@ -713,7 +571,8 @@ describe('Todo', () => {
         'Sample task',
         null,
         '2025-01-15 10:00:00',
-        '2025-01-15 10:00:00'
+        '2025-01-15 10:00:00',
+        []
       );
 
       const json = todo.toJSON();
@@ -753,7 +612,8 @@ describe('Todo', () => {
         'Original text',
         null,
         '2025-01-15 10:00:00',
-        '2025-01-15 10:00:00'
+        '2025-01-15 10:00:00',
+        []
       );
 
       const updated = original.setText('Updated text');
