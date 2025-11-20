@@ -1,0 +1,97 @@
+import { CalendarEvent } from '../types/calendar';
+
+/**
+ * Googleカレンダーのサンプルデータを返す
+ * 実際のAPI連携は後ほど実装するため、現在は固定のサンプルデータを返す
+ * @returns カレンダーイベント配列
+ */
+export const fetchCalendarEventsSample = (): CalendarEvent[] => {
+  return [
+    {
+      "kind": "calendar#event",
+      "etag": "\"3123456789012345\"",
+      "id": "12345abcde67890fghij12345",
+      "status": "confirmed",
+      "htmlLink": "https://www.google.com/calendar/event?eid=xxxxxxxx",
+      "created": "2023-10-20T09:00:00.000Z",
+      "updated": "2023-10-20T09:30:00.000Z",
+      "summary": "週次定例ミーティング",
+      "description": "プロジェクトAの進捗確認。\nZoomリンク: https://zoom.us/j/xxxxxx",
+      "location": "オンライン (Zoom)",
+      "creator": {
+        "email": "user@example.com",
+        "self": true
+      },
+      "organizer": {
+        "email": "user@example.com",
+        "self": true
+      },
+      "start": {
+        "dateTime": "2023-11-01T10:00:00+09:00",
+        "timeZone": "Asia/Tokyo"
+      },
+      "end": {
+        "dateTime": "2023-11-01T11:00:00+09:00",
+        "timeZone": "Asia/Tokyo"
+      },
+      "iCalUID": "12345abcde67890fghij12345@google.com",
+      "sequence": 0,
+      "attendees": [
+        {
+          "email": "member1@example.com",
+          "responseStatus": "accepted"
+        },
+        {
+          "email": "member2@example.com",
+          "responseStatus": "needsAction",
+          "optional": true
+        }
+      ],
+      "reminders": {
+        "useDefault": false,
+        "overrides": [
+          {
+            "method": "email",
+            "minutes": 30
+          },
+          {
+            "method": "popup",
+            "minutes": 10
+          }
+        ]
+      },
+      "eventType": "default"
+    },
+    {
+      "kind": "calendar#event",
+      "etag": "\"3987654321098765\"",
+      "id": "98765zyxwv43210utsrq98765",
+      "status": "confirmed",
+      "htmlLink": "https://www.google.com/calendar/event?eid=yyyyyyy",
+      "created": "2023-10-21T15:00:00.000Z",
+      "updated": "2023-10-21T15:00:00.000Z",
+      "summary": "誕生日（終日イベントの例）",
+      "creator": {
+        "email": "user@example.com",
+        "self": true
+      },
+      "organizer": {
+        "email": "user@example.com",
+        "self": true
+      },
+      "start": {
+        "date": "2023-11-05"
+      },
+      "end": {
+        "date": "2023-11-06"
+      },
+      "transparency": "transparent",
+      "iCalUID": "98765zyxwv43210utsrq98765@google.com",
+      "sequence": 0,
+      "reminders": {
+        "useDefault": true
+      },
+      "eventType": "default"
+    }
+  ];
+};

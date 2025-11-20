@@ -403,6 +403,23 @@ body {
   background: #5f3a82;
 }
 
+.calendar-import-button {
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  background: #28a745;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+  white-space: nowrap;
+}
+
+.calendar-import-button:hover {
+  background: #218838;
+}
+
 /* モーダルのスタイル */
 .modal-overlay {
   position: fixed;

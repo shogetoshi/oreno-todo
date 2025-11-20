@@ -11,7 +11,7 @@ import './App.css';
  * JSON編集関連のローカル状態のみを管理
  */
 function App() {
-  const { todos, isLoading, addTodo, toggleTodo, deleteTodo, editTodo, editTaskcode, reorderTodos, replaceFromJson, startTimer, stopTimer } = useTodos();
+  const { todos, isLoading, addTodo, toggleTodo, deleteTodo, editTodo, editTaskcode, reorderTodos, replaceFromJson, startTimer, stopTimer, importCalendarEvents } = useTodos();
   const [isJsonEditorOpen, setIsJsonEditorOpen] = useState(false);
   const [jsonText, setJsonText] = useState('');
   const [jsonError, setJsonError] = useState('');
@@ -65,6 +65,12 @@ function App() {
             onClick={handleOpenJsonEditor}
           >
             JSON編集
+          </button>
+          <button
+            className="calendar-import-button"
+            onClick={importCalendarEvents}
+          >
+            カレンダーから取得
           </button>
         </div>
 

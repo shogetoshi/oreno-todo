@@ -26,6 +26,7 @@
   - 並び替えロジック
   - JSON配列との相互変換
   - バリデーションの呼び出し
+  - カレンダーイベントからTodo生成（Googleカレンダー連携）
 - **設計方針**: すべてのビジネスロジックをここに集約し、単体テスト可能にする
 
 #### `src/utils/timeFormat.ts`
@@ -56,6 +57,7 @@
   - IPC通信（Electron API経由でのデータ永続化）
   - 楽観的更新とロールバック処理
   - HTTPサーバー経由のイベント受信
+  - カレンダーイベントのインポート処理
 - **設計方針**: ビジネスロジックは持たず、TodoRepositoryに委譲する
 
 ---
@@ -188,6 +190,8 @@ View Re-render
 - `src/models/TodoRepository.ts` - リポジトリパターン
 - `src/utils/timeFormat.ts` - 時刻ユーティリティ
 - `src/utils/validation.ts` - バリデーション
+- `src/utils/calendarSample.ts` - カレンダーイベントサンプルデータ
+- `src/types/calendar.ts` - カレンダーイベント型定義
 
 ### Controller Layer
 - `src/hooks/useTodos.ts` - メインコントローラー
@@ -206,6 +210,17 @@ View Re-render
 ---
 
 ## 変更履歴
+
+### 2025-11-20: カレンダー連携機能の追加
+- `src/types/calendar.ts` を新規作成し、Googleカレンダーイベントの型定義を追加
+- `src/utils/calendarSample.ts` を新規作成し、サンプルデータ提供関数を追加
+- `TodoRepository.ts` にカレンダーイベントからTodo生成メソッドを追加
+  - `createTodoFromCalendarEvent()`: 単一イベントからTodo生成
+  - `createTodosFromCalendarEvents()`: イベント配列からTodoリスト生成
+  - `addTodosFromCalendarEvents()`: 既存リストにイベントを追加
+- `useTodos.ts` に `importCalendarEvents()` 関数を追加
+- `App.tsx` にカレンダー取得ボタンを配置
+- 単体テストを追加（84テスト全て成功）
 
 ### 2025-11-12: MVC明確化
 - `TodoRepository.ts` を新規作成し、ビジネスロジックを集約
