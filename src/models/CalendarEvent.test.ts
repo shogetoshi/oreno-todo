@@ -22,11 +22,8 @@ describe('CalendarEvent', () => {
         null,
         '2025-01-15 10:00:00',
         '2025-01-15 10:00:00',
-        [],
         '2025-01-16 14:00:00',
-        '2025-01-16 15:00:00',
-        'オンライン (Zoom)',
-        '週次定例ミーティング'
+        '2025-01-16 15:00:00'
       );
 
       expect(event.getId()).toBe('cal-123');
@@ -36,8 +33,6 @@ describe('CalendarEvent', () => {
       expect(event.isCompleted()).toBe(false);
       expect(event.getStartTime()).toBe('2025-01-16 14:00:00');
       expect(event.getEndTime()).toBe('2025-01-16 15:00:00');
-      expect(event.getLocation()).toBe('オンライン (Zoom)');
-      expect(event.getDescription()).toBe('週次定例ミーティング');
     });
   });
 
@@ -50,9 +45,6 @@ describe('CalendarEvent', () => {
         null,
         '2025-01-15 10:00:00',
         '2025-01-15 10:00:00',
-        [],
-        null,
-        null,
         null,
         null
       );
@@ -99,8 +91,6 @@ describe('CalendarEvent', () => {
       const event = CalendarEvent.fromGoogleCalendarEvent(googleEvent);
 
       expect(event.getText()).toBe('週次定例ミーティング');
-      expect(event.getDescription()).toBe('プロジェクトAの進捗確認');
-      expect(event.getLocation()).toBe('オンライン (Zoom)');
       expect(event.getStartTime()).toBe('2023-11-01T10:00:00+09:00');
       expect(event.getEndTime()).toBe('2023-11-01T11:00:00+09:00');
       expect(event.isCompleted()).toBe(false);
@@ -150,9 +140,6 @@ describe('CalendarEvent', () => {
         null,
         '2025-01-15 10:00:00',
         '2025-01-15 10:00:00',
-        [],
-        null,
-        null,
         null,
         null
       );
@@ -168,7 +155,7 @@ describe('CalendarEvent', () => {
   });
 
   describe('タイマー機能', () => {
-    it('タイマーを開始できる', () => {
+    it('タイマーは常に停止状態（CalendarEventではタイマー機能を使用しない）', () => {
       const event = new CalendarEvent(
         'cal-123',
         '',
@@ -176,38 +163,20 @@ describe('CalendarEvent', () => {
         null,
         '2025-01-15 10:00:00',
         '2025-01-15 10:00:00',
-        [],
-        null,
-        null,
         null,
         null
       );
 
-      const withTimer = event.startTimer();
-      expect(withTimer.isTimerRunning()).toBe(true);
-    });
-
-    it('タイマーを停止できる', () => {
-      const event = new CalendarEvent(
-        'cal-123',
-        '',
-        'イベント',
-        null,
-        '2025-01-15 10:00:00',
-        '2025-01-15 10:00:00',
-        [],
-        null,
-        null,
-        null,
-        null
-      );
+      expect(event.isTimerRunning()).toBe(false);
 
       const withTimer = event.startTimer();
-      const stopped = withTimer.stopTimer();
+      expect(withTimer.isTimerRunning()).toBe(false);
+
+      const stopped = event.stopTimer();
       expect(stopped.isTimerRunning()).toBe(false);
     });
 
-    it('実行時間を計算できる', () => {
+    it('startTimeとendTimeから実行時間を計算できる', () => {
       const event = new CalendarEvent(
         'cal-123',
         '',
@@ -215,16 +184,26 @@ describe('CalendarEvent', () => {
         null,
         '2025-01-15 10:00:00',
         '2025-01-15 10:00:00',
-        [
-          { start: '2025-01-15 10:00:00', end: '2025-01-15 11:00:00' } // 60分
-        ],
+        '2025-01-15 10:00:00',
+        '2025-01-15 11:00:00'
+      );
+
+      expect(event.getTotalExecutionTimeInMinutes()).toBe(60);
+    });
+
+    it('startTimeまたはendTimeがnullの場合は0を返す', () => {
+      const event = new CalendarEvent(
+        'cal-123',
+        '',
+        'イベント',
         null,
-        null,
+        '2025-01-15 10:00:00',
+        '2025-01-15 10:00:00',
         null,
         null
       );
 
-      expect(event.getTotalExecutionTimeInMinutes()).toBe(60);
+      expect(event.getTotalExecutionTimeInMinutes()).toBe(0);
     });
   });
 
@@ -237,11 +216,8 @@ describe('CalendarEvent', () => {
         null,
         '2025-01-15 10:00:00',
         '2025-01-15 10:00:00',
-        [],
         '2025-01-16 14:00:00',
-        '2025-01-16 15:00:00',
-        'オンライン (Zoom)',
-        '週次定例'
+        '2025-01-16 15:00:00'
       );
 
       const json = event.toJSON();
@@ -251,8 +227,6 @@ describe('CalendarEvent', () => {
       expect(json.text).toBe('ミーティング');
       expect(json.startTime).toBe('2025-01-16 14:00:00');
       expect(json.endTime).toBe('2025-01-16 15:00:00');
-      expect(json.location).toBe('オンライン (Zoom)');
-      expect(json.description).toBe('週次定例');
     });
   });
 
@@ -266,11 +240,8 @@ describe('CalendarEvent', () => {
         completedAt: null,
         createdAt: '2025-01-15 10:00:00',
         updatedAt: '2025-01-15 10:00:00',
-        timeRanges: [],
         startTime: '2025-01-16 14:00:00',
-        endTime: '2025-01-16 15:00:00',
-        location: 'オンライン (Zoom)',
-        description: '週次定例'
+        endTime: '2025-01-16 15:00:00'
       };
 
       const event = CalendarEvent.fromJSON(json);
@@ -279,8 +250,6 @@ describe('CalendarEvent', () => {
       expect(event.getText()).toBe('ミーティング');
       expect(event.getStartTime()).toBe('2025-01-16 14:00:00');
       expect(event.getEndTime()).toBe('2025-01-16 15:00:00');
-      expect(event.getLocation()).toBe('オンライン (Zoom)');
-      expect(event.getDescription()).toBe('週次定例');
     });
 
     it('fromJSON -> toJSON で元のJSONと同じになる', () => {
@@ -292,11 +261,8 @@ describe('CalendarEvent', () => {
         completedAt: null,
         createdAt: '2025-01-15 10:00:00',
         updatedAt: '2025-01-15 10:00:00',
-        timeRanges: [],
         startTime: '2025-01-16 14:00:00',
-        endTime: '2025-01-16 15:00:00',
-        location: 'オンライン (Zoom)',
-        description: '週次定例'
+        endTime: '2025-01-16 15:00:00'
       };
 
       const event = CalendarEvent.fromJSON(original);

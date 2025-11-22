@@ -1,6 +1,5 @@
 import { getCurrentJSTTime, parseJSTString } from '../utils/timeFormat';
 import { ListItem, ListItemType } from './ListItem';
-import { TimeRange } from './Todo';
 import { CalendarEvent as CalendarEventType } from '../types/calendar';
 
 /**
@@ -22,11 +21,8 @@ export class CalendarEvent implements ListItem {
     public readonly completedAt: string | null,
     public readonly createdAt: string,
     public readonly updatedAt: string,
-    public readonly timeRanges: TimeRange[],
     public readonly startTime: string | null,  // イベント開始時刻
-    public readonly endTime: string | null,    // イベント終了時刻
-    public readonly location: string | null,   // 開催場所
-    public readonly description: string | null // イベント詳細
+    public readonly endTime: string | null     // イベント終了時刻
   ) {}
 
   /**
@@ -85,19 +81,6 @@ export class CalendarEvent implements ListItem {
     return this.endTime;
   }
 
-  /**
-   * 開催場所を取得する
-   */
-  getLocation(): string | null {
-    return this.location;
-  }
-
-  /**
-   * イベント詳細を取得する
-   */
-  getDescription(): string | null {
-    return this.description;
-  }
 
   /**
    * タスクコードを更新した新しいCalendarEventインスタンスを返す
@@ -111,11 +94,8 @@ export class CalendarEvent implements ListItem {
       this.completedAt,
       this.createdAt,
       now,
-      this.timeRanges,
       this.startTime,
-      this.endTime,
-      this.location,
-      this.description
+      this.endTime
     );
   }
 
@@ -131,11 +111,8 @@ export class CalendarEvent implements ListItem {
       this.completedAt,
       this.createdAt,
       now,
-      this.timeRanges,
       this.startTime,
-      this.endTime,
-      this.location,
-      this.description
+      this.endTime
     );
   }
 
@@ -152,11 +129,8 @@ export class CalendarEvent implements ListItem {
       newCompletedAt,
       this.createdAt,
       now,
-      this.timeRanges,
       this.startTime,
-      this.endTime,
-      this.location,
-      this.description
+      this.endTime
     );
   }
 
@@ -173,127 +147,67 @@ export class CalendarEvent implements ListItem {
       newCompletedAt,
       this.createdAt,
       now,
-      this.timeRanges,
       this.startTime,
-      this.endTime,
-      this.location,
-      this.description
+      this.endTime
     );
   }
 
   /**
    * 時間計測を開始した新しいCalendarEventインスタンスを返す
+   * CalendarEventではタイマー機能は使用しないため、自身をそのまま返す
    */
   startTimer(): CalendarEvent {
-    const now = getCurrentJSTTime();
-    const newRange: TimeRange = {
-      start: now,
-      end: null
-    };
-    const newTimeRanges = [...this.timeRanges, newRange];
-    return new CalendarEvent(
-      this.id,
-      this.taskcode,
-      this.text,
-      this.completedAt,
-      this.createdAt,
-      now,
-      newTimeRanges,
-      this.startTime,
-      this.endTime,
-      this.location,
-      this.description
-    );
+    return this;
   }
 
   /**
    * 時間計測を停止した新しいCalendarEventインスタンスを返す
+   * CalendarEventではタイマー機能は使用しないため、自身をそのまま返す
    */
   stopTimer(): CalendarEvent {
-    if (this.timeRanges.length === 0) {
-      return this;
-    }
-
-    const newRanges = [...this.timeRanges];
-    const lastRange = newRanges[newRanges.length - 1];
-
-    if (lastRange.end === null) {
-      const now = getCurrentJSTTime();
-      newRanges[newRanges.length - 1] = {
-        ...lastRange,
-        end: now
-      };
-      return new CalendarEvent(
-        this.id,
-        this.taskcode,
-        this.text,
-        this.completedAt,
-        this.createdAt,
-        now,
-        newRanges,
-        this.startTime,
-        this.endTime,
-        this.location,
-        this.description
-      );
-    }
-
     return this;
   }
 
   /**
    * タイマーが実行中かどうかを判定する
+   * CalendarEventではタイマー機能は使用しないため、常にfalseを返す
    */
   isTimerRunning(): boolean {
-    if (this.timeRanges.length === 0) {
-      return false;
-    }
-    const lastRange = this.timeRanges[this.timeRanges.length - 1];
-    return lastRange.end === null;
+    return false;
   }
 
   /**
    * 合計実行時間を分単位で取得する
+   * CalendarEventではstartTimeとendTimeから処理時間を算出する
    */
   getTotalExecutionTimeInMinutes(): number {
-    if (this.timeRanges.length === 0) {
+    if (!this.startTime || !this.endTime) {
       return 0;
     }
 
-    const totalSeconds = this.timeRanges.reduce((total, range) => {
-      const startTime = parseJSTString(range.start).getTime();
-      const endTime = range.end ? parseJSTString(range.end).getTime() : parseJSTString(getCurrentJSTTime()).getTime();
-      const durationMs = endTime - startTime;
+    try {
+      const startTimeMs = parseJSTString(this.startTime).getTime();
+      const endTimeMs = parseJSTString(this.endTime).getTime();
+      const durationMs = endTimeMs - startTimeMs;
       const durationSeconds = Math.floor(durationMs / 1000);
-      return total + durationSeconds;
-    }, 0);
-
-    return Math.round(totalSeconds / 60);
+      return Math.round(durationSeconds / 60);
+    } catch (error) {
+      return 0;
+    }
   }
 
   /**
    * GoogleカレンダーイベントからCalendarEventインスタンスを作成する
    */
   static fromGoogleCalendarEvent(event: CalendarEventType): CalendarEvent {
-    // イベントの開始時刻・終了時刻を取得
-    const startTime = event.start.dateTime || event.start.date || null;
-    const endTime = event.end.dateTime || event.end.date || null;
-
-    // created, updated時刻をISO 8601形式で取得
-    const createdAt = new Date(event.created).toISOString();
-    const updatedAt = new Date(event.updated).toISOString();
-
-    // 開始時刻とcreated時刻から決定的なIDを生成
-    const id = CalendarEvent.generateIdFromEvent(event);
-
-    // タスクコード、テキスト、場所、詳細を抽出
-    const taskcode = '';
-    const text = event.summary;
-    const location = event.location || null;
-    const description = event.description || null;
-
-    const completedAt = null;
-    const timeRanges: TimeRange[] = [];
+    const id = CalendarEvent.extractIdFromGoogleEvent(event);
+    const taskcode = CalendarEvent.extractTaskcodeFromGoogleEvent(event);
+    const text = CalendarEvent.extractTextFromGoogleEvent(event);
+    const completedAt = CalendarEvent.extractCompletedAtFromGoogleEvent(event);
+    const createdAt = CalendarEvent.extractCreatedAtFromGoogleEvent(event);
+    const updatedAt = CalendarEvent.extractUpdatedAtFromGoogleEvent(event);
+    const startTime = CalendarEvent.extractStartTimeFromGoogleEvent(event);
+    const endTime = CalendarEvent.extractEndTimeFromGoogleEvent(event);
 
     return new CalendarEvent(
       id,
@@ -302,12 +216,65 @@ export class CalendarEvent implements ListItem {
       completedAt,
       createdAt,
       updatedAt,
-      timeRanges,
       startTime,
-      endTime,
-      location,
-      description
+      endTime
     );
+  }
+
+  /**
+   * GoogleカレンダーイベントからIDを抽出する
+   */
+  private static extractIdFromGoogleEvent(event: CalendarEventType): string {
+    return CalendarEvent.generateIdFromEvent(event);
+  }
+
+  /**
+   * Googleカレンダーイベントからタスクコードを抽出する
+   */
+  private static extractTaskcodeFromGoogleEvent(_event: CalendarEventType): string {
+    return '';
+  }
+
+  /**
+   * Googleカレンダーイベントからテキスト（イベントタイトル）を抽出する
+   */
+  private static extractTextFromGoogleEvent(event: CalendarEventType): string {
+    return event.summary;
+  }
+
+  /**
+   * Googleカレンダーイベントから完了日時を抽出する
+   */
+  private static extractCompletedAtFromGoogleEvent(_event: CalendarEventType): string | null {
+    return null;
+  }
+
+  /**
+   * Googleカレンダーイベントから作成日時を抽出する
+   */
+  private static extractCreatedAtFromGoogleEvent(event: CalendarEventType): string {
+    return new Date(event.created).toISOString();
+  }
+
+  /**
+   * Googleカレンダーイベントから更新日時を抽出する
+   */
+  private static extractUpdatedAtFromGoogleEvent(event: CalendarEventType): string {
+    return new Date(event.updated).toISOString();
+  }
+
+  /**
+   * Googleカレンダーイベントから開始時刻を抽出する
+   */
+  private static extractStartTimeFromGoogleEvent(event: CalendarEventType): string | null {
+    return event.start.dateTime || event.start.date || null;
+  }
+
+  /**
+   * Googleカレンダーイベントから終了時刻を抽出する
+   */
+  private static extractEndTimeFromGoogleEvent(event: CalendarEventType): string | null {
+    return event.end.dateTime || event.end.date || null;
   }
 
   /**
@@ -350,12 +317,9 @@ export class CalendarEvent implements ListItem {
     const createdAt = json.createdAt || now;
     const updatedAt = json.updatedAt || now;
     const taskcode = json.taskcode || '';
-    const timeRanges: TimeRange[] = json.timeRanges || [];
 
     const startTime = json.startTime || null;
     const endTime = json.endTime || null;
-    const location = json.location || null;
-    const description = json.description || null;
 
     return new CalendarEvent(
       json.id,
@@ -364,11 +328,8 @@ export class CalendarEvent implements ListItem {
       completedAt,
       createdAt,
       updatedAt,
-      timeRanges,
       startTime,
-      endTime,
-      location,
-      description
+      endTime
     );
   }
 
@@ -384,11 +345,8 @@ export class CalendarEvent implements ListItem {
       completedAt: this.completedAt,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
-      timeRanges: this.timeRanges,
       startTime: this.startTime,
-      endTime: this.endTime,
-      location: this.location,
-      description: this.description
+      endTime: this.endTime
     };
   }
 }
