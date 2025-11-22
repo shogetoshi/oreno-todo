@@ -1,11 +1,14 @@
 import { Todo, TimeRange } from './Todo';
+import { CalendarEvent } from './CalendarEvent';
+import { ListItem, ListItemType } from './ListItem';
 import { validateTodos } from '../utils/validation';
 import { getCurrentJSTTime } from '../utils/timeFormat';
-import { CalendarEvent } from '../types/calendar';
+import { CalendarEvent as GoogleCalendarEvent } from '../types/calendar';
 
 /**
  * Model Layer: TodoRepository
  * Todoエンティティの集合を管理し、ビジネスロジックを提供する
+ * Note: カレンダーイベントとTodoの両方を扱うため、一部のメソッドはListItemを返すようになっています
  */
 export class TodoRepository {
   /**
@@ -34,6 +37,18 @@ export class TodoRepository {
   }
 
   /**
+   * 指定IDのListItemの完了状態を切り替える
+   * @param items 既存のListItemリスト
+   * @param id ListItemのID
+   * @returns 新しいListItemリスト
+   */
+  static toggleItem(items: ListItem[], id: string): ListItem[] {
+    return items.map((item) =>
+      item.getId() === id ? item.toggleCompleted() : item
+    );
+  }
+
+  /**
    * 指定IDのTodoの完了状態を切り替える
    * @param todos 既存のTodoリスト
    * @param id TodoのID
@@ -43,6 +58,16 @@ export class TodoRepository {
     return todos.map((todo) =>
       todo.getId() === id ? todo.toggleCompleted() : todo
     );
+  }
+
+  /**
+   * 指定IDのListItemを削除する
+   * @param items 既存のListItemリスト
+   * @param id ListItemのID
+   * @returns 新しいListItemリスト
+   */
+  static deleteItem(items: ListItem[], id: string): ListItem[] {
+    return items.filter((item) => item.getId() !== id);
   }
 
   /**
@@ -56,6 +81,19 @@ export class TodoRepository {
   }
 
   /**
+   * 指定IDのListItemのテキストを編集する
+   * @param items 既存のListItemリスト
+   * @param id ListItemのID
+   * @param newText 新しいテキスト
+   * @returns 新しいListItemリスト
+   */
+  static editItemText(items: ListItem[], id: string, newText: string): ListItem[] {
+    return items.map((item) =>
+      item.getId() === id ? item.setText(newText) : item
+    );
+  }
+
+  /**
    * 指定IDのTodoのテキストを編集する
    * @param todos 既存のTodoリスト
    * @param id TodoのID
@@ -65,6 +103,19 @@ export class TodoRepository {
   static editTodoText(todos: Todo[], id: string, newText: string): Todo[] {
     return todos.map((todo) =>
       todo.getId() === id ? todo.setText(newText) : todo
+    );
+  }
+
+  /**
+   * 指定IDのListItemのタスクコードを編集する
+   * @param items 既存のListItemリスト
+   * @param id ListItemのID
+   * @param newTaskcode 新しいタスクコード
+   * @returns 新しいListItemリスト
+   */
+  static editItemTaskcode(items: ListItem[], id: string, newTaskcode: string): ListItem[] {
+    return items.map((item) =>
+      item.getId() === id ? item.setTaskcode(newTaskcode) : item
     );
   }
 
@@ -82,6 +133,20 @@ export class TodoRepository {
   }
 
   /**
+   * ListItemリストを並び替える
+   * @param items 既存のListItemリスト
+   * @param fromIndex 移動元のインデックス
+   * @param toIndex 移動先のインデックス
+   * @returns 新しいListItemリスト
+   */
+  static reorderItems(items: ListItem[], fromIndex: number, toIndex: number): ListItem[] {
+    const newItems = [...items];
+    const [draggedItem] = newItems.splice(fromIndex, 1);
+    newItems.splice(toIndex, 0, draggedItem);
+    return newItems;
+  }
+
+  /**
    * Todoリストを並び替える
    * @param todos 既存のTodoリスト
    * @param fromIndex 移動元のインデックス
@@ -96,6 +161,18 @@ export class TodoRepository {
   }
 
   /**
+   * 指定IDのListItemのタイマーを開始する
+   * @param items 既存のListItemリスト
+   * @param id ListItemのID
+   * @returns 新しいListItemリスト
+   */
+  static startItemTimer(items: ListItem[], id: string): ListItem[] {
+    return items.map((item) =>
+      item.getId() === id ? item.startTimer() : item
+    );
+  }
+
+  /**
    * 指定IDのTodoのタイマーを開始する
    * @param todos 既存のTodoリスト
    * @param id TodoのID
@@ -104,6 +181,18 @@ export class TodoRepository {
   static startTimer(todos: Todo[], id: string): Todo[] {
     return todos.map((todo) =>
       todo.getId() === id ? todo.startTimer() : todo
+    );
+  }
+
+  /**
+   * 指定IDのListItemのタイマーを停止する
+   * @param items 既存のListItemリスト
+   * @param id ListItemのID
+   * @returns 新しいListItemリスト
+   */
+  static stopItemTimer(items: ListItem[], id: string): ListItem[] {
+    return items.map((item) =>
+      item.getId() === id ? item.stopTimer() : item
     );
   }
 
@@ -120,6 +209,29 @@ export class TodoRepository {
   }
 
   /**
+   * JSON配列からListItemリスト（TodoまたはCalendarEvent）を生成する
+   * typeフィールドでTodoとCalendarEventを判別する
+   * @param jsonArray JSON配列
+   * @returns ListItemリスト
+   * @throws バリデーションエラー
+   */
+  static fromJsonArrayToItems(jsonArray: any): ListItem[] {
+    if (!Array.isArray(jsonArray)) {
+      throw new Error('JSONデータは配列である必要があります');
+    }
+
+    return jsonArray.map((json: any) => {
+      const type = json.type || ListItemType.TODO; // デフォルトはTodo（後方互換性）
+
+      if (type === ListItemType.CALENDAR_EVENT) {
+        return CalendarEvent.fromJSON(json);
+      } else {
+        return Todo.fromJSON(json);
+      }
+    });
+  }
+
+  /**
    * JSON配列からTodoリストを生成する
    * @param jsonArray JSON配列
    * @returns Todoリスト
@@ -130,6 +242,15 @@ export class TodoRepository {
       throw new Error('JSONの形式が正しくありません。各TODOには id, taskcode, text, completedAt が必要です');
     }
     return jsonArray.map((json: any) => Todo.fromJSON(json));
+  }
+
+  /**
+   * ListItemリストをJSON配列に変換する
+   * @param items ListItemリスト（TodoまたはCalendarEvent）
+   * @returns JSON配列
+   */
+  static itemsToJsonArray(items: ListItem[]): any[] {
+    return items.map(item => item.toJSON());
   }
 
   /**
@@ -164,116 +285,79 @@ export class TodoRepository {
   }
 
   /**
-   * カレンダーイベントからIDを生成する
-   * イベントの開始時刻とcreated時刻から安定したIDを生成する
-   * これにより、同一イベントを複数回インポートしても同じIDが生成され、重複を防ぐことができる
-   * @param event カレンダーイベント
-   * @returns 生成されたID（決定的なハッシュベースID）
+   * カレンダーイベントからCalendarEventエンティティを生成する
+   * @param event Googleカレンダーイベント
+   * @returns 生成されたCalendarEvent
    */
-  private static getIdFromCalendarEvent(event: CalendarEvent): string {
-    // イベントの開始時刻を取得（dateTimeまたはdateのいずれか）
-    const startTime = event.start.dateTime || event.start.date || '';
-    // created時刻を取得
-    const createdTime = event.created;
-
-    // 開始時刻とcreated時刻を結合して一意の文字列を作成
-    const uniqueString = `${startTime}_${createdTime}`;
-
-    // 簡易的なハッシュ生成（決定的）
-    let hash = 0;
-    for (let i = 0; i < uniqueString.length; i++) {
-      const char = uniqueString.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // 32ビット整数に変換
-    }
-
-    // 追加のハッシュ値を生成（uniqueStringを逆順でハッシュ化）
-    let hash2 = 0;
-    for (let i = uniqueString.length - 1; i >= 0; i--) {
-      const char = uniqueString.charCodeAt(i);
-      hash2 = ((hash2 << 5) - hash2) + char;
-      hash2 = hash2 & hash2;
-    }
-
-    // ハッシュ値を16進数に変換
-    const hashHex1 = Math.abs(hash).toString(16).padStart(8, '0');
-    const hashHex2 = Math.abs(hash2).toString(16).padStart(8, '0');
-
-    // UUID風の形式でIDを生成（決定的）
-    // プレフィックス 'cal-' でカレンダー由来であることを明示
-    return `cal-${hashHex1}-${hashHex2.substring(0, 4)}-${hashHex2.substring(4, 8)}-${hashHex1.substring(0, 12)}`;
+  static createCalendarEventFromGoogleEvent(event: GoogleCalendarEvent): CalendarEvent {
+    return CalendarEvent.fromGoogleCalendarEvent(event);
   }
 
   /**
-   * カレンダーイベントからtaskcodeを生成する
-   * @param _event カレンダーイベント（現在は未使用）
-   * @returns taskcode（現在は空文字列）
+   * カレンダーイベント配列からCalendarEventリストを生成する
+   * @param events Googleカレンダーイベント配列
+   * @returns 生成されたCalendarEventリスト
    */
-  private static getTaskcodeFromCalendarEvent(_event: CalendarEvent): string {
-    return '';
+  static createCalendarEventsFromGoogleEvents(events: GoogleCalendarEvent[]): CalendarEvent[] {
+    return events.map(event => this.createCalendarEventFromGoogleEvent(event));
   }
 
   /**
-   * カレンダーイベントからテキストを抽出する
-   * @param event カレンダーイベント
-   * @returns Todoのテキスト
+   * カレンダーイベントを既存のリストアイテムリストに追加する
+   * 同一IDのアイテムが既に存在する場合は、新しい情報で上書きする（重複防止）
+   * @param items 既存のListItemリスト（TodoまたはCalendarEvent）
+   * @param events Googleカレンダーイベント配列
+   * @returns 新しいListItemリスト
    */
-  private static getTextFromCalendarEvent(event: CalendarEvent): string {
-    return event.summary;
+  static addCalendarEventsToItems(items: ListItem[], events: GoogleCalendarEvent[]): ListItem[] {
+    const newEvents = this.createCalendarEventsFromGoogleEvents(events);
+
+    // 新しいイベントのIDセットを作成
+    const newEventIds = new Set(newEvents.map(event => event.getId()));
+
+    // 既存のアイテムから、新しいイベントと同じIDを持つものを除外
+    const existingItemsWithoutDuplicates = items.filter(item => !newEventIds.has(item.getId()));
+
+    // 既存のアイテム（重複除外済み） + 新しいイベント
+    return [...existingItemsWithoutDuplicates, ...newEvents];
   }
 
   /**
-   * カレンダーイベントから作成日時を抽出する
-   * @param event カレンダーイベント
-   * @returns ISO 8601形式の作成日時
+   * 後方互換性のため: カレンダーイベントからTodoを生成する（非推奨）
+   * @deprecated CalendarEvent.fromGoogleCalendarEvent()を使用してください
+   * @param event Googleカレンダーイベント
+   * @returns 生成されたTodo（実際にはCalendarEventがListItemとして返される）
    */
-  private static getCreatedAtFromCalendarEvent(event: CalendarEvent): string {
-    return new Date(event.created).toISOString();
-  }
+  static createTodoFromCalendarEvent(event: GoogleCalendarEvent): Todo {
+    // 互換性のため、一旦CalendarEventを作成してからTodoに変換
+    // これは既存のテストケースを壊さないための措置
+    const calEvent = CalendarEvent.fromGoogleCalendarEvent(event);
 
-  /**
-   * カレンダーイベントから更新日時を抽出する
-   * @param event カレンダーイベント
-   * @returns ISO 8601形式の更新日時
-   */
-  private static getUpdatedAtFromCalendarEvent(event: CalendarEvent): string {
-    return new Date(event.updated).toISOString();
-  }
-
-  /**
-   * カレンダーイベントからTodoを生成する（テスト可能な純粋関数）
-   * @param event カレンダーイベント
-   * @returns 生成されたTodo
-   */
-  static createTodoFromCalendarEvent(event: CalendarEvent): Todo {
-    const id = this.getIdFromCalendarEvent(event);
-    const taskcode = this.getTaskcodeFromCalendarEvent(event);
-    const text = this.getTextFromCalendarEvent(event);
-    const completedAt = null;
-    const createdAt = this.getCreatedAtFromCalendarEvent(event);
-    const updatedAt = this.getUpdatedAtFromCalendarEvent(event);
+    // CalendarEventの情報を使ってTodoを作成
+    const id = calEvent.getId();
+    const taskcode = calEvent.getTaskcode();
+    const text = calEvent.getText();
+    const completedAt = calEvent.getCompletedAt();
+    const createdAt = calEvent.createdAt;
+    const updatedAt = calEvent.updatedAt;
     const timeRanges: TimeRange[] = [];
 
     return new Todo(id, taskcode, text, completedAt, createdAt, updatedAt, timeRanges);
   }
 
   /**
-   * カレンダーイベント配列からTodoリストを生成する
-   * @param events カレンダーイベント配列
-   * @returns 生成されたTodoリスト
+   * 後方互換性のため: カレンダーイベント配列からTodoリストを生成する（非推奨）
+   * @deprecated createCalendarEventsFromGoogleEvents()を使用してください
    */
-  static createTodosFromCalendarEvents(events: CalendarEvent[]): Todo[] {
+  static createTodosFromCalendarEvents(events: GoogleCalendarEvent[]): Todo[] {
     return events.map(event => this.createTodoFromCalendarEvent(event));
   }
 
   /**
-   * カレンダーイベントを既存のTodoリストに追加する
-   * 同一IDのTodoが既に存在する場合は、新しい情報で上書きする（重複防止）
-   * @param todos 既存のTodoリスト
-   * @param events カレンダーイベント配列
-   * @returns 新しいTodoリスト
+   * 後方互換性のため: カレンダーイベントを既存のTodoリストに追加する（非推奨）
+   * @deprecated addCalendarEventsToItems()を使用してください
    */
-  static addTodosFromCalendarEvents(todos: Todo[], events: CalendarEvent[]): Todo[] {
+  static addTodosFromCalendarEvents(todos: Todo[], events: GoogleCalendarEvent[]): Todo[] {
     const newTodos = this.createTodosFromCalendarEvents(events);
 
     // 新しいTodoのIDセットを作成

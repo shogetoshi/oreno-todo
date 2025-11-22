@@ -657,6 +657,7 @@ describe('TodoRepository', () => {
       const original = [
         {
           id: 'id-1',
+          type: 'todo',
           taskcode: 'TASK-001',
           text: 'Task 1',
           completedAt: null,
@@ -666,6 +667,7 @@ describe('TodoRepository', () => {
         },
         {
           id: 'id-2',
+          type: 'todo',
           taskcode: 'TASK-002',
           text: 'Task 2',
           completedAt: '2025-01-15 11:00:00',
@@ -799,6 +801,7 @@ describe('TodoRepository', () => {
       const original = [
         {
           id: 'id-1',
+          type: 'todo',
           taskcode: 'TASK-001',
           text: 'Task 1',
           completedAt: null,
