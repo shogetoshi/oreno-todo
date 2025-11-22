@@ -11,22 +11,42 @@
 
 **責務**: ドメインロジック、データ構造、ビジネスルールの定義と実装
 
+#### `src/models/ListItem.ts`
+- **役割**: TodoとCalendarEventの共通インターフェース
+- **内容**:
+  - リストアイテムの共通メソッド定義（getId, getType, getText, toggleCompletedなど）
+  - ListItemTypeEnum（TODO / CALENDAR_EVENT）
+- **設計方針**: TodoとCalendarEventを統一的に扱えるようにする
+
 #### `src/models/Todo.ts`
 - **役割**: TODOアイテムのドメインモデル（エンティティ）
 - **内容**:
-  - Todoエンティティクラスの定義
+  - Todoエンティティクラスの定義（ListItemを実装）
   - イミュータブルな設計（すべての更新メソッドは新しいインスタンスを返す）
   - 個別のビジネスロジック（完了状態切り替え、タイマー開始/停止など）
   - JSON変換機能（fromJSON/toJSON）
+  - type: 'todo'を含むJSON出力
+
+#### `src/models/CalendarEvent.ts`
+- **役割**: カレンダーイベントのドメインモデル（エンティティ）
+- **内容**:
+  - CalendarEventエンティティクラスの定義（ListItemを実装）
+  - イミュータブルな設計
+  - Googleカレンダーイベントからの変換機能
+  - 開始時刻、終了時刻、場所、詳細などの追加フィールド
+  - JSON変換機能（fromJSON/toJSON）
+  - type: 'calendar_event'を含むJSON出力
 
 #### `src/models/TodoRepository.ts`
-- **役割**: Todoエンティティの集合を管理するリポジトリパターン
+- **役割**: TodoおよびCalendarEventエンティティの集合を管理するリポジトリパターン
 - **内容**:
   - Todo作成、追加、削除、更新などのコレクション操作
+  - ListItem配列を扱う汎用メソッド（toggleItem, deleteItem, editItemTextなど）
   - 並び替えロジック
-  - JSON配列との相互変換
+  - JSON配列との相互変換（typeフィールドによる型判別）
   - バリデーションの呼び出し
-  - カレンダーイベントからTodo生成（Googleカレンダー連携）
+  - GoogleカレンダーイベントからCalendarEvent生成
+  - 後方互換性のためのTodo専用メソッドを維持
 - **設計方針**: すべてのビジネスロジックをここに集約し、単体テスト可能にする
 
 #### `src/utils/timeFormat.ts`
@@ -186,12 +206,14 @@ View Re-render
 ## ファイル一覧とレイヤー分類
 
 ### Model Layer
+- `src/models/ListItem.ts` - TodoとCalendarEventの共通インターフェース
 - `src/models/Todo.ts` - TODOエンティティ
+- `src/models/CalendarEvent.ts` - カレンダーイベントエンティティ
 - `src/models/TodoRepository.ts` - リポジトリパターン
 - `src/utils/timeFormat.ts` - 時刻ユーティリティ
 - `src/utils/validation.ts` - バリデーション
 - `src/utils/calendarSample.ts` - カレンダーイベントサンプルデータ
-- `src/types/calendar.ts` - カレンダーイベント型定義
+- `src/types/calendar.ts` - Googleカレンダーイベント型定義
 
 ### Controller Layer
 - `src/hooks/useTodos.ts` - メインコントローラー
@@ -210,6 +232,26 @@ View Re-render
 ---
 
 ## 変更履歴
+
+### 2025-11-23: TodoとCalendarEventの分離（Issue #0015）
+- `src/models/ListItem.ts` を新規作成し、共通インターフェースを定義
+  - TodoとCalendarEventが実装するべきメソッドを定義
+  - ListItemType列挙型（TODO / CALENDAR_EVENT）を追加
+- `src/models/CalendarEvent.ts` を新規作成
+  - カレンダーイベント専用のエンティティクラス
+  - 開始時刻、終了時刻、場所、詳細などの追加フィールド
+  - GoogleカレンダーイベントからのCalendarEvent生成機能
+- `Todo.ts` を更新し、ListItemインターフェースを実装
+  - JSON出力にtype: 'todo'を追加
+  - getType()メソッドを追加
+- `TodoRepository.ts` にListItem配列を扱うメソッドを追加
+  - toggleItem, deleteItem, editItemText, editItemTaskcode, reorderItems
+  - startItemTimer, stopItemTimer
+  - fromJsonArrayToItems, itemsToJsonArray
+  - createCalendarEventFromGoogleEvent, addCalendarEventsToItems
+  - 既存のTodo専用メソッドは後方互換性のため維持
+- 全テストを更新（224テスト全て成功）
+- 設計文書を更新
 
 ### 2025-11-20: カレンダー連携機能の追加
 - `src/types/calendar.ts` を新規作成し、Googleカレンダーイベントの型定義を追加
