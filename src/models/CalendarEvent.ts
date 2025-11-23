@@ -120,18 +120,7 @@ export class CalendarEvent implements ListItem {
    * 完了状態を切り替えた新しいCalendarEventインスタンスを返す
    */
   toggleCompleted(): CalendarEvent {
-    const now = getCurrentJSTTime();
-    const newCompletedAt = this.completedAt === null ? now : null;
-    return new CalendarEvent(
-      this.id,
-      this.taskcode,
-      this.text,
-      newCompletedAt,
-      this.createdAt,
-      now,
-      this.startTime,
-      this.endTime
-    );
+    return this.setCompleted(!this.isCompleted());
   }
 
   /**

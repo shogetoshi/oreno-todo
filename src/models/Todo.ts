@@ -93,9 +93,7 @@ export class Todo implements ListItem {
    * 完了状態を切り替えた新しいTodoインスタンスを返す
    */
   toggleCompleted(): Todo {
-    const now = getCurrentJSTTime();
-    const newCompletedAt = this.completedAt === null ? now : null;
-    return new Todo(this.id, this.taskcode, this.text, newCompletedAt, this.createdAt, now, this.timeRanges);
+    return this.setCompleted(!this.isCompleted());
   }
 
   /**
