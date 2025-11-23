@@ -243,6 +243,7 @@ export class TodoRepository {
    * @returns 生成されたTodo（実際にはCalendarEventがListItemとして返される）
    */
   static createTodoFromCalendarEvent(event: GoogleCalendarEvent): Todo {
+    console.warn('[Deprecated] createTodoFromCalendarEvent() is deprecated. Use CalendarEvent.fromGoogleCalendarEvent() instead.');
     // 互換性のため、一旦CalendarEventを作成してからTodoに変換
     // これは既存のテストケースを壊さないための措置
     const calEvent = CalendarEvent.fromGoogleCalendarEvent(event);
@@ -264,6 +265,7 @@ export class TodoRepository {
    * @deprecated createCalendarEventsFromGoogleEvents()を使用してください
    */
   static createTodosFromCalendarEvents(events: GoogleCalendarEvent[]): Todo[] {
+    console.warn('[Deprecated] createTodosFromCalendarEvents() is deprecated. Use createCalendarEventsFromGoogleEvents() and addCalendarEventsToItems() instead.');
     return events.map(event => this.createTodoFromCalendarEvent(event));
   }
 
@@ -272,6 +274,7 @@ export class TodoRepository {
    * @deprecated addCalendarEventsToItems()を使用してください
    */
   static addTodosFromCalendarEvents(todos: Todo[], events: GoogleCalendarEvent[]): Todo[] {
+    console.warn('[Deprecated] addTodosFromCalendarEvents() is deprecated. Use addCalendarEventsToItems() instead.');
     const newTodos = this.createTodosFromCalendarEvents(events);
 
     // 新しいTodoのIDセットを作成
