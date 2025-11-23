@@ -267,6 +267,26 @@ export class CalendarEvent implements ListItem {
   }
 
   /**
+   * 文字列から簡易的なハッシュ値を計算する
+   * @param str ハッシュ化する文字列
+   * @param reverse trueの場合、逆順で処理
+   * @returns ハッシュ値
+   */
+  private static simpleHash(str: string, reverse: boolean = false): number {
+    let hash = 0;
+    const len = str.length;
+
+    for (let i = 0; i < len; i++) {
+      const index = reverse ? (len - 1 - i) : i;
+      const char = str.charCodeAt(index);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+
+    return hash;
+  }
+
+  /**
    * Googleカレンダーイベントから決定的なIDを生成する
    * 同じイベントからは常に同じIDが生成される
    */
@@ -275,20 +295,8 @@ export class CalendarEvent implements ListItem {
     const createdTime = event.created;
     const uniqueString = `${startTime}_${createdTime}`;
 
-    // 簡易的なハッシュ生成
-    let hash = 0;
-    for (let i = 0; i < uniqueString.length; i++) {
-      const char = uniqueString.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
-    }
-
-    let hash2 = 0;
-    for (let i = uniqueString.length - 1; i >= 0; i--) {
-      const char = uniqueString.charCodeAt(i);
-      hash2 = ((hash2 << 5) - hash2) + char;
-      hash2 = hash2 & hash2;
-    }
+    const hash = this.simpleHash(uniqueString, false);
+    const hash2 = this.simpleHash(uniqueString, true);
 
     const hashHex1 = Math.abs(hash).toString(16).padStart(8, '0');
     const hashHex2 = Math.abs(hash2).toString(16).padStart(8, '0');
