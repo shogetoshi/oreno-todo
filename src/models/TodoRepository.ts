@@ -49,18 +49,6 @@ export class TodoRepository {
   }
 
   /**
-   * 指定IDのTodoの完了状態を切り替える
-   * @param todos 既存のTodoリスト
-   * @param id TodoのID
-   * @returns 新しいTodoリスト
-   */
-  static toggleTodo(todos: Todo[], id: string): Todo[] {
-    return todos.map((todo) =>
-      todo.getId() === id ? todo.toggleCompleted() : todo
-    );
-  }
-
-  /**
    * 指定IDのListItemを削除する
    * @param items 既存のListItemリスト
    * @param id ListItemのID
@@ -68,16 +56,6 @@ export class TodoRepository {
    */
   static deleteItem(items: ListItem[], id: string): ListItem[] {
     return items.filter((item) => item.getId() !== id);
-  }
-
-  /**
-   * 指定IDのTodoを削除する
-   * @param todos 既存のTodoリスト
-   * @param id TodoのID
-   * @returns 新しいTodoリスト
-   */
-  static deleteTodo(todos: Todo[], id: string): Todo[] {
-    return todos.filter((todo) => todo.getId() !== id);
   }
 
   /**
@@ -94,19 +72,6 @@ export class TodoRepository {
   }
 
   /**
-   * 指定IDのTodoのテキストを編集する
-   * @param todos 既存のTodoリスト
-   * @param id TodoのID
-   * @param newText 新しいテキスト
-   * @returns 新しいTodoリスト
-   */
-  static editTodoText(todos: Todo[], id: string, newText: string): Todo[] {
-    return todos.map((todo) =>
-      todo.getId() === id ? todo.setText(newText) : todo
-    );
-  }
-
-  /**
    * 指定IDのListItemのタスクコードを編集する
    * @param items 既存のListItemリスト
    * @param id ListItemのID
@@ -116,19 +81,6 @@ export class TodoRepository {
   static editItemTaskcode(items: ListItem[], id: string, newTaskcode: string): ListItem[] {
     return items.map((item) =>
       item.getId() === id ? item.setTaskcode(newTaskcode) : item
-    );
-  }
-
-  /**
-   * 指定IDのTodoのタスクコードを編集する
-   * @param todos 既存のTodoリスト
-   * @param id TodoのID
-   * @param newTaskcode 新しいタスクコード
-   * @returns 新しいTodoリスト
-   */
-  static editTodoTaskcode(todos: Todo[], id: string, newTaskcode: string): Todo[] {
-    return todos.map((todo) =>
-      todo.getId() === id ? todo.setTaskcode(newTaskcode) : todo
     );
   }
 
@@ -147,20 +99,6 @@ export class TodoRepository {
   }
 
   /**
-   * Todoリストを並び替える
-   * @param todos 既存のTodoリスト
-   * @param fromIndex 移動元のインデックス
-   * @param toIndex 移動先のインデックス
-   * @returns 新しいTodoリスト
-   */
-  static reorderTodos(todos: Todo[], fromIndex: number, toIndex: number): Todo[] {
-    const newTodos = [...todos];
-    const [draggedTodo] = newTodos.splice(fromIndex, 1);
-    newTodos.splice(toIndex, 0, draggedTodo);
-    return newTodos;
-  }
-
-  /**
    * 指定IDのListItemのタイマーを開始する
    * @param items 既存のListItemリスト
    * @param id ListItemのID
@@ -173,18 +111,6 @@ export class TodoRepository {
   }
 
   /**
-   * 指定IDのTodoのタイマーを開始する
-   * @param todos 既存のTodoリスト
-   * @param id TodoのID
-   * @returns 新しいTodoリスト
-   */
-  static startTimer(todos: Todo[], id: string): Todo[] {
-    return todos.map((todo) =>
-      todo.getId() === id ? todo.startTimer() : todo
-    );
-  }
-
-  /**
    * 指定IDのListItemのタイマーを停止する
    * @param items 既存のListItemリスト
    * @param id ListItemのID
@@ -193,18 +119,6 @@ export class TodoRepository {
   static stopItemTimer(items: ListItem[], id: string): ListItem[] {
     return items.map((item) =>
       item.getId() === id ? item.stopTimer() : item
-    );
-  }
-
-  /**
-   * 指定IDのTodoのタイマーを停止する
-   * @param todos 既存のTodoリスト
-   * @param id TodoのID
-   * @returns 新しいTodoリスト
-   */
-  static stopTimer(todos: Todo[], id: string): Todo[] {
-    return todos.map((todo) =>
-      todo.getId() === id ? todo.stopTimer() : todo
     );
   }
 

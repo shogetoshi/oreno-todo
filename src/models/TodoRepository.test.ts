@@ -114,7 +114,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
       const todos = [todo];
 
-      const newTodos = TodoRepository.toggleTodo(todos, todo.getId());
+      const newTodos = TodoRepository.toggleItem(todos, todo.getId());
 
       expect(newTodos[0].isCompleted()).toBe(true);
     });
@@ -123,7 +123,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Task 1').toggleCompleted();
       const todos = [todo];
 
-      const newTodos = TodoRepository.toggleTodo(todos, todo.getId());
+      const newTodos = TodoRepository.toggleItem(todos, todo.getId());
 
       expect(newTodos[0].isCompleted()).toBe(false);
     });
@@ -133,7 +133,7 @@ describe('TodoRepository', () => {
       const todo2 = TodoRepository.createTodo('TASK-002', 'Task 2');
       const todos = [todo1, todo2];
 
-      const newTodos = TodoRepository.toggleTodo(todos, todo1.getId());
+      const newTodos = TodoRepository.toggleItem(todos, todo1.getId());
 
       expect(newTodos[0].isCompleted()).toBe(true);
       expect(newTodos[1].isCompleted()).toBe(false); // 変わらない
@@ -143,7 +143,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
       const todos = [todo];
 
-      const newTodos = TodoRepository.toggleTodo(todos, todo.getId());
+      const newTodos = TodoRepository.toggleItem(todos, todo.getId());
 
       expect(todos[0].isCompleted()).toBe(false);
       expect(newTodos[0].isCompleted()).toBe(true);
@@ -153,7 +153,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
       const todos = [todo];
 
-      const newTodos = TodoRepository.toggleTodo(todos, 'non-existent-id');
+      const newTodos = TodoRepository.toggleItem(todos, 'non-existent-id');
 
       expect(newTodos).toEqual(todos);
       expect(newTodos[0].isCompleted()).toBe(false);
@@ -161,7 +161,7 @@ describe('TodoRepository', () => {
 
     it('空の配列に対して実行してもエラーにならない', () => {
       const todos: Todo[] = [];
-      const newTodos = TodoRepository.toggleTodo(todos, 'any-id');
+      const newTodos = TodoRepository.toggleItem(todos, 'any-id');
 
       expect(newTodos).toEqual([]);
     });
@@ -172,7 +172,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
       const todos = [todo];
 
-      const newTodos = TodoRepository.deleteTodo(todos, todo.getId());
+      const newTodos = TodoRepository.deleteItem(todos, todo.getId());
 
       expect(newTodos).toHaveLength(0);
     });
@@ -183,7 +183,7 @@ describe('TodoRepository', () => {
       const todo3 = TodoRepository.createTodo('TASK-003', 'Task 3');
       const todos = [todo1, todo2, todo3];
 
-      const newTodos = TodoRepository.deleteTodo(todos, todo2.getId());
+      const newTodos = TodoRepository.deleteItem(todos, todo2.getId());
 
       expect(newTodos).toHaveLength(2);
       expect(newTodos[0].getId()).toBe(todo1.getId());
@@ -194,7 +194,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
       const todos = [todo];
 
-      const newTodos = TodoRepository.deleteTodo(todos, todo.getId());
+      const newTodos = TodoRepository.deleteItem(todos, todo.getId());
 
       expect(todos).toHaveLength(1);
       expect(newTodos).toHaveLength(0);
@@ -204,14 +204,14 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
       const todos = [todo];
 
-      const newTodos = TodoRepository.deleteTodo(todos, 'non-existent-id');
+      const newTodos = TodoRepository.deleteItem(todos, 'non-existent-id');
 
       expect(newTodos).toEqual(todos);
     });
 
     it('空の配列に対して実行してもエラーにならない', () => {
       const todos: Todo[] = [];
-      const newTodos = TodoRepository.deleteTodo(todos, 'any-id');
+      const newTodos = TodoRepository.deleteItem(todos, 'any-id');
 
       expect(newTodos).toEqual([]);
     });
@@ -221,7 +221,7 @@ describe('TodoRepository', () => {
       const todo2 = TodoRepository.createTodo('TASK-002', 'Task 2');
       const todos = [todo1, todo2];
 
-      const newTodos = TodoRepository.deleteTodo(todos, todo1.getId());
+      const newTodos = TodoRepository.deleteItem(todos, todo1.getId());
 
       expect(newTodos).toHaveLength(1);
       expect(newTodos[0].getId()).toBe(todo2.getId());
@@ -232,7 +232,7 @@ describe('TodoRepository', () => {
       const todo2 = TodoRepository.createTodo('TASK-002', 'Task 2');
       const todos = [todo1, todo2];
 
-      const newTodos = TodoRepository.deleteTodo(todos, todo2.getId());
+      const newTodos = TodoRepository.deleteItem(todos, todo2.getId());
 
       expect(newTodos).toHaveLength(1);
       expect(newTodos[0].getId()).toBe(todo1.getId());
@@ -244,7 +244,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Original text');
       const todos = [todo];
 
-      const newTodos = TodoRepository.editTodoText(todos, todo.getId(), 'Updated text');
+      const newTodos = TodoRepository.editItemText(todos, todo.getId(), 'Updated text');
 
       expect(newTodos[0].getText()).toBe('Updated text');
     });
@@ -254,7 +254,7 @@ describe('TodoRepository', () => {
       const todo2 = TodoRepository.createTodo('TASK-002', 'Task 2');
       const todos = [todo1, todo2];
 
-      const newTodos = TodoRepository.editTodoText(todos, todo1.getId(), 'Updated Task 1');
+      const newTodos = TodoRepository.editItemText(todos, todo1.getId(), 'Updated Task 1');
 
       expect(newTodos[0].getText()).toBe('Updated Task 1');
       expect(newTodos[1].getText()).toBe('Task 2'); // 変わらない
@@ -264,7 +264,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Original text');
       const todos = [todo];
 
-      const newTodos = TodoRepository.editTodoText(todos, todo.getId(), 'Updated text');
+      const newTodos = TodoRepository.editItemText(todos, todo.getId(), 'Updated text');
 
       expect(todos[0].getText()).toBe('Original text');
       expect(newTodos[0].getText()).toBe('Updated text');
@@ -274,7 +274,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Original text');
       const todos = [todo];
 
-      const newTodos = TodoRepository.editTodoText(todos, todo.getId(), '');
+      const newTodos = TodoRepository.editItemText(todos, todo.getId(), '');
 
       expect(newTodos[0].getText()).toBe('');
     });
@@ -283,7 +283,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Original text');
       const todos = [todo];
 
-      const newTodos = TodoRepository.editTodoText(todos, 'non-existent-id', 'Updated text');
+      const newTodos = TodoRepository.editItemText(todos, 'non-existent-id', 'Updated text');
 
       expect(newTodos).toEqual(todos);
       expect(newTodos[0].getText()).toBe('Original text');
@@ -291,7 +291,7 @@ describe('TodoRepository', () => {
 
     it('空の配列に対して実行してもエラーにならない', () => {
       const todos: Todo[] = [];
-      const newTodos = TodoRepository.editTodoText(todos, 'any-id', 'Updated text');
+      const newTodos = TodoRepository.editItemText(todos, 'any-id', 'Updated text');
 
       expect(newTodos).toEqual([]);
     });
@@ -302,7 +302,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Sample task');
       const todos = [todo];
 
-      const newTodos = TodoRepository.editTodoTaskcode(todos, todo.getId(), 'TASK-999');
+      const newTodos = TodoRepository.editItemTaskcode(todos, todo.getId(), 'TASK-999');
 
       expect(newTodos[0].getTaskcode()).toBe('TASK-999');
     });
@@ -312,7 +312,7 @@ describe('TodoRepository', () => {
       const todo2 = TodoRepository.createTodo('TASK-002', 'Task 2');
       const todos = [todo1, todo2];
 
-      const newTodos = TodoRepository.editTodoTaskcode(todos, todo1.getId(), 'TASK-999');
+      const newTodos = TodoRepository.editItemTaskcode(todos, todo1.getId(), 'TASK-999');
 
       expect(newTodos[0].getTaskcode()).toBe('TASK-999');
       expect(newTodos[1].getTaskcode()).toBe('TASK-002'); // 変わらない
@@ -322,7 +322,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Sample task');
       const todos = [todo];
 
-      const newTodos = TodoRepository.editTodoTaskcode(todos, todo.getId(), 'TASK-999');
+      const newTodos = TodoRepository.editItemTaskcode(todos, todo.getId(), 'TASK-999');
 
       expect(todos[0].getTaskcode()).toBe('TASK-001');
       expect(newTodos[0].getTaskcode()).toBe('TASK-999');
@@ -332,7 +332,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Sample task');
       const todos = [todo];
 
-      const newTodos = TodoRepository.editTodoTaskcode(todos, todo.getId(), '');
+      const newTodos = TodoRepository.editItemTaskcode(todos, todo.getId(), '');
 
       expect(newTodos[0].getTaskcode()).toBe('');
     });
@@ -341,7 +341,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Sample task');
       const todos = [todo];
 
-      const newTodos = TodoRepository.editTodoTaskcode(todos, 'non-existent-id', 'TASK-999');
+      const newTodos = TodoRepository.editItemTaskcode(todos, 'non-existent-id', 'TASK-999');
 
       expect(newTodos).toEqual(todos);
       expect(newTodos[0].getTaskcode()).toBe('TASK-001');
@@ -349,7 +349,7 @@ describe('TodoRepository', () => {
 
     it('空の配列に対して実行してもエラーにならない', () => {
       const todos: Todo[] = [];
-      const newTodos = TodoRepository.editTodoTaskcode(todos, 'any-id', 'TASK-999');
+      const newTodos = TodoRepository.editItemTaskcode(todos, 'any-id', 'TASK-999');
 
       expect(newTodos).toEqual([]);
     });
@@ -362,7 +362,7 @@ describe('TodoRepository', () => {
       const todo3 = TodoRepository.createTodo('TASK-003', 'Task 3');
       const todos = [todo1, todo2, todo3];
 
-      const newTodos = TodoRepository.reorderTodos(todos, 0, 2);
+      const newTodos = TodoRepository.reorderItems(todos, 0, 2);
 
       expect(newTodos[0].getId()).toBe(todo2.getId());
       expect(newTodos[1].getId()).toBe(todo3.getId());
@@ -375,7 +375,7 @@ describe('TodoRepository', () => {
       const todo3 = TodoRepository.createTodo('TASK-003', 'Task 3');
       const todos = [todo1, todo2, todo3];
 
-      const newTodos = TodoRepository.reorderTodos(todos, 2, 0);
+      const newTodos = TodoRepository.reorderItems(todos, 2, 0);
 
       expect(newTodos[0].getId()).toBe(todo3.getId());
       expect(newTodos[1].getId()).toBe(todo1.getId());
@@ -388,7 +388,7 @@ describe('TodoRepository', () => {
       const todo3 = TodoRepository.createTodo('TASK-003', 'Task 3');
       const todos = [todo1, todo2, todo3];
 
-      const newTodos = TodoRepository.reorderTodos(todos, 0, 1);
+      const newTodos = TodoRepository.reorderItems(todos, 0, 1);
 
       expect(newTodos[0].getId()).toBe(todo2.getId());
       expect(newTodos[1].getId()).toBe(todo1.getId());
@@ -400,7 +400,7 @@ describe('TodoRepository', () => {
       const todo2 = TodoRepository.createTodo('TASK-002', 'Task 2');
       const todos = [todo1, todo2];
 
-      const newTodos = TodoRepository.reorderTodos(todos, 0, 0);
+      const newTodos = TodoRepository.reorderItems(todos, 0, 0);
 
       expect(newTodos[0].getId()).toBe(todo1.getId());
       expect(newTodos[1].getId()).toBe(todo2.getId());
@@ -411,7 +411,7 @@ describe('TodoRepository', () => {
       const todo2 = TodoRepository.createTodo('TASK-002', 'Task 2');
       const todos = [todo1, todo2];
 
-      const newTodos = TodoRepository.reorderTodos(todos, 0, 1);
+      const newTodos = TodoRepository.reorderItems(todos, 0, 1);
 
       expect(todos[0].getId()).toBe(todo1.getId());
       expect(todos[1].getId()).toBe(todo2.getId());
@@ -424,7 +424,7 @@ describe('TodoRepository', () => {
       const todo2 = TodoRepository.createTodo('TASK-002', 'Task 2');
       const todos = [todo1, todo2];
 
-      const newTodos = TodoRepository.reorderTodos(todos, 1, 0);
+      const newTodos = TodoRepository.reorderItems(todos, 1, 0);
 
       expect(newTodos[0].getId()).toBe(todo2.getId());
       expect(newTodos[1].getId()).toBe(todo1.getId());
@@ -435,7 +435,7 @@ describe('TodoRepository', () => {
         TodoRepository.createTodo(`TASK-${i}`, `Task ${i}`)
       );
 
-      const newTodos = TodoRepository.reorderTodos(todos, 1, 3);
+      const newTodos = TodoRepository.reorderItems(todos, 1, 3);
 
       expect(newTodos[0].getTaskcode()).toBe('TASK-0');
       expect(newTodos[1].getTaskcode()).toBe('TASK-2');
@@ -450,7 +450,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
       const todos = [todo];
 
-      const newTodos = TodoRepository.startTimer(todos, todo.getId());
+      const newTodos = TodoRepository.startItemTimer(todos, todo.getId());
 
       expect(newTodos[0].isTimerRunning()).toBe(true);
     });
@@ -460,7 +460,7 @@ describe('TodoRepository', () => {
       const todo2 = TodoRepository.createTodo('TASK-002', 'Task 2');
       const todos = [todo1, todo2];
 
-      const newTodos = TodoRepository.startTimer(todos, todo1.getId());
+      const newTodos = TodoRepository.startItemTimer(todos, todo1.getId());
 
       expect(newTodos[0].isTimerRunning()).toBe(true);
       expect(newTodos[1].isTimerRunning()).toBe(false);
@@ -470,7 +470,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
       const todos = [todo];
 
-      const newTodos = TodoRepository.startTimer(todos, todo.getId());
+      const newTodos = TodoRepository.startItemTimer(todos, todo.getId());
 
       expect(todos[0].isTimerRunning()).toBe(false);
       expect(newTodos[0].isTimerRunning()).toBe(true);
@@ -480,7 +480,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
       const todos = [todo];
 
-      const newTodos = TodoRepository.startTimer(todos, 'non-existent-id');
+      const newTodos = TodoRepository.startItemTimer(todos, 'non-existent-id');
 
       expect(newTodos).toEqual(todos);
       expect(newTodos[0].isTimerRunning()).toBe(false);
@@ -488,7 +488,7 @@ describe('TodoRepository', () => {
 
     it('空の配列に対して実行してもエラーにならない', () => {
       const todos: Todo[] = [];
-      const newTodos = TodoRepository.startTimer(todos, 'any-id');
+      const newTodos = TodoRepository.startItemTimer(todos, 'any-id');
 
       expect(newTodos).toEqual([]);
     });
@@ -499,7 +499,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Task 1').startTimer();
       const todos = [todo];
 
-      const newTodos = TodoRepository.stopTimer(todos, todo.getId());
+      const newTodos = TodoRepository.stopItemTimer(todos, todo.getId());
 
       expect(newTodos[0].isTimerRunning()).toBe(false);
     });
@@ -509,7 +509,7 @@ describe('TodoRepository', () => {
       const todo2 = TodoRepository.createTodo('TASK-002', 'Task 2').startTimer();
       const todos = [todo1, todo2];
 
-      const newTodos = TodoRepository.stopTimer(todos, todo1.getId());
+      const newTodos = TodoRepository.stopItemTimer(todos, todo1.getId());
 
       expect(newTodos[0].isTimerRunning()).toBe(false);
       expect(newTodos[1].isTimerRunning()).toBe(true);
@@ -519,7 +519,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Task 1').startTimer();
       const todos = [todo];
 
-      const newTodos = TodoRepository.stopTimer(todos, todo.getId());
+      const newTodos = TodoRepository.stopItemTimer(todos, todo.getId());
 
       expect(todos[0].isTimerRunning()).toBe(true);
       expect(newTodos[0].isTimerRunning()).toBe(false);
@@ -529,7 +529,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
       const todos = [todo];
 
-      const newTodos = TodoRepository.stopTimer(todos, todo.getId());
+      const newTodos = TodoRepository.stopItemTimer(todos, todo.getId());
 
       expect(newTodos[0].isTimerRunning()).toBe(false);
     });
@@ -538,7 +538,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Task 1').startTimer();
       const todos = [todo];
 
-      const newTodos = TodoRepository.stopTimer(todos, 'non-existent-id');
+      const newTodos = TodoRepository.stopItemTimer(todos, 'non-existent-id');
 
       expect(newTodos).toEqual(todos);
       expect(newTodos[0].isTimerRunning()).toBe(true);
@@ -546,7 +546,7 @@ describe('TodoRepository', () => {
 
     it('空の配列に対して実行してもエラーにならない', () => {
       const todos: Todo[] = [];
-      const newTodos = TodoRepository.stopTimer(todos, 'any-id');
+      const newTodos = TodoRepository.stopItemTimer(todos, 'any-id');
 
       expect(newTodos).toEqual([]);
     });
