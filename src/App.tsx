@@ -17,7 +17,7 @@ function App() {
   const [jsonError, setJsonError] = useState('');
 
   const handleOpenJsonEditor = () => {
-    setJsonText(TodoRepository.toJsonText(todos));
+    setJsonText(JSON.stringify(TodoRepository.itemsToJsonArray(todos), null, 2));
     setJsonError('');
     setIsJsonEditorOpen(true);
   };
