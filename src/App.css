@@ -545,3 +545,30 @@ body {
 .modal-save-button:hover {
   background: #5568d3;
 }
+
+/* 日付グループ表示のスタイル */
+.date-grouped-todo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.date-group {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+}
+
+.date-group-header {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #667eea;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.date-group .todo-list {
+  margin-top: 12px;
+}

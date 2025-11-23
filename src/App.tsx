@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTodos } from './hooks/useTodos';
 import { TodoInput } from './components/TodoInput';
-import { TodoList } from './components/TodoList';
+import { DateGroupedTodoList } from './components/DateGroupedTodoList';
 import { TodoRepository } from './models/TodoRepository';
 import './App.css';
 
@@ -76,7 +76,7 @@ function App() {
           </div>
         </div>
 
-        <TodoList
+        <DateGroupedTodoList
           todos={todos}
           onToggle={toggleTodo}
           onDelete={deleteTodo}
