@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { TodoRepository } from './TodoRepository';
 import { Todo } from './Todo';
+import { CalendarEvent } from './CalendarEvent';
 
 describe('TodoRepository', () => {
   beforeEach(() => {
@@ -832,33 +833,171 @@ describe('TodoRepository', () => {
   });
 
   describe('shouldDisplayOnDate', () => {
-    it('現在はプレースホルダーとして常にtrueを返す', () => {
-      const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
-      expect(TodoRepository.shouldDisplayOnDate(todo, '2025-11-24')).toBe(true);
+    describe('通常のTodo - 未完了', () => {
+      it('作成日と同じ日付の場合は表示する', () => {
+        const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
+        // createdAt = 2025-01-15 12:34:56
+        expect(TodoRepository.shouldDisplayOnDate(todo, '2025-01-15')).toBe(true);
+      });
+
+      it('作成日より後の日付の場合は表示する', () => {
+        const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
+        // createdAt = 2025-01-15 12:34:56
+        expect(TodoRepository.shouldDisplayOnDate(todo, '2025-01-16')).toBe(true);
+        expect(TodoRepository.shouldDisplayOnDate(todo, '2025-12-31')).toBe(true);
+      });
+
+      it('作成日より前の日付の場合は表示しない', () => {
+        const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
+        // createdAt = 2025-01-15 12:34:56
+        expect(TodoRepository.shouldDisplayOnDate(todo, '2025-01-14')).toBe(false);
+        expect(TodoRepository.shouldDisplayOnDate(todo, '2025-01-01')).toBe(false);
+        expect(TodoRepository.shouldDisplayOnDate(todo, '2024-12-31')).toBe(false);
+      });
     });
 
-    it('任意の日付でtrueを返す', () => {
-      const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
-      expect(TodoRepository.shouldDisplayOnDate(todo, '2025-01-01')).toBe(true);
-      expect(TodoRepository.shouldDisplayOnDate(todo, '2025-12-31')).toBe(true);
+    describe('通常のTodo - 完了済み', () => {
+      it('作成日と完了日が同じ場合、その日付に表示する', () => {
+        const todo = TodoRepository.createTodo('TASK-001', 'Task 1').toggleCompleted();
+        // createdAt = completedAt = 2025-01-15 12:34:56
+        expect(TodoRepository.shouldDisplayOnDate(todo, '2025-01-15')).toBe(true);
+      });
+
+      it('作成日と完了日の間の日付に表示する', () => {
+        vi.setSystemTime(new Date('2025-01-15T03:34:56.000Z')); // JST: 2025-01-15 12:34:56
+        const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
+        // createdAt = 2025-01-15 12:34:56
+
+        vi.setSystemTime(new Date('2025-01-20T03:34:56.000Z')); // JST: 2025-01-20 12:34:56
+        const completedTodo = todo.toggleCompleted();
+        // completedAt = 2025-01-20 12:34:56
+
+        expect(TodoRepository.shouldDisplayOnDate(completedTodo, '2025-01-15')).toBe(true);
+        expect(TodoRepository.shouldDisplayOnDate(completedTodo, '2025-01-17')).toBe(true);
+        expect(TodoRepository.shouldDisplayOnDate(completedTodo, '2025-01-20')).toBe(true);
+      });
+
+      it('作成日より前の日付には表示しない', () => {
+        vi.setSystemTime(new Date('2025-01-15T03:34:56.000Z')); // JST: 2025-01-15 12:34:56
+        const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
+
+        vi.setSystemTime(new Date('2025-01-20T03:34:56.000Z')); // JST: 2025-01-20 12:34:56
+        const completedTodo = todo.toggleCompleted();
+
+        expect(TodoRepository.shouldDisplayOnDate(completedTodo, '2025-01-14')).toBe(false);
+        expect(TodoRepository.shouldDisplayOnDate(completedTodo, '2025-01-01')).toBe(false);
+      });
+
+      it('完了日より後の日付には表示しない', () => {
+        vi.setSystemTime(new Date('2025-01-15T03:34:56.000Z')); // JST: 2025-01-15 12:34:56
+        const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
+
+        vi.setSystemTime(new Date('2025-01-20T03:34:56.000Z')); // JST: 2025-01-20 12:34:56
+        const completedTodo = todo.toggleCompleted();
+
+        expect(TodoRepository.shouldDisplayOnDate(completedTodo, '2025-01-21')).toBe(false);
+        expect(TodoRepository.shouldDisplayOnDate(completedTodo, '2025-12-31')).toBe(false);
+      });
     });
 
-    it('完了済みTodoでもtrueを返す', () => {
-      const todo = TodoRepository.createTodo('TASK-001', 'Task 1').toggleCompleted();
-      expect(TodoRepository.shouldDisplayOnDate(todo, '2025-11-24')).toBe(true);
+    describe('カレンダーイベント', () => {
+      it('startTimeと同じ日付の場合は表示する', () => {
+        const calendarEvent = new CalendarEvent(
+          'event-1',
+          'TASK-001',
+          'Meeting',
+          null,
+          '2025-01-15 10:00:00',
+          '2025-01-15 10:00:00',
+          '2025-01-20 14:00:00',
+          '2025-01-20 15:00:00'
+        );
+
+        expect(TodoRepository.shouldDisplayOnDate(calendarEvent, '2025-01-20')).toBe(true);
+      });
+
+      it('startTimeと異なる日付の場合は表示しない', () => {
+        const calendarEvent = new CalendarEvent(
+          'event-1',
+          'TASK-001',
+          'Meeting',
+          null,
+          '2025-01-15 10:00:00',
+          '2025-01-15 10:00:00',
+          '2025-01-20 14:00:00',
+          '2025-01-20 15:00:00'
+        );
+
+        expect(TodoRepository.shouldDisplayOnDate(calendarEvent, '2025-01-19')).toBe(false);
+        expect(TodoRepository.shouldDisplayOnDate(calendarEvent, '2025-01-21')).toBe(false);
+      });
+
+      it('startTimeがnullの場合は表示しない', () => {
+        const calendarEvent = new CalendarEvent(
+          'event-1',
+          'TASK-001',
+          'Meeting',
+          null,
+          '2025-01-15 10:00:00',
+          '2025-01-15 10:00:00',
+          null,
+          null
+        );
+
+        expect(TodoRepository.shouldDisplayOnDate(calendarEvent, '2025-01-20')).toBe(false);
+      });
     });
   });
 
   describe('filterItemsByDate', () => {
-    it('現在は全てのアイテムを返す（プレースホルダー）', () => {
+    it('指定日に表示すべきアイテムのみをフィルタリングする', () => {
+      // 2025-01-15に作成された未完了Todo
+      vi.setSystemTime(new Date('2025-01-15T03:34:56.000Z')); // JST: 2025-01-15 12:34:56
       const todo1 = TodoRepository.createTodo('TASK-001', 'Task 1');
+
+      // 2025-01-20に作成された未完了Todo
+      vi.setSystemTime(new Date('2025-01-20T03:34:56.000Z')); // JST: 2025-01-20 12:34:56
       const todo2 = TodoRepository.createTodo('TASK-002', 'Task 2');
+
       const todos = [todo1, todo2];
 
-      const filtered = TodoRepository.filterItemsByDate(todos, '2025-11-24');
+      // 2025-01-15: todo1のみ表示（todo2は未作成）
+      const filtered15 = TodoRepository.filterItemsByDate(todos, '2025-01-15');
+      expect(filtered15).toHaveLength(1);
+      expect(filtered15[0].getId()).toBe(todo1.getId());
 
-      expect(filtered).toHaveLength(2);
-      expect(filtered).toEqual(todos);
+      // 2025-01-20: 両方表示
+      const filtered20 = TodoRepository.filterItemsByDate(todos, '2025-01-20');
+      expect(filtered20).toHaveLength(2);
+
+      // 2025-01-10: どちらも表示しない（両方とも未作成）
+      const filtered10 = TodoRepository.filterItemsByDate(todos, '2025-01-10');
+      expect(filtered10).toHaveLength(0);
+    });
+
+    it('完了済みTodoは作成日から完了日までの範囲でフィルタリングされる', () => {
+      vi.setSystemTime(new Date('2025-01-15T03:34:56.000Z')); // JST: 2025-01-15 12:34:56
+      const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
+
+      vi.setSystemTime(new Date('2025-01-20T03:34:56.000Z')); // JST: 2025-01-20 12:34:56
+      const completedTodo = todo.toggleCompleted();
+
+      const todos = [completedTodo];
+
+      // 2025-01-14: 表示しない（作成前）
+      expect(TodoRepository.filterItemsByDate(todos, '2025-01-14')).toHaveLength(0);
+
+      // 2025-01-15: 表示する（作成日）
+      expect(TodoRepository.filterItemsByDate(todos, '2025-01-15')).toHaveLength(1);
+
+      // 2025-01-17: 表示する（作成日と完了日の間）
+      expect(TodoRepository.filterItemsByDate(todos, '2025-01-17')).toHaveLength(1);
+
+      // 2025-01-20: 表示する（完了日）
+      expect(TodoRepository.filterItemsByDate(todos, '2025-01-20')).toHaveLength(1);
+
+      // 2025-01-21: 表示しない（完了後）
+      expect(TodoRepository.filterItemsByDate(todos, '2025-01-21')).toHaveLength(0);
     });
 
     it('空の配列に対して空の配列を返す', () => {
@@ -872,10 +1011,9 @@ describe('TodoRepository', () => {
       const todo1 = TodoRepository.createTodo('TASK-001', 'Task 1');
       const todos = [todo1];
 
-      const filtered = TodoRepository.filterItemsByDate(todos, '2025-11-24');
+      const filtered = TodoRepository.filterItemsByDate(todos, '2025-01-15');
 
       expect(filtered).not.toBe(todos); // 参照が異なることを確認
-      expect(filtered).toEqual(todos); // 内容は同じ
     });
   });
 

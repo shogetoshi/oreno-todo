@@ -2,7 +2,7 @@ import { Todo, TimeRange } from './Todo';
 import { CalendarEvent } from './CalendarEvent';
 import { ListItem, ListItemType } from './ListItem';
 import { validateTodos } from '../utils/validation';
-import { getCurrentJSTTime } from '../utils/timeFormat';
+import { getCurrentJSTTime, extractDateFromJST, compareDates } from '../utils/timeFormat';
 import { CalendarEvent as GoogleCalendarEvent } from '../types/calendar';
 
 /**
@@ -239,16 +239,54 @@ export class TodoRepository {
   /**
    * 指定された日付に表示すべきListItemかどうかを判定する
    *
-   * 注: この関数は現在プレースホルダーとして実装されており、常にtrueを返します。
-   * 後から実装される予定で、その際に具体的なフィルタリング条件が追加されます。
+   * フィルタリング条件:
+   * - 通常のTodo
+   *   - 未完了: 該当日がcreatedAt以降なら表示
+   *   - 完了: 該当日がcreatedAt以降かつcompletedAt以前なら表示
+   * - カレンダーイベント
+   *   - 該当日がstartTime日付と同一の場合のみ表示
    *
    * @param item 判定対象のListItem
    * @param date 日付（YYYY-MM-DD形式）
    * @returns その日付に表示すべき場合はtrue
    */
-  static shouldDisplayOnDate(_item: ListItem, _date: string): boolean {
-    // TODO: 後から実装する。現在は全てのアイテムを表示する
-    return true;
+  static shouldDisplayOnDate(item: ListItem, date: string): boolean {
+    const itemType = item.getType();
+
+    if (itemType === ListItemType.TODO) {
+      // 通常のTodoの場合
+      const todo = item as Todo;
+      const createdDate = extractDateFromJST(todo.createdAt);
+
+      if (!todo.isCompleted()) {
+        // 未完了: 該当日がcreatedAt以降なら表示
+        return compareDates(date, createdDate) >= 0;
+      } else {
+        // 完了: 該当日がcreatedAt以降かつcompletedAt以前なら表示
+        const completedDate = todo.completedAt ? extractDateFromJST(todo.completedAt) : null;
+        if (!completedDate) {
+          // completedAtがnullの場合は表示しない（データ不整合）
+          return false;
+        }
+        return compareDates(date, createdDate) >= 0 && compareDates(date, completedDate) <= 0;
+      }
+    } else if (itemType === ListItemType.CALENDAR_EVENT) {
+      // カレンダーイベントの場合
+      const calendarEvent = item as CalendarEvent;
+      const startTime = calendarEvent.getStartTime();
+
+      if (!startTime) {
+        // startTimeがnullの場合は表示しない
+        return false;
+      }
+
+      const startDate = extractDateFromJST(startTime);
+      // 該当日がstartTime日付と同一の場合のみ表示
+      return compareDates(date, startDate) === 0;
+    }
+
+    // 未知のタイプの場合は表示しない
+    return false;
   }
 
   /**
