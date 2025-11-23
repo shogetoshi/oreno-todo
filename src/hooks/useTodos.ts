@@ -89,7 +89,7 @@ export const useTodos = () => {
   const replaceFromJson = useCallback(async (jsonText: string) => {
     const jsonArray = JSON.parse(jsonText);
     const newItems = TodoRepository.fromJsonArrayToItems(jsonArray);
-    setTodosWithPersist(() => newItems);
+    setTodosWithPersist((_prev) => newItems);
   }, [setTodosWithPersist]);
 
   // タイマーを開始
