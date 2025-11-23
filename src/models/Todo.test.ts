@@ -578,6 +578,7 @@ describe('Todo', () => {
       const json = todo.toJSON();
 
       expect(json.id).toBe('id-123');
+      expect(json.type).toBe('todo');
       expect(json.taskcode).toBe('TASK-001');
       expect(json.text).toBe('Sample task');
       expect(json.completedAt).toBe(null);
@@ -589,6 +590,7 @@ describe('Todo', () => {
     it('fromJSON -> toJSON で元のJSONと同じになる', () => {
       const original = {
         id: 'id-123',
+        type: 'todo',
         taskcode: 'TASK-001',
         text: 'Sample task',
         completedAt: '2025-01-15 11:00:00',

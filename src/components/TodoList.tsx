@@ -1,13 +1,13 @@
 import { useState } from 'react';
-import type { Todo } from '../types/electron';
+import type { ListItem } from '../models/ListItem';
 import { TodoItem } from './TodoItem';
 
 /**
  * View Layer: TodoList Component
- * Todoリストの表示とドラッグ&ドロップによる並び替えを担当
+ * アイテムリスト（TodoとCalendarEvent）の表示とドラッグ&ドロップによる並び替えを担当
  */
 interface TodoListProps {
-  todos: Todo[];
+  todos: ListItem[];
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (id: string, newText: string) => void;

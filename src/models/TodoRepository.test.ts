@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { TodoRepository } from './TodoRepository';
 import { Todo } from './Todo';
-import { CalendarEvent } from '../types/calendar';
 
 describe('TodoRepository', () => {
   beforeEach(() => {
@@ -114,7 +113,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
       const todos = [todo];
 
-      const newTodos = TodoRepository.toggleTodo(todos, todo.getId());
+      const newTodos = TodoRepository.toggleItem(todos, todo.getId());
 
       expect(newTodos[0].isCompleted()).toBe(true);
     });
@@ -123,7 +122,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Task 1').toggleCompleted();
       const todos = [todo];
 
-      const newTodos = TodoRepository.toggleTodo(todos, todo.getId());
+      const newTodos = TodoRepository.toggleItem(todos, todo.getId());
 
       expect(newTodos[0].isCompleted()).toBe(false);
     });
@@ -133,7 +132,7 @@ describe('TodoRepository', () => {
       const todo2 = TodoRepository.createTodo('TASK-002', 'Task 2');
       const todos = [todo1, todo2];
 
-      const newTodos = TodoRepository.toggleTodo(todos, todo1.getId());
+      const newTodos = TodoRepository.toggleItem(todos, todo1.getId());
 
       expect(newTodos[0].isCompleted()).toBe(true);
       expect(newTodos[1].isCompleted()).toBe(false); // 変わらない
@@ -143,7 +142,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
       const todos = [todo];
 
-      const newTodos = TodoRepository.toggleTodo(todos, todo.getId());
+      const newTodos = TodoRepository.toggleItem(todos, todo.getId());
 
       expect(todos[0].isCompleted()).toBe(false);
       expect(newTodos[0].isCompleted()).toBe(true);
@@ -153,7 +152,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
       const todos = [todo];
 
-      const newTodos = TodoRepository.toggleTodo(todos, 'non-existent-id');
+      const newTodos = TodoRepository.toggleItem(todos, 'non-existent-id');
 
       expect(newTodos).toEqual(todos);
       expect(newTodos[0].isCompleted()).toBe(false);
@@ -161,7 +160,7 @@ describe('TodoRepository', () => {
 
     it('空の配列に対して実行してもエラーにならない', () => {
       const todos: Todo[] = [];
-      const newTodos = TodoRepository.toggleTodo(todos, 'any-id');
+      const newTodos = TodoRepository.toggleItem(todos, 'any-id');
 
       expect(newTodos).toEqual([]);
     });
@@ -172,7 +171,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
       const todos = [todo];
 
-      const newTodos = TodoRepository.deleteTodo(todos, todo.getId());
+      const newTodos = TodoRepository.deleteItem(todos, todo.getId());
 
       expect(newTodos).toHaveLength(0);
     });
@@ -183,7 +182,7 @@ describe('TodoRepository', () => {
       const todo3 = TodoRepository.createTodo('TASK-003', 'Task 3');
       const todos = [todo1, todo2, todo3];
 
-      const newTodos = TodoRepository.deleteTodo(todos, todo2.getId());
+      const newTodos = TodoRepository.deleteItem(todos, todo2.getId());
 
       expect(newTodos).toHaveLength(2);
       expect(newTodos[0].getId()).toBe(todo1.getId());
@@ -194,7 +193,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
       const todos = [todo];
 
-      const newTodos = TodoRepository.deleteTodo(todos, todo.getId());
+      const newTodos = TodoRepository.deleteItem(todos, todo.getId());
 
       expect(todos).toHaveLength(1);
       expect(newTodos).toHaveLength(0);
@@ -204,14 +203,14 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
       const todos = [todo];
 
-      const newTodos = TodoRepository.deleteTodo(todos, 'non-existent-id');
+      const newTodos = TodoRepository.deleteItem(todos, 'non-existent-id');
 
       expect(newTodos).toEqual(todos);
     });
 
     it('空の配列に対して実行してもエラーにならない', () => {
       const todos: Todo[] = [];
-      const newTodos = TodoRepository.deleteTodo(todos, 'any-id');
+      const newTodos = TodoRepository.deleteItem(todos, 'any-id');
 
       expect(newTodos).toEqual([]);
     });
@@ -221,7 +220,7 @@ describe('TodoRepository', () => {
       const todo2 = TodoRepository.createTodo('TASK-002', 'Task 2');
       const todos = [todo1, todo2];
 
-      const newTodos = TodoRepository.deleteTodo(todos, todo1.getId());
+      const newTodos = TodoRepository.deleteItem(todos, todo1.getId());
 
       expect(newTodos).toHaveLength(1);
       expect(newTodos[0].getId()).toBe(todo2.getId());
@@ -232,7 +231,7 @@ describe('TodoRepository', () => {
       const todo2 = TodoRepository.createTodo('TASK-002', 'Task 2');
       const todos = [todo1, todo2];
 
-      const newTodos = TodoRepository.deleteTodo(todos, todo2.getId());
+      const newTodos = TodoRepository.deleteItem(todos, todo2.getId());
 
       expect(newTodos).toHaveLength(1);
       expect(newTodos[0].getId()).toBe(todo1.getId());
@@ -244,7 +243,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Original text');
       const todos = [todo];
 
-      const newTodos = TodoRepository.editTodoText(todos, todo.getId(), 'Updated text');
+      const newTodos = TodoRepository.editItemText(todos, todo.getId(), 'Updated text');
 
       expect(newTodos[0].getText()).toBe('Updated text');
     });
@@ -254,7 +253,7 @@ describe('TodoRepository', () => {
       const todo2 = TodoRepository.createTodo('TASK-002', 'Task 2');
       const todos = [todo1, todo2];
 
-      const newTodos = TodoRepository.editTodoText(todos, todo1.getId(), 'Updated Task 1');
+      const newTodos = TodoRepository.editItemText(todos, todo1.getId(), 'Updated Task 1');
 
       expect(newTodos[0].getText()).toBe('Updated Task 1');
       expect(newTodos[1].getText()).toBe('Task 2'); // 変わらない
@@ -264,7 +263,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Original text');
       const todos = [todo];
 
-      const newTodos = TodoRepository.editTodoText(todos, todo.getId(), 'Updated text');
+      const newTodos = TodoRepository.editItemText(todos, todo.getId(), 'Updated text');
 
       expect(todos[0].getText()).toBe('Original text');
       expect(newTodos[0].getText()).toBe('Updated text');
@@ -274,7 +273,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Original text');
       const todos = [todo];
 
-      const newTodos = TodoRepository.editTodoText(todos, todo.getId(), '');
+      const newTodos = TodoRepository.editItemText(todos, todo.getId(), '');
 
       expect(newTodos[0].getText()).toBe('');
     });
@@ -283,7 +282,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Original text');
       const todos = [todo];
 
-      const newTodos = TodoRepository.editTodoText(todos, 'non-existent-id', 'Updated text');
+      const newTodos = TodoRepository.editItemText(todos, 'non-existent-id', 'Updated text');
 
       expect(newTodos).toEqual(todos);
       expect(newTodos[0].getText()).toBe('Original text');
@@ -291,7 +290,7 @@ describe('TodoRepository', () => {
 
     it('空の配列に対して実行してもエラーにならない', () => {
       const todos: Todo[] = [];
-      const newTodos = TodoRepository.editTodoText(todos, 'any-id', 'Updated text');
+      const newTodos = TodoRepository.editItemText(todos, 'any-id', 'Updated text');
 
       expect(newTodos).toEqual([]);
     });
@@ -302,7 +301,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Sample task');
       const todos = [todo];
 
-      const newTodos = TodoRepository.editTodoTaskcode(todos, todo.getId(), 'TASK-999');
+      const newTodos = TodoRepository.editItemTaskcode(todos, todo.getId(), 'TASK-999');
 
       expect(newTodos[0].getTaskcode()).toBe('TASK-999');
     });
@@ -312,7 +311,7 @@ describe('TodoRepository', () => {
       const todo2 = TodoRepository.createTodo('TASK-002', 'Task 2');
       const todos = [todo1, todo2];
 
-      const newTodos = TodoRepository.editTodoTaskcode(todos, todo1.getId(), 'TASK-999');
+      const newTodos = TodoRepository.editItemTaskcode(todos, todo1.getId(), 'TASK-999');
 
       expect(newTodos[0].getTaskcode()).toBe('TASK-999');
       expect(newTodos[1].getTaskcode()).toBe('TASK-002'); // 変わらない
@@ -322,7 +321,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Sample task');
       const todos = [todo];
 
-      const newTodos = TodoRepository.editTodoTaskcode(todos, todo.getId(), 'TASK-999');
+      const newTodos = TodoRepository.editItemTaskcode(todos, todo.getId(), 'TASK-999');
 
       expect(todos[0].getTaskcode()).toBe('TASK-001');
       expect(newTodos[0].getTaskcode()).toBe('TASK-999');
@@ -332,7 +331,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Sample task');
       const todos = [todo];
 
-      const newTodos = TodoRepository.editTodoTaskcode(todos, todo.getId(), '');
+      const newTodos = TodoRepository.editItemTaskcode(todos, todo.getId(), '');
 
       expect(newTodos[0].getTaskcode()).toBe('');
     });
@@ -341,7 +340,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Sample task');
       const todos = [todo];
 
-      const newTodos = TodoRepository.editTodoTaskcode(todos, 'non-existent-id', 'TASK-999');
+      const newTodos = TodoRepository.editItemTaskcode(todos, 'non-existent-id', 'TASK-999');
 
       expect(newTodos).toEqual(todos);
       expect(newTodos[0].getTaskcode()).toBe('TASK-001');
@@ -349,7 +348,7 @@ describe('TodoRepository', () => {
 
     it('空の配列に対して実行してもエラーにならない', () => {
       const todos: Todo[] = [];
-      const newTodos = TodoRepository.editTodoTaskcode(todos, 'any-id', 'TASK-999');
+      const newTodos = TodoRepository.editItemTaskcode(todos, 'any-id', 'TASK-999');
 
       expect(newTodos).toEqual([]);
     });
@@ -362,7 +361,7 @@ describe('TodoRepository', () => {
       const todo3 = TodoRepository.createTodo('TASK-003', 'Task 3');
       const todos = [todo1, todo2, todo3];
 
-      const newTodos = TodoRepository.reorderTodos(todos, 0, 2);
+      const newTodos = TodoRepository.reorderItems(todos, 0, 2);
 
       expect(newTodos[0].getId()).toBe(todo2.getId());
       expect(newTodos[1].getId()).toBe(todo3.getId());
@@ -375,7 +374,7 @@ describe('TodoRepository', () => {
       const todo3 = TodoRepository.createTodo('TASK-003', 'Task 3');
       const todos = [todo1, todo2, todo3];
 
-      const newTodos = TodoRepository.reorderTodos(todos, 2, 0);
+      const newTodos = TodoRepository.reorderItems(todos, 2, 0);
 
       expect(newTodos[0].getId()).toBe(todo3.getId());
       expect(newTodos[1].getId()).toBe(todo1.getId());
@@ -388,7 +387,7 @@ describe('TodoRepository', () => {
       const todo3 = TodoRepository.createTodo('TASK-003', 'Task 3');
       const todos = [todo1, todo2, todo3];
 
-      const newTodos = TodoRepository.reorderTodos(todos, 0, 1);
+      const newTodos = TodoRepository.reorderItems(todos, 0, 1);
 
       expect(newTodos[0].getId()).toBe(todo2.getId());
       expect(newTodos[1].getId()).toBe(todo1.getId());
@@ -400,7 +399,7 @@ describe('TodoRepository', () => {
       const todo2 = TodoRepository.createTodo('TASK-002', 'Task 2');
       const todos = [todo1, todo2];
 
-      const newTodos = TodoRepository.reorderTodos(todos, 0, 0);
+      const newTodos = TodoRepository.reorderItems(todos, 0, 0);
 
       expect(newTodos[0].getId()).toBe(todo1.getId());
       expect(newTodos[1].getId()).toBe(todo2.getId());
@@ -411,7 +410,7 @@ describe('TodoRepository', () => {
       const todo2 = TodoRepository.createTodo('TASK-002', 'Task 2');
       const todos = [todo1, todo2];
 
-      const newTodos = TodoRepository.reorderTodos(todos, 0, 1);
+      const newTodos = TodoRepository.reorderItems(todos, 0, 1);
 
       expect(todos[0].getId()).toBe(todo1.getId());
       expect(todos[1].getId()).toBe(todo2.getId());
@@ -424,7 +423,7 @@ describe('TodoRepository', () => {
       const todo2 = TodoRepository.createTodo('TASK-002', 'Task 2');
       const todos = [todo1, todo2];
 
-      const newTodos = TodoRepository.reorderTodos(todos, 1, 0);
+      const newTodos = TodoRepository.reorderItems(todos, 1, 0);
 
       expect(newTodos[0].getId()).toBe(todo2.getId());
       expect(newTodos[1].getId()).toBe(todo1.getId());
@@ -435,7 +434,7 @@ describe('TodoRepository', () => {
         TodoRepository.createTodo(`TASK-${i}`, `Task ${i}`)
       );
 
-      const newTodos = TodoRepository.reorderTodos(todos, 1, 3);
+      const newTodos = TodoRepository.reorderItems(todos, 1, 3);
 
       expect(newTodos[0].getTaskcode()).toBe('TASK-0');
       expect(newTodos[1].getTaskcode()).toBe('TASK-2');
@@ -450,7 +449,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
       const todos = [todo];
 
-      const newTodos = TodoRepository.startTimer(todos, todo.getId());
+      const newTodos = TodoRepository.startItemTimer(todos, todo.getId());
 
       expect(newTodos[0].isTimerRunning()).toBe(true);
     });
@@ -460,7 +459,7 @@ describe('TodoRepository', () => {
       const todo2 = TodoRepository.createTodo('TASK-002', 'Task 2');
       const todos = [todo1, todo2];
 
-      const newTodos = TodoRepository.startTimer(todos, todo1.getId());
+      const newTodos = TodoRepository.startItemTimer(todos, todo1.getId());
 
       expect(newTodos[0].isTimerRunning()).toBe(true);
       expect(newTodos[1].isTimerRunning()).toBe(false);
@@ -470,7 +469,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
       const todos = [todo];
 
-      const newTodos = TodoRepository.startTimer(todos, todo.getId());
+      const newTodos = TodoRepository.startItemTimer(todos, todo.getId());
 
       expect(todos[0].isTimerRunning()).toBe(false);
       expect(newTodos[0].isTimerRunning()).toBe(true);
@@ -480,7 +479,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
       const todos = [todo];
 
-      const newTodos = TodoRepository.startTimer(todos, 'non-existent-id');
+      const newTodos = TodoRepository.startItemTimer(todos, 'non-existent-id');
 
       expect(newTodos).toEqual(todos);
       expect(newTodos[0].isTimerRunning()).toBe(false);
@@ -488,7 +487,7 @@ describe('TodoRepository', () => {
 
     it('空の配列に対して実行してもエラーにならない', () => {
       const todos: Todo[] = [];
-      const newTodos = TodoRepository.startTimer(todos, 'any-id');
+      const newTodos = TodoRepository.startItemTimer(todos, 'any-id');
 
       expect(newTodos).toEqual([]);
     });
@@ -499,7 +498,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Task 1').startTimer();
       const todos = [todo];
 
-      const newTodos = TodoRepository.stopTimer(todos, todo.getId());
+      const newTodos = TodoRepository.stopItemTimer(todos, todo.getId());
 
       expect(newTodos[0].isTimerRunning()).toBe(false);
     });
@@ -509,7 +508,7 @@ describe('TodoRepository', () => {
       const todo2 = TodoRepository.createTodo('TASK-002', 'Task 2').startTimer();
       const todos = [todo1, todo2];
 
-      const newTodos = TodoRepository.stopTimer(todos, todo1.getId());
+      const newTodos = TodoRepository.stopItemTimer(todos, todo1.getId());
 
       expect(newTodos[0].isTimerRunning()).toBe(false);
       expect(newTodos[1].isTimerRunning()).toBe(true);
@@ -519,7 +518,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Task 1').startTimer();
       const todos = [todo];
 
-      const newTodos = TodoRepository.stopTimer(todos, todo.getId());
+      const newTodos = TodoRepository.stopItemTimer(todos, todo.getId());
 
       expect(todos[0].isTimerRunning()).toBe(true);
       expect(newTodos[0].isTimerRunning()).toBe(false);
@@ -529,7 +528,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
       const todos = [todo];
 
-      const newTodos = TodoRepository.stopTimer(todos, todo.getId());
+      const newTodos = TodoRepository.stopItemTimer(todos, todo.getId());
 
       expect(newTodos[0].isTimerRunning()).toBe(false);
     });
@@ -538,7 +537,7 @@ describe('TodoRepository', () => {
       const todo = TodoRepository.createTodo('TASK-001', 'Task 1').startTimer();
       const todos = [todo];
 
-      const newTodos = TodoRepository.stopTimer(todos, 'non-existent-id');
+      const newTodos = TodoRepository.stopItemTimer(todos, 'non-existent-id');
 
       expect(newTodos).toEqual(todos);
       expect(newTodos[0].isTimerRunning()).toBe(true);
@@ -546,7 +545,7 @@ describe('TodoRepository', () => {
 
     it('空の配列に対して実行してもエラーにならない', () => {
       const todos: Todo[] = [];
-      const newTodos = TodoRepository.stopTimer(todos, 'any-id');
+      const newTodos = TodoRepository.stopItemTimer(todos, 'any-id');
 
       expect(newTodos).toEqual([]);
     });
@@ -657,6 +656,7 @@ describe('TodoRepository', () => {
       const original = [
         {
           id: 'id-1',
+          type: 'todo',
           taskcode: 'TASK-001',
           text: 'Task 1',
           completedAt: null,
@@ -666,6 +666,7 @@ describe('TodoRepository', () => {
         },
         {
           id: 'id-2',
+          type: 'todo',
           taskcode: 'TASK-002',
           text: 'Task 2',
           completedAt: '2025-01-15 11:00:00',
@@ -799,6 +800,7 @@ describe('TodoRepository', () => {
       const original = [
         {
           id: 'id-1',
+          type: 'todo',
           taskcode: 'TASK-001',
           text: 'Task 1',
           completedAt: null,
@@ -829,628 +831,4 @@ describe('TodoRepository', () => {
     });
   });
 
-  describe('createTodoFromCalendarEvent', () => {
-    it('カレンダーイベントからTodoを生成できる', () => {
-      const event: CalendarEvent = {
-        kind: 'calendar#event',
-        etag: '"3123456789012345"',
-        id: '12345abcde67890fghij12345',
-        status: 'confirmed',
-        htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
-        created: '2023-10-20T09:00:00.000Z',
-        updated: '2023-10-20T09:30:00.000Z',
-        summary: '週次定例ミーティング',
-        description: 'プロジェクトAの進捗確認',
-        location: 'オンライン (Zoom)',
-        creator: {
-          email: 'user@example.com',
-          self: true
-        },
-        organizer: {
-          email: 'user@example.com',
-          self: true
-        },
-        start: {
-          dateTime: '2023-11-01T10:00:00+09:00',
-          timeZone: 'Asia/Tokyo'
-        },
-        end: {
-          dateTime: '2023-11-01T11:00:00+09:00',
-          timeZone: 'Asia/Tokyo'
-        },
-        iCalUID: '12345abcde67890fghij12345@google.com',
-        sequence: 0,
-        eventType: 'default'
-      };
-
-      const todo = TodoRepository.createTodoFromCalendarEvent(event);
-
-      expect(todo.getTaskcode()).toBe('');
-      expect(todo.getText()).toBe('週次定例ミーティング');
-      expect(todo.isCompleted()).toBe(false);
-      expect(todo.getCompletedAt()).toBe(null);
-      expect(todo.createdAt).toBe('2023-10-20T09:00:00.000Z');
-      expect(todo.updatedAt).toBe('2023-10-20T09:30:00.000Z');
-    });
-
-    it('同じイベントからは常に同じIDが生成される（決定的）', () => {
-      const event: CalendarEvent = {
-        kind: 'calendar#event',
-        etag: '"3123456789012345"',
-        id: '12345abcde67890fghij12345',
-        status: 'confirmed',
-        htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
-        created: '2023-10-20T09:00:00.000Z',
-        updated: '2023-10-20T09:30:00.000Z',
-        summary: '週次定例ミーティング',
-        creator: {
-          email: 'user@example.com'
-        },
-        organizer: {
-          email: 'user@example.com'
-        },
-        start: {
-          dateTime: '2023-11-01T10:00:00+09:00'
-        },
-        end: {
-          dateTime: '2023-11-01T11:00:00+09:00'
-        },
-        iCalUID: '12345abcde67890fghij12345@google.com',
-        sequence: 0,
-        eventType: 'default'
-      };
-
-      const todo1 = TodoRepository.createTodoFromCalendarEvent(event);
-      const todo2 = TodoRepository.createTodoFromCalendarEvent(event);
-
-      expect(todo1.getId()).toBe(todo2.getId());
-    });
-
-    it('異なる開始時刻を持つイベントからは異なるIDが生成される', () => {
-      const event1: CalendarEvent = {
-        kind: 'calendar#event',
-        etag: '"3123456789012345"',
-        id: '12345abcde67890fghij12345',
-        status: 'confirmed',
-        htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
-        created: '2023-10-20T09:00:00.000Z',
-        updated: '2023-10-20T09:30:00.000Z',
-        summary: 'イベント1',
-        creator: {
-          email: 'user@example.com'
-        },
-        organizer: {
-          email: 'user@example.com'
-        },
-        start: {
-          dateTime: '2023-11-01T10:00:00+09:00'
-        },
-        end: {
-          dateTime: '2023-11-01T11:00:00+09:00'
-        },
-        iCalUID: '12345abcde67890fghij12345@google.com',
-        sequence: 0,
-        eventType: 'default'
-      };
-
-      const event2: CalendarEvent = {
-        ...event1,
-        start: {
-          dateTime: '2023-11-01T14:00:00+09:00' // 異なる開始時刻
-        }
-      };
-
-      const todo1 = TodoRepository.createTodoFromCalendarEvent(event1);
-      const todo2 = TodoRepository.createTodoFromCalendarEvent(event2);
-
-      expect(todo1.getId()).not.toBe(todo2.getId());
-    });
-
-    it('異なるcreated時刻を持つイベントからは異なるIDが生成される', () => {
-      const event1: CalendarEvent = {
-        kind: 'calendar#event',
-        etag: '"3123456789012345"',
-        id: '12345abcde67890fghij12345',
-        status: 'confirmed',
-        htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
-        created: '2023-10-20T09:00:00.000Z',
-        updated: '2023-10-20T09:30:00.000Z',
-        summary: 'イベント1',
-        creator: {
-          email: 'user@example.com'
-        },
-        organizer: {
-          email: 'user@example.com'
-        },
-        start: {
-          dateTime: '2023-11-01T10:00:00+09:00'
-        },
-        end: {
-          dateTime: '2023-11-01T11:00:00+09:00'
-        },
-        iCalUID: '12345abcde67890fghij12345@google.com',
-        sequence: 0,
-        eventType: 'default'
-      };
-
-      const event2: CalendarEvent = {
-        ...event1,
-        created: '2023-10-21T09:00:00.000Z' // 異なるcreated時刻
-      };
-
-      const todo1 = TodoRepository.createTodoFromCalendarEvent(event1);
-      const todo2 = TodoRepository.createTodoFromCalendarEvent(event2);
-
-      expect(todo1.getId()).not.toBe(todo2.getId());
-    });
-
-    it('終日イベントからTodoを生成できる', () => {
-      const event: CalendarEvent = {
-        kind: 'calendar#event',
-        etag: '"3987654321098765"',
-        id: '98765zyxwv43210utsrq98765',
-        status: 'confirmed',
-        htmlLink: 'https://www.google.com/calendar/event?eid=yyyyyyy',
-        created: '2023-10-21T15:00:00.000Z',
-        updated: '2023-10-21T15:00:00.000Z',
-        summary: '誕生日（終日イベントの例）',
-        creator: {
-          email: 'user@example.com',
-          self: true
-        },
-        organizer: {
-          email: 'user@example.com',
-          self: true
-        },
-        start: {
-          date: '2023-11-05'
-        },
-        end: {
-          date: '2023-11-06'
-        },
-        transparency: 'transparent',
-        iCalUID: '98765zyxwv43210utsrq98765@google.com',
-        sequence: 0,
-        reminders: {
-          useDefault: true
-        },
-        eventType: 'default'
-      };
-
-      const todo = TodoRepository.createTodoFromCalendarEvent(event);
-
-      expect(todo.getTaskcode()).toBe('');
-      expect(todo.getText()).toBe('誕生日（終日イベントの例）');
-      expect(todo.isCompleted()).toBe(false);
-      expect(todo.getCompletedAt()).toBe(null);
-    });
-
-    it('生成されたTodoにはIDが設定される（カレンダー由来のIDはcal-プレフィックス）', () => {
-      const event: CalendarEvent = {
-        kind: 'calendar#event',
-        etag: '"3123456789012345"',
-        id: '12345abcde67890fghij12345',
-        status: 'confirmed',
-        htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
-        created: '2023-10-20T09:00:00.000Z',
-        updated: '2023-10-20T09:30:00.000Z',
-        summary: 'テストイベント',
-        creator: {
-          email: 'user@example.com'
-        },
-        organizer: {
-          email: 'user@example.com'
-        },
-        start: {
-          dateTime: '2023-11-01T10:00:00+09:00'
-        },
-        end: {
-          dateTime: '2023-11-01T11:00:00+09:00'
-        },
-        iCalUID: '12345abcde67890fghij12345@google.com',
-        sequence: 0,
-        eventType: 'default'
-      };
-
-      const todo = TodoRepository.createTodoFromCalendarEvent(event);
-      const id = todo.getId();
-
-      // カレンダー由来のIDは 'cal-' プレフィックスを持つ
-      expect(id).toMatch(/^cal-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{8,12}$/);
-      expect(id).toBeTruthy();
-    });
-
-    it('生成されたTodoにはtimeRangesが空配列で初期化される', () => {
-      const event: CalendarEvent = {
-        kind: 'calendar#event',
-        etag: '"3123456789012345"',
-        id: '12345abcde67890fghij12345',
-        status: 'confirmed',
-        htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
-        created: '2023-10-20T09:00:00.000Z',
-        updated: '2023-10-20T09:30:00.000Z',
-        summary: 'テストイベント',
-        creator: {
-          email: 'user@example.com'
-        },
-        organizer: {
-          email: 'user@example.com'
-        },
-        start: {
-          dateTime: '2023-11-01T10:00:00+09:00'
-        },
-        end: {
-          dateTime: '2023-11-01T11:00:00+09:00'
-        },
-        iCalUID: '12345abcde67890fghij12345@google.com',
-        sequence: 0,
-        eventType: 'default'
-      };
-
-      const todo = TodoRepository.createTodoFromCalendarEvent(event);
-      const json = todo.toJSON();
-
-      expect(json.timeRanges).toEqual([]);
-    });
-
-    // Note: Issue #0011の設計変更により、カレンダーイベントの追加情報は保存されなくなりました
-    // カレンダーイベントからTodoを生成する際は、summary(タスク内容)のみが保存されます
-  });
-
-  describe('createTodosFromCalendarEvents', () => {
-    it('カレンダーイベント配列からTodoリストを生成できる', () => {
-      const events: CalendarEvent[] = [
-        {
-          kind: 'calendar#event',
-          etag: '"3123456789012345"',
-          id: '12345abcde67890fghij12345',
-          status: 'confirmed',
-          htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
-          created: '2023-10-20T09:00:00.000Z',
-          updated: '2023-10-20T09:30:00.000Z',
-          summary: '週次定例ミーティング',
-          creator: {
-            email: 'user@example.com'
-          },
-          organizer: {
-            email: 'user@example.com'
-          },
-          start: {
-            dateTime: '2023-11-01T10:00:00+09:00'
-          },
-          end: {
-            dateTime: '2023-11-01T11:00:00+09:00'
-          },
-          iCalUID: '12345abcde67890fghij12345@google.com',
-          sequence: 0,
-          eventType: 'default'
-        },
-        {
-          kind: 'calendar#event',
-          etag: '"3987654321098765"',
-          id: '98765zyxwv43210utsrq98765',
-          status: 'confirmed',
-          htmlLink: 'https://www.google.com/calendar/event?eid=yyyyyyy',
-          created: '2023-10-21T15:00:00.000Z',
-          updated: '2023-10-21T15:00:00.000Z',
-          summary: '誕生日',
-          creator: {
-            email: 'user@example.com'
-          },
-          organizer: {
-            email: 'user@example.com'
-          },
-          start: {
-            date: '2023-11-05'
-          },
-          end: {
-            date: '2023-11-06'
-          },
-          iCalUID: '98765zyxwv43210utsrq98765@google.com',
-          sequence: 0,
-          eventType: 'default'
-        }
-      ];
-
-      const todos = TodoRepository.createTodosFromCalendarEvents(events);
-
-      expect(todos).toHaveLength(2);
-      expect(todos[0].getText()).toBe('週次定例ミーティング');
-      expect(todos[1].getText()).toBe('誕生日');
-    });
-
-    it('空の配列からは空のTodoリストが生成される', () => {
-      const events: CalendarEvent[] = [];
-      const todos = TodoRepository.createTodosFromCalendarEvents(events);
-
-      expect(todos).toEqual([]);
-    });
-  });
-
-  describe('addTodosFromCalendarEvents', () => {
-    it('既存のTodoリストにカレンダーイベントからTodoを追加できる', () => {
-      const existingTodo = TodoRepository.createTodo('TASK-001', 'Existing task');
-      const todos = [existingTodo];
-
-      const events: CalendarEvent[] = [
-        {
-          kind: 'calendar#event',
-          etag: '"3123456789012345"',
-          id: '12345abcde67890fghij12345',
-          status: 'confirmed',
-          htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
-          created: '2023-10-20T09:00:00.000Z',
-          updated: '2023-10-20T09:30:00.000Z',
-          summary: '週次定例ミーティング',
-          creator: {
-            email: 'user@example.com'
-          },
-          organizer: {
-            email: 'user@example.com'
-          },
-          start: {
-            dateTime: '2023-11-01T10:00:00+09:00'
-          },
-          end: {
-            dateTime: '2023-11-01T11:00:00+09:00'
-          },
-          iCalUID: '12345abcde67890fghij12345@google.com',
-          sequence: 0,
-          eventType: 'default'
-        }
-      ];
-
-      const newTodos = TodoRepository.addTodosFromCalendarEvents(todos, events);
-
-      expect(newTodos).toHaveLength(2);
-      expect(newTodos[0].getText()).toBe('Existing task');
-      expect(newTodos[1].getText()).toBe('週次定例ミーティング');
-    });
-
-    it('同一イベントを2度追加しても重複しない', () => {
-      const event: CalendarEvent = {
-        kind: 'calendar#event',
-        etag: '"3123456789012345"',
-        id: '12345abcde67890fghij12345',
-        status: 'confirmed',
-        htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
-        created: '2023-10-20T09:00:00.000Z',
-        updated: '2023-10-20T09:30:00.000Z',
-        summary: '週次定例ミーティング',
-        creator: {
-          email: 'user@example.com'
-        },
-        organizer: {
-          email: 'user@example.com'
-        },
-        start: {
-          dateTime: '2023-11-01T10:00:00+09:00'
-        },
-        end: {
-          dateTime: '2023-11-01T11:00:00+09:00'
-        },
-        iCalUID: '12345abcde67890fghij12345@google.com',
-        sequence: 0,
-        eventType: 'default'
-      };
-
-      // 1回目の追加
-      const todos1 = TodoRepository.addTodosFromCalendarEvents([], [event]);
-      expect(todos1).toHaveLength(1);
-
-      // 2回目の追加（同じイベント）
-      const todos2 = TodoRepository.addTodosFromCalendarEvents(todos1, [event]);
-      expect(todos2).toHaveLength(1); // 重複しない
-      expect(todos2[0].getText()).toBe('週次定例ミーティング');
-    });
-
-    it('同一イベントを追加する場合、新しい情報で上書きされる', () => {
-      const event1: CalendarEvent = {
-        kind: 'calendar#event',
-        etag: '"3123456789012345"',
-        id: '12345abcde67890fghij12345',
-        status: 'confirmed',
-        htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
-        created: '2023-10-20T09:00:00.000Z',
-        updated: '2023-10-20T09:30:00.000Z',
-        summary: '旧タイトル',
-        creator: {
-          email: 'user@example.com'
-        },
-        organizer: {
-          email: 'user@example.com'
-        },
-        start: {
-          dateTime: '2023-11-01T10:00:00+09:00'
-        },
-        end: {
-          dateTime: '2023-11-01T11:00:00+09:00'
-        },
-        iCalUID: '12345abcde67890fghij12345@google.com',
-        sequence: 0,
-        eventType: 'default'
-      };
-
-      const event2: CalendarEvent = {
-        ...event1,
-        updated: '2023-10-20T10:00:00.000Z',
-        summary: '新タイトル'
-      };
-
-      // 1回目の追加
-      const todos1 = TodoRepository.addTodosFromCalendarEvents([], [event1]);
-      expect(todos1[0].getText()).toBe('旧タイトル');
-      expect(todos1[0].updatedAt).toBe('2023-10-20T09:30:00.000Z');
-
-      // 2回目の追加（同じイベントだが内容が更新されている）
-      const todos2 = TodoRepository.addTodosFromCalendarEvents(todos1, [event2]);
-      expect(todos2).toHaveLength(1); // 重複しない
-      expect(todos2[0].getText()).toBe('新タイトル'); // 新しい情報に更新
-      expect(todos2[0].updatedAt).toBe('2023-10-20T10:00:00.000Z');
-    });
-
-    it('複数回インポートしても重複しない', () => {
-      const event: CalendarEvent = {
-        kind: 'calendar#event',
-        etag: '"3123456789012345"',
-        id: '12345abcde67890fghij12345',
-        status: 'confirmed',
-        htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
-        created: '2023-10-20T09:00:00.000Z',
-        updated: '2023-10-20T09:30:00.000Z',
-        summary: 'イベント',
-        creator: {
-          email: 'user@example.com'
-        },
-        organizer: {
-          email: 'user@example.com'
-        },
-        start: {
-          dateTime: '2023-11-01T10:00:00+09:00'
-        },
-        end: {
-          dateTime: '2023-11-01T11:00:00+09:00'
-        },
-        iCalUID: '12345abcde67890fghij12345@google.com',
-        sequence: 0,
-        eventType: 'default'
-      };
-
-      let todos: Todo[] = [];
-
-      // 3回連続でインポート
-      todos = TodoRepository.addTodosFromCalendarEvents(todos, [event]);
-      todos = TodoRepository.addTodosFromCalendarEvents(todos, [event]);
-      todos = TodoRepository.addTodosFromCalendarEvents(todos, [event]);
-
-      expect(todos).toHaveLength(1); // 1つだけ
-      expect(todos[0].getText()).toBe('イベント');
-    });
-
-    it('異なるイベントは両方追加される', () => {
-      const event1: CalendarEvent = {
-        kind: 'calendar#event',
-        etag: '"3123456789012345"',
-        id: '12345abcde67890fghij12345',
-        status: 'confirmed',
-        htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
-        created: '2023-10-20T09:00:00.000Z',
-        updated: '2023-10-20T09:30:00.000Z',
-        summary: 'イベント1',
-        creator: {
-          email: 'user@example.com'
-        },
-        organizer: {
-          email: 'user@example.com'
-        },
-        start: {
-          dateTime: '2023-11-01T10:00:00+09:00'
-        },
-        end: {
-          dateTime: '2023-11-01T11:00:00+09:00'
-        },
-        iCalUID: '12345abcde67890fghij12345@google.com',
-        sequence: 0,
-        eventType: 'default'
-      };
-
-      const event2: CalendarEvent = {
-        ...event1,
-        created: '2023-10-21T09:00:00.000Z', // 異なるcreated時刻
-        summary: 'イベント2'
-      };
-
-      const todos = TodoRepository.addTodosFromCalendarEvents([], [event1, event2]);
-
-      expect(todos).toHaveLength(2);
-      expect(todos[0].getText()).toBe('イベント1');
-      expect(todos[1].getText()).toBe('イベント2');
-    });
-
-    it('元の配列は変更されない（イミュータブル）', () => {
-      const existingTodo = TodoRepository.createTodo('TASK-001', 'Existing task');
-      const todos = [existingTodo];
-
-      const events: CalendarEvent[] = [
-        {
-          kind: 'calendar#event',
-          etag: '"3123456789012345"',
-          id: '12345abcde67890fghij12345',
-          status: 'confirmed',
-          htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
-          created: '2023-10-20T09:00:00.000Z',
-          updated: '2023-10-20T09:30:00.000Z',
-          summary: '週次定例ミーティング',
-          creator: {
-            email: 'user@example.com'
-          },
-          organizer: {
-            email: 'user@example.com'
-          },
-          start: {
-            dateTime: '2023-11-01T10:00:00+09:00'
-          },
-          end: {
-            dateTime: '2023-11-01T11:00:00+09:00'
-          },
-          iCalUID: '12345abcde67890fghij12345@google.com',
-          sequence: 0,
-          eventType: 'default'
-        }
-      ];
-
-      const newTodos = TodoRepository.addTodosFromCalendarEvents(todos, events);
-
-      expect(todos).toHaveLength(1);
-      expect(newTodos).toHaveLength(2);
-    });
-
-    it('空のイベント配列を追加しても既存のTodoリストは変わらない', () => {
-      const existingTodo = TodoRepository.createTodo('TASK-001', 'Existing task');
-      const todos = [existingTodo];
-
-      const events: CalendarEvent[] = [];
-      const newTodos = TodoRepository.addTodosFromCalendarEvents(todos, events);
-
-      expect(newTodos).toHaveLength(1);
-      expect(newTodos[0].getText()).toBe('Existing task');
-    });
-
-    it('空のTodoリストにカレンダーイベントを追加できる', () => {
-      const todos: Todo[] = [];
-
-      const events: CalendarEvent[] = [
-        {
-          kind: 'calendar#event',
-          etag: '"3123456789012345"',
-          id: '12345abcde67890fghij12345',
-          status: 'confirmed',
-          htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
-          created: '2023-10-20T09:00:00.000Z',
-          updated: '2023-10-20T09:30:00.000Z',
-          summary: '週次定例ミーティング',
-          creator: {
-            email: 'user@example.com'
-          },
-          organizer: {
-            email: 'user@example.com'
-          },
-          start: {
-            dateTime: '2023-11-01T10:00:00+09:00'
-          },
-          end: {
-            dateTime: '2023-11-01T11:00:00+09:00'
-          },
-          iCalUID: '12345abcde67890fghij12345@google.com',
-          sequence: 0,
-          eventType: 'default'
-        }
-      ];
-
-      const newTodos = TodoRepository.addTodosFromCalendarEvents(todos, events);
-
-      expect(newTodos).toHaveLength(1);
-      expect(newTodos[0].getText()).toBe('週次定例ミーティング');
-    });
-  });
 });

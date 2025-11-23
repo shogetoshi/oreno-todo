@@ -42,8 +42,10 @@ npm run electron:build  # 上記ビルド + electron-builderでパッケージ�
 #### レイヤー構成
 
 **Model層（ドメインロジック）**:
-- `src/models/Todo.ts`: Todoエンティティ（単一のTodoに対する操作）
-- `src/models/TodoRepository.ts`: Todoコレクション管理（配列操作、ビジネスロジック）
+- `src/models/ListItem.ts`: TodoとCalendarEventの共通インターフェース
+- `src/models/Todo.ts`: Todoエンティティ（単一のTodoに対する操作、ListItemを実装）
+- `src/models/CalendarEvent.ts`: カレンダーイベントエンティティ（ListItemを実装）
+- `src/models/TodoRepository.ts`: TodoとCalendarEventのコレクション管理（配列操作、ビジネスロジック）
 - `src/utils/timeFormat.ts`: 時刻フォーマット処理
 - `src/utils/validation.ts`: バリデーションロジック
 
@@ -55,8 +57,13 @@ npm run electron:build  # 上記ビルド + electron-builderでパッケージ�
 
 #### Repository Pattern
 
-- **Todo（エンティティ）**: 1つのTodoに対する操作（`setText()`, `toggleCompleted()`, `startTimer()`など）
-- **TodoRepository（コレクション管理）**: Todo配列に対する操作（`addTodo()`, `deleteTodo()`, `reorderTodos()`など）
+- **ListItem（インターフェース）**: TodoとCalendarEventの共通インターフェース（`getId()`, `getType()`, `getText()`, `toggleCompleted()`など）
+- **Todo（エンティティ）**: 1つのTodoに対する操作（`setText()`, `toggleCompleted()`, `startTimer()`など）、ListItemを実装
+- **CalendarEvent（エンティティ）**: 1つのカレンダーイベントに対する操作、ListItemを実装。開始時刻、終了時刻、場所、詳細などの追加フィールドを持つ
+- **TodoRepository（コレクション管理）**: TodoとCalendarEvent配列に対する操作
+  - Todo専用メソッド: `addTodo()`, `deleteTodo()`, `toggleTodo()`, `reorderTodos()`など
+  - ListItem汎用メソッド: `toggleItem()`, `deleteItem()`, `editItemText()`, `reorderItems()`など
+  - CalendarEvent生成メソッド: `createCalendarEventFromGoogleEvent()`, `addCalendarEventsToItems()`など
 
 すべてのビジネスロジックは`TodoRepository`に集約され、単体テスト可能な純粋関数として実装されています。
 
@@ -92,10 +99,12 @@ npm run electron:build  # 上記ビルド + electron-builderでパッケージ�
 
 **Model層（ビジネスロジック）**:
 - すべてのビジネスロジックは`TodoRepository`に実装する
-- 新しいTodo操作を追加する場合は`TodoRepository`に静的メソッドを追加
-- 単一のTodoに対する操作は`Todo`クラスのメソッドとして実装
+- 新しいTodo/CalendarEvent操作を追加する場合は`TodoRepository`に静的メソッドを追加
+- 単一のTodo/CalendarEventに対する操作は各クラスのメソッドとして実装
+- TodoとCalendarEventは`ListItem`インターフェースを実装し、共通のメソッドを提供
 - イミュータブルな設計を維持（新しいインスタンス/配列を返す）
 - フレームワーク（React、Electron）に依存しない純粋な関数として実装
+- JSON出力には必ず`type`フィールドを含め、'todo'または'calendar_event'を設定
 
 **Controller層（状態管理・IPC通信）**:
 - `useTodos`フックですべてのTodo操作を提供

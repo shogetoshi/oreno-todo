@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Todo } from '../models/Todo';
+import { ListItem } from '../models/ListItem';
 import { TodoRepository } from '../models/TodoRepository';
 import { fetchCalendarEventsSample } from '../utils/calendarSample';
 
@@ -9,15 +9,15 @@ import { fetchCalendarEventsSample } from '../utils/calendarSample';
  * ビジネスロジックはTodoRepositoryに委譲する
  */
 export const useTodos = () => {
-  const [todos, setTodos] = useState<Todo[]>([]);
+  const [todos, setTodos] = useState<ListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 初期化時にTODOを読み込む
+  // 初期化時にTODO/CalendarEventを読み込む
   useEffect(() => {
     const loadTodos = async () => {
       try {
         const jsonArray = await window.electronAPI.loadTodos();
-        const todos = TodoRepository.fromJsonArray(jsonArray);
+        const todos = TodoRepository.fromJsonArrayToItems(jsonArray);
         setTodos(todos);
       } catch (error) {
         console.error('Failed to load todos:', error);
@@ -31,13 +31,13 @@ export const useTodos = () => {
   }, []);
 
   // 状態更新と永続化を統合した単一のエントリーポイント
-  const setTodosWithPersist = useCallback(async (updater: (prev: Todo[]) => Todo[]) => {
+  const setTodosWithPersist = useCallback(async (updater: (prev: ListItem[]) => ListItem[]) => {
     setTodos((prevTodos) => {
       const newTodos = updater(prevTodos);
       const prevTodosSnapshot = prevTodos;
 
       // 楽観的更新: 先にUIを更新してから非同期で保存
-      const jsonArray = TodoRepository.toJsonArray(newTodos);
+      const jsonArray = TodoRepository.itemsToJsonArray(newTodos);
       window.electronAPI.saveTodos(jsonArray).catch((error) => {
         console.error('Failed to save todos:', error);
         // 保存失敗時はロールバック
@@ -50,7 +50,7 @@ export const useTodos = () => {
 
   // 新しいTODOを追加
   const addTodo = useCallback((taskcode: string, text: string) => {
-    setTodosWithPersist((prev) => TodoRepository.addTodo(prev, taskcode, text));
+    setTodosWithPersist((prev) => [...prev, TodoRepository.createTodo(taskcode, text)]);
   }, [setTodosWithPersist]);
 
   // HTTPサーバー経由のTODO追加リクエストを受信
@@ -60,51 +60,52 @@ export const useTodos = () => {
     });
   }, [addTodo]);
 
-  // TODOの完了状態を切り替え
+  // アイテムの完了状態を切り替え
   const toggleTodo = useCallback((id: string) => {
-    setTodosWithPersist((prev) => TodoRepository.toggleTodo(prev, id));
+    setTodosWithPersist((prev) => TodoRepository.toggleItem(prev, id));
   }, [setTodosWithPersist]);
 
-  // TODOを削除
+  // アイテムを削除
   const deleteTodo = useCallback((id: string) => {
-    setTodosWithPersist((prev) => TodoRepository.deleteTodo(prev, id));
+    setTodosWithPersist((prev) => TodoRepository.deleteItem(prev, id));
   }, [setTodosWithPersist]);
 
-  // TODOのテキストを編集
+  // アイテムのテキストを編集
   const editTodo = useCallback((id: string, newText: string) => {
-    setTodosWithPersist((prev) => TodoRepository.editTodoText(prev, id, newText));
+    setTodosWithPersist((prev) => TodoRepository.editItemText(prev, id, newText));
   }, [setTodosWithPersist]);
 
-  // TODOのタスクコードを編集
+  // アイテムのタスクコードを編集
   const editTaskcode = useCallback((id: string, newTaskcode: string) => {
-    setTodosWithPersist((prev) => TodoRepository.editTodoTaskcode(prev, id, newTaskcode));
+    setTodosWithPersist((prev) => TodoRepository.editItemTaskcode(prev, id, newTaskcode));
   }, [setTodosWithPersist]);
 
-  // TODOの順序を並び替え
+  // アイテムの順序を並び替え
   const reorderTodos = useCallback((fromIndex: number, toIndex: number) => {
-    setTodosWithPersist((prev) => TodoRepository.reorderTodos(prev, fromIndex, toIndex));
+    setTodosWithPersist((prev) => TodoRepository.reorderItems(prev, fromIndex, toIndex));
   }, [setTodosWithPersist]);
 
-  // JSONテキストからTODOリストを復元
+  // JSONテキストからアイテムリストを復元
   const replaceFromJson = useCallback(async (jsonText: string) => {
-    const newTodos = TodoRepository.fromJsonText(jsonText);
-    setTodosWithPersist(() => newTodos);
+    const jsonArray = JSON.parse(jsonText);
+    const newItems = TodoRepository.fromJsonArrayToItems(jsonArray);
+    setTodosWithPersist((_prev) => newItems);
   }, [setTodosWithPersist]);
 
   // タイマーを開始
   const startTimer = useCallback((id: string) => {
-    setTodosWithPersist((prev) => TodoRepository.startTimer(prev, id));
+    setTodosWithPersist((prev) => TodoRepository.startItemTimer(prev, id));
   }, [setTodosWithPersist]);
 
   // タイマーを停止
   const stopTimer = useCallback((id: string) => {
-    setTodosWithPersist((prev) => TodoRepository.stopTimer(prev, id));
+    setTodosWithPersist((prev) => TodoRepository.stopItemTimer(prev, id));
   }, [setTodosWithPersist]);
 
-  // Googleカレンダーからイベントを取得してTodoを追加
+  // Googleカレンダーからイベントを取得してCalendarEventを追加
   const importCalendarEvents = useCallback(() => {
     const events = fetchCalendarEventsSample();
-    setTodosWithPersist((prev) => TodoRepository.addTodosFromCalendarEvents(prev, events));
+    setTodosWithPersist((prev) => TodoRepository.addCalendarEventsToItems(prev, events));
   }, [setTodosWithPersist]);
 
   return {

@@ -1,4 +1,5 @@
 import { getCurrentJSTTime, parseJSTString } from '../utils/timeFormat';
+import { ListItem, ListItemType } from './ListItem';
 
 /**
  * Model Layer: Todo Entity
@@ -17,8 +18,9 @@ export interface TimeRange {
  * TODOアイテムを表すクラス
  * JSON互換の構造を持ち、内部表現と意味的なアクセスインターフェースを提供する
  * イミュータブルな設計: すべての更新メソッドは新しいインスタンスを返す
+ * ListItemインターフェースを実装し、カレンダーイベントと共通のインターフェースで扱える
  */
-export class Todo {
+export class Todo implements ListItem {
   constructor(
     public readonly id: string,
     public readonly taskcode: string,
@@ -34,6 +36,13 @@ export class Todo {
    */
   getId(): string {
     return this.id;
+  }
+
+  /**
+   * Todoのタイプを取得する
+   */
+  getType(): ListItemType {
+    return ListItemType.TODO;
   }
 
   /**
@@ -84,9 +93,7 @@ export class Todo {
    * 完了状態を切り替えた新しいTodoインスタンスを返す
    */
   toggleCompleted(): Todo {
-    const now = getCurrentJSTTime();
-    const newCompletedAt = this.completedAt === null ? now : null;
-    return new Todo(this.id, this.taskcode, this.text, newCompletedAt, this.createdAt, now, this.timeRanges);
+    return this.setCompleted(!this.isCompleted());
   }
 
   /**
@@ -199,6 +206,7 @@ export class Todo {
   toJSON() {
     return {
       id: this.id,
+      type: this.getType(),
       taskcode: this.taskcode,
       text: this.text,
       completedAt: this.completedAt,

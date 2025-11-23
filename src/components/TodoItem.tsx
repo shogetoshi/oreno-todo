@@ -1,13 +1,13 @@
 import { useState } from 'react';
-import type { Todo } from '../types/electron';
+import type { ListItem } from '../models/ListItem';
 
 /**
  * View Layer: TodoItem Component
- * 個別のTodoアイテムの表示と編集UIを提供
+ * 個別のアイテム（TodoまたはCalendarEvent）の表示と編集UIを提供
  * 編集中のローカル状態のみを管理
  */
 interface TodoItemProps {
-  todo: Todo;
+  todo: ListItem;
   index: number;
   isDragging: boolean;
   onToggle: (id: string) => void;
