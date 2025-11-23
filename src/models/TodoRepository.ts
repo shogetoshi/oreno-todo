@@ -235,4 +235,29 @@ export class TodoRepository {
     // 既存のアイテム（重複除外済み） + 新しいイベント
     return [...existingItemsWithoutDuplicates, ...newEvents];
   }
+
+  /**
+   * 指定された日付に表示すべきListItemかどうかを判定する
+   *
+   * 注: この関数は現在プレースホルダーとして実装されており、常にtrueを返します。
+   * 後から実装される予定で、その際に具体的なフィルタリング条件が追加されます。
+   *
+   * @param item 判定対象のListItem
+   * @param date 日付（YYYY-MM-DD形式）
+   * @returns その日付に表示すべき場合はtrue
+   */
+  static shouldDisplayOnDate(_item: ListItem, _date: string): boolean {
+    // TODO: 後から実装する。現在は全てのアイテムを表示する
+    return true;
+  }
+
+  /**
+   * 指定された日付に表示すべきListItemのみをフィルタリングする
+   * @param items ListItemリスト
+   * @param date 日付（YYYY-MM-DD形式）
+   * @returns フィルタリングされたListItemリスト
+   */
+  static filterItemsByDate(items: ListItem[], date: string): ListItem[] {
+    return items.filter(item => this.shouldDisplayOnDate(item, date));
+  }
 }

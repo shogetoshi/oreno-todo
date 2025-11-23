@@ -831,4 +831,52 @@ describe('TodoRepository', () => {
     });
   });
 
+  describe('shouldDisplayOnDate', () => {
+    it('現在はプレースホルダーとして常にtrueを返す', () => {
+      const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
+      expect(TodoRepository.shouldDisplayOnDate(todo, '2025-11-24')).toBe(true);
+    });
+
+    it('任意の日付でtrueを返す', () => {
+      const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
+      expect(TodoRepository.shouldDisplayOnDate(todo, '2025-01-01')).toBe(true);
+      expect(TodoRepository.shouldDisplayOnDate(todo, '2025-12-31')).toBe(true);
+    });
+
+    it('完了済みTodoでもtrueを返す', () => {
+      const todo = TodoRepository.createTodo('TASK-001', 'Task 1').toggleCompleted();
+      expect(TodoRepository.shouldDisplayOnDate(todo, '2025-11-24')).toBe(true);
+    });
+  });
+
+  describe('filterItemsByDate', () => {
+    it('現在は全てのアイテムを返す（プレースホルダー）', () => {
+      const todo1 = TodoRepository.createTodo('TASK-001', 'Task 1');
+      const todo2 = TodoRepository.createTodo('TASK-002', 'Task 2');
+      const todos = [todo1, todo2];
+
+      const filtered = TodoRepository.filterItemsByDate(todos, '2025-11-24');
+
+      expect(filtered).toHaveLength(2);
+      expect(filtered).toEqual(todos);
+    });
+
+    it('空の配列に対して空の配列を返す', () => {
+      const todos: Todo[] = [];
+      const filtered = TodoRepository.filterItemsByDate(todos, '2025-11-24');
+
+      expect(filtered).toEqual([]);
+    });
+
+    it('元の配列は変更されない（イミュータブル）', () => {
+      const todo1 = TodoRepository.createTodo('TASK-001', 'Task 1');
+      const todos = [todo1];
+
+      const filtered = TodoRepository.filterItemsByDate(todos, '2025-11-24');
+
+      expect(filtered).not.toBe(todos); // 参照が異なることを確認
+      expect(filtered).toEqual(todos); // 内容は同じ
+    });
+  });
+
 });
