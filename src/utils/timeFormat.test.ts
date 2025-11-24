@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getCurrentJSTTime, formatToJST, parseJSTString } from './timeFormat';
+import { getCurrentJSTTime, formatToJST, parseJSTString, extractDateFromJST, compareDates } from './timeFormat';
 
 describe('timeFormat', () => {
   describe('getCurrentJSTTime', () => {
@@ -153,6 +153,71 @@ describe('timeFormat', () => {
         const formatted = formatToJST(parsed);
         expect(formatted).toBe(original);
       });
+    });
+  });
+
+  describe('extractDateFromJST', () => {
+    it('JST時刻文字列から日付部分のみを抽出できる', () => {
+      const jstString = '2025-01-15 12:34:56';
+      const result = extractDateFromJST(jstString);
+      expect(result).toBe('2025-01-15');
+    });
+
+    it('日付のみの文字列をそのまま返す', () => {
+      const dateString = '2025-01-15';
+      const result = extractDateFromJST(dateString);
+      expect(result).toBe('2025-01-15');
+    });
+
+    it('真夜中の時刻から日付を抽出できる', () => {
+      const jstString = '2025-01-15 00:00:00';
+      const result = extractDateFromJST(jstString);
+      expect(result).toBe('2025-01-15');
+    });
+
+    it('年末の日付を抽出できる', () => {
+      const jstString = '2025-12-31 23:59:59';
+      const result = extractDateFromJST(jstString);
+      expect(result).toBe('2025-12-31');
+    });
+
+    it('月初の日付を抽出できる', () => {
+      const jstString = '2025-01-01 09:30:45';
+      const result = extractDateFromJST(jstString);
+      expect(result).toBe('2025-01-01');
+    });
+  });
+
+  describe('compareDates', () => {
+    it('同じ日付の場合は0を返す', () => {
+      expect(compareDates('2025-01-15', '2025-01-15')).toBe(0);
+    });
+
+    it('date1がdate2より前の場合は負の数を返す', () => {
+      expect(compareDates('2025-01-14', '2025-01-15')).toBeLessThan(0);
+      expect(compareDates('2024-12-31', '2025-01-01')).toBeLessThan(0);
+      expect(compareDates('2025-01-01', '2025-12-31')).toBeLessThan(0);
+    });
+
+    it('date1がdate2より後の場合は正の数を返す', () => {
+      expect(compareDates('2025-01-15', '2025-01-14')).toBeGreaterThan(0);
+      expect(compareDates('2025-01-01', '2024-12-31')).toBeGreaterThan(0);
+      expect(compareDates('2025-12-31', '2025-01-01')).toBeGreaterThan(0);
+    });
+
+    it('年をまたぐ日付の比較が正しく行える', () => {
+      expect(compareDates('2024-12-31', '2025-01-01')).toBeLessThan(0);
+      expect(compareDates('2025-01-01', '2024-12-31')).toBeGreaterThan(0);
+    });
+
+    it('月をまたぐ日付の比較が正しく行える', () => {
+      expect(compareDates('2025-01-31', '2025-02-01')).toBeLessThan(0);
+      expect(compareDates('2025-02-01', '2025-01-31')).toBeGreaterThan(0);
+    });
+
+    it('同じ月内の日付の比較が正しく行える', () => {
+      expect(compareDates('2025-01-01', '2025-01-31')).toBeLessThan(0);
+      expect(compareDates('2025-01-15', '2025-01-14')).toBeGreaterThan(0);
     });
   });
 });

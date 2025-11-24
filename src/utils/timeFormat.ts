@@ -54,3 +54,25 @@ export function parseJSTString(jstString: string): Date {
   // UTC時刻からJSTオフセット分を引く（JSTで入力された時刻なので）
   return new Date(utcDate.getTime() - jstOffset * 60 * 1000);
 }
+
+/**
+ * JST時刻文字列から日付部分のみを抽出する（YYYY-MM-DD形式）
+ * @param jstString JST時刻文字列（"YYYY-MM-DD HH:MI:SS" or "YYYY-MM-DD"）
+ * @returns 日付文字列（"YYYY-MM-DD"）
+ */
+export function extractDateFromJST(jstString: string): string {
+  if (jstString.includes(' ')) {
+    return jstString.split(' ')[0];
+  }
+  return jstString;
+}
+
+/**
+ * 日付文字列の比較（YYYY-MM-DD形式）
+ * @param date1 日付文字列1
+ * @param date2 日付文字列2
+ * @returns date1 < date2 なら負の数、date1 === date2 なら0、date1 > date2 なら正の数
+ */
+export function compareDates(date1: string, date2: string): number {
+  return date1.localeCompare(date2);
+}
