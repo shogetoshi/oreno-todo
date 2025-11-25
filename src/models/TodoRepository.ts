@@ -298,4 +298,36 @@ export class TodoRepository {
   static filterItemsByDate(items: ListItem[], date: string): ListItem[] {
     return items.filter(item => this.shouldDisplayOnDate(item, date));
   }
+
+  /**
+   * 指定IDのListItemをJSON文字列から置き換える
+   * @param items 既存のListItemリスト
+   * @param id ListItemのID
+   * @param jsonText 新しいListItemを表すJSON文字列
+   * @returns 新しいListItemリスト
+   * @throws JSONパースエラーまたはIDの不一致エラー
+   */
+  static editSingleItemFromJson(items: ListItem[], id: string, jsonText: string): ListItem[] {
+    const parsed = JSON.parse(jsonText);
+
+    // パースされたJSONのIDが一致することを確認
+    if (parsed.id !== id) {
+      throw new Error(`IDが一致しません。編集対象のIDは ${id} ですが、JSONのIDは ${parsed.id} です`);
+    }
+
+    // typeフィールドでTodoとCalendarEventを判別
+    const type = parsed.type || ListItemType.TODO;
+    let newItem: ListItem;
+
+    if (type === ListItemType.CALENDAR_EVENT) {
+      newItem = CalendarEvent.fromJSON(parsed);
+    } else {
+      newItem = Todo.fromJSON(parsed);
+    }
+
+    // 指定IDのアイテムを新しいアイテムで置き換え
+    return items.map((item) =>
+      item.getId() === id ? newItem : item
+    );
+  }
 }

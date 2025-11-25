@@ -949,6 +949,152 @@ describe('TodoRepository', () => {
     });
   });
 
+  describe('editSingleItemFromJson', () => {
+    it('指定IDのTodoをJSON文字列から編集できる', () => {
+      const todo = TodoRepository.createTodo('TASK-001', 'Original task');
+      const todos = [todo];
+
+      const newJson = JSON.stringify({
+        id: todo.getId(),
+        type: 'todo',
+        taskcode: 'TASK-999',
+        text: 'Updated task',
+        completedAt: null,
+        createdAt: todo.createdAt,
+        updatedAt: '2025-01-15 13:00:00',
+        timeRanges: []
+      });
+
+      const newTodos = TodoRepository.editSingleItemFromJson(todos, todo.getId(), newJson);
+
+      expect(newTodos[0].getTaskcode()).toBe('TASK-999');
+      expect(newTodos[0].getText()).toBe('Updated task');
+    });
+
+    it('CalendarEventをJSON文字列から編集できる', () => {
+      const calendarEvent = new CalendarEvent(
+        'event-1',
+        'TASK-001',
+        'Original meeting',
+        null,
+        '2025-01-15 10:00:00',
+        '2025-01-15 10:00:00',
+        '2025-01-20 14:00:00',
+        '2025-01-20 15:00:00'
+      );
+      const items = [calendarEvent];
+
+      const newJson = JSON.stringify({
+        id: 'event-1',
+        type: 'calendar_event',
+        taskcode: 'TASK-999',
+        text: 'Updated meeting',
+        completedAt: null,
+        createdAt: '2025-01-15 10:00:00',
+        updatedAt: '2025-01-15 11:00:00',
+        startTime: '2025-01-21 14:00:00',
+        endTime: '2025-01-21 15:00:00'
+      });
+
+      const newItems = TodoRepository.editSingleItemFromJson(items, 'event-1', newJson);
+
+      expect(newItems[0].getText()).toBe('Updated meeting');
+      expect(newItems[0].getTaskcode()).toBe('TASK-999');
+    });
+
+    it('複数アイテムのうち指定したもののみが編集される', () => {
+      const todo1 = TodoRepository.createTodo('TASK-001', 'Task 1');
+      const todo2 = TodoRepository.createTodo('TASK-002', 'Task 2');
+      const todos = [todo1, todo2];
+
+      const newJson = JSON.stringify({
+        id: todo1.getId(),
+        type: 'todo',
+        taskcode: 'TASK-999',
+        text: 'Updated Task 1',
+        completedAt: null,
+        createdAt: todo1.createdAt,
+        updatedAt: '2025-01-15 13:00:00',
+        timeRanges: []
+      });
+
+      const newTodos = TodoRepository.editSingleItemFromJson(todos, todo1.getId(), newJson);
+
+      expect(newTodos[0].getText()).toBe('Updated Task 1');
+      expect(newTodos[1].getText()).toBe('Task 2'); // 変わらない
+    });
+
+    it('元の配列は変更されない（イミュータブル）', () => {
+      const todo = TodoRepository.createTodo('TASK-001', 'Original task');
+      const todos = [todo];
+
+      const newJson = JSON.stringify({
+        id: todo.getId(),
+        type: 'todo',
+        taskcode: 'TASK-999',
+        text: 'Updated task',
+        completedAt: null,
+        createdAt: todo.createdAt,
+        updatedAt: '2025-01-15 13:00:00',
+        timeRanges: []
+      });
+
+      const newTodos = TodoRepository.editSingleItemFromJson(todos, todo.getId(), newJson);
+
+      expect(todos[0].getText()).toBe('Original task');
+      expect(newTodos[0].getText()).toBe('Updated task');
+    });
+
+    it('JSONのIDが指定IDと一致しない場合はエラーをスローする', () => {
+      const todo = TodoRepository.createTodo('TASK-001', 'Task');
+      const todos = [todo];
+
+      const newJson = JSON.stringify({
+        id: 'different-id',
+        type: 'todo',
+        taskcode: 'TASK-999',
+        text: 'Updated task',
+        completedAt: null,
+        createdAt: todo.createdAt,
+        updatedAt: '2025-01-15 13:00:00',
+        timeRanges: []
+      });
+
+      expect(() => TodoRepository.editSingleItemFromJson(todos, todo.getId(), newJson)).toThrow(
+        /IDが一致しません/
+      );
+    });
+
+    it('不正なJSON文字列に対してエラーをスローする', () => {
+      const todo = TodoRepository.createTodo('TASK-001', 'Task');
+      const todos = [todo];
+
+      const invalidJson = '{ invalid json }';
+
+      expect(() => TodoRepository.editSingleItemFromJson(todos, todo.getId(), invalidJson)).toThrow();
+    });
+
+    it('存在しないIDを指定しても他のアイテムは変更されない', () => {
+      const todo = TodoRepository.createTodo('TASK-001', 'Task');
+      const todos = [todo];
+
+      const newJson = JSON.stringify({
+        id: 'non-existent-id',
+        type: 'todo',
+        taskcode: 'TASK-999',
+        text: 'Updated task',
+        completedAt: null,
+        createdAt: todo.createdAt,
+        updatedAt: '2025-01-15 13:00:00',
+        timeRanges: []
+      });
+
+      const newTodos = TodoRepository.editSingleItemFromJson(todos, 'non-existent-id', newJson);
+
+      expect(newTodos[0].getText()).toBe('Task'); // 変わらない
+    });
+  });
+
   describe('filterItemsByDate', () => {
     it('指定日に表示すべきアイテムのみをフィルタリングする', () => {
       // 2025-01-15に作成された未完了Todo

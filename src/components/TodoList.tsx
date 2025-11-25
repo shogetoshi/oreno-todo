@@ -15,9 +15,10 @@ interface TodoListProps {
   onReorder: (fromIndex: number, toIndex: number) => void;
   onStartTimer: (id: string) => void;
   onStopTimer: (id: string) => void;
+  onOpenJsonEditor: (id: string) => void;
 }
 
-export const TodoList = ({ todos, onToggle, onDelete, onEdit, onEditTaskcode, onReorder, onStartTimer, onStopTimer }: TodoListProps) => {
+export const TodoList = ({ todos, onToggle, onDelete, onEdit, onEditTaskcode, onReorder, onStartTimer, onStopTimer, onOpenJsonEditor }: TodoListProps) => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   const handleDragStart = (index: number) => {
@@ -53,6 +54,7 @@ export const TodoList = ({ todos, onToggle, onDelete, onEdit, onEditTaskcode, on
           onEditTaskcode={onEditTaskcode}
           onStartTimer={onStartTimer}
           onStopTimer={onStopTimer}
+          onOpenJsonEditor={onOpenJsonEditor}
           onDragStart={handleDragStart}
           onDragOver={handleDragOver}
           onDrop={handleDrop}

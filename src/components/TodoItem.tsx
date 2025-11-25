@@ -16,13 +16,14 @@ interface TodoItemProps {
   onEditTaskcode: (id: string, newTaskcode: string) => void;
   onStartTimer: (id: string) => void;
   onStopTimer: (id: string) => void;
+  onOpenJsonEditor: (id: string) => void;
   onDragStart: (index: number) => void;
   onDragOver: (e: React.DragEvent) => void;
   onDrop: (index: number) => void;
   onDragEnd: () => void;
 }
 
-export const TodoItem = ({ todo, index, isDragging, onToggle, onDelete, onEdit, onEditTaskcode, onStartTimer, onStopTimer, onDragStart, onDragOver, onDrop, onDragEnd }: TodoItemProps) => {
+export const TodoItem = ({ todo, index, isDragging, onToggle, onDelete, onEdit, onEditTaskcode, onStartTimer, onStopTimer, onOpenJsonEditor, onDragStart, onDragOver, onDrop, onDragEnd }: TodoItemProps) => {
   const [isEditingText, setIsEditingText] = useState(false);
   const [isEditingTaskcode, setIsEditingTaskcode] = useState(false);
   const [editText, setEditText] = useState(todo.getText());
@@ -103,6 +104,7 @@ export const TodoItem = ({ todo, index, isDragging, onToggle, onDelete, onEdit, 
       onDragOver={onDragOver}
       onDrop={() => onDrop(index)}
       onDragEnd={onDragEnd}
+      onDoubleClick={() => onOpenJsonEditor(todoId)}
       style={{ opacity: isDragging ? 0.5 : 1 }}
     >
       <div className="todo-content">
