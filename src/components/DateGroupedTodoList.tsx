@@ -18,6 +18,7 @@ interface DateGroupedTodoListProps {
   onReorder: (fromIndex: number, toIndex: number) => void;
   onStartTimer: (id: string) => void;
   onStopTimer: (id: string) => void;
+  onOpenJsonEditor: (id: string) => void;
 }
 
 export const DateGroupedTodoList = ({
@@ -28,7 +29,8 @@ export const DateGroupedTodoList = ({
   onEditTaskcode,
   onReorder,
   onStartTimer,
-  onStopTimer
+  onStopTimer,
+  onOpenJsonEditor
 }: DateGroupedTodoListProps) => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
@@ -76,6 +78,7 @@ export const DateGroupedTodoList = ({
                   onEditTaskcode={onEditTaskcode}
                   onStartTimer={onStartTimer}
                   onStopTimer={onStopTimer}
+                  onOpenJsonEditor={onOpenJsonEditor}
                   onDragStart={handleDragStart}
                   onDragOver={handleDragOver}
                   onDrop={handleDrop}

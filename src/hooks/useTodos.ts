@@ -92,6 +92,11 @@ export const useTodos = () => {
     setTodosWithPersist((_prev) => newItems);
   }, [setTodosWithPersist]);
 
+  // 指定IDのアイテムをJSON文字列から編集
+  const editSingleItemFromJson = useCallback(async (id: string, jsonText: string) => {
+    setTodosWithPersist((prev) => TodoRepository.editSingleItemFromJson(prev, id, jsonText));
+  }, [setTodosWithPersist]);
+
   // タイマーを開始
   const startTimer = useCallback((id: string) => {
     setTodosWithPersist((prev) => TodoRepository.startItemTimer(prev, id));
@@ -118,6 +123,7 @@ export const useTodos = () => {
     editTaskcode,
     reorderTodos,
     replaceFromJson,
+    editSingleItemFromJson,
     startTimer,
     stopTimer,
     importCalendarEvents,

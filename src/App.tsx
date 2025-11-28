@@ -11,14 +11,27 @@ import './App.css';
  * JSON編集関連のローカル状態のみを管理
  */
 function App() {
-  const { todos, isLoading, addTodo, toggleTodo, deleteTodo, editTodo, editTaskcode, reorderTodos, replaceFromJson, startTimer, stopTimer, importCalendarEvents } = useTodos();
+  const { todos, isLoading, addTodo, toggleTodo, deleteTodo, editTodo, editTaskcode, reorderTodos, replaceFromJson, editSingleItemFromJson, startTimer, stopTimer, importCalendarEvents } = useTodos();
   const [isJsonEditorOpen, setIsJsonEditorOpen] = useState(false);
   const [jsonText, setJsonText] = useState('');
   const [jsonError, setJsonError] = useState('');
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
   const handleOpenJsonEditor = () => {
     setJsonText(JSON.stringify(TodoRepository.itemsToJsonArray(todos), null, 2));
     setJsonError('');
+    setEditingItemId(null);
+    setIsJsonEditorOpen(true);
+  };
+
+  const handleOpenSingleItemJsonEditor = (id: string) => {
+    const item = todos.find((item) => item.getId() === id);
+    if (!item) {
+      return;
+    }
+    setJsonText(JSON.stringify(item.toJSON(), null, 2));
+    setJsonError('');
+    setEditingItemId(id);
     setIsJsonEditorOpen(true);
   };
 
@@ -26,11 +39,18 @@ function App() {
     setIsJsonEditorOpen(false);
     setJsonText('');
     setJsonError('');
+    setEditingItemId(null);
   };
 
   const handleSaveJson = async () => {
     try {
-      await replaceFromJson(jsonText);
+      if (editingItemId) {
+        // 単一アイテムの編集
+        await editSingleItemFromJson(editingItemId, jsonText);
+      } else {
+        // 全アイテムの置き換え
+        await replaceFromJson(jsonText);
+      }
       handleCloseJsonEditor();
     } catch (error) {
       if (error instanceof SyntaxError) {
@@ -85,13 +105,14 @@ function App() {
           onReorder={reorderTodos}
           onStartTimer={startTimer}
           onStopTimer={stopTimer}
+          onOpenJsonEditor={handleOpenSingleItemJsonEditor}
         />
 
         {isJsonEditorOpen && (
           <div className="modal-overlay" onClick={handleCloseJsonEditor}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <div className="modal-header">
-                <h2>JSON編集</h2>
+                <h2>{editingItemId ? 'アイテムのJSON編集' : 'JSON編集'}</h2>
                 <button className="modal-close" onClick={handleCloseJsonEditor}>
                   ×
                 </button>
