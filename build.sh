@@ -59,8 +59,8 @@ check_dependencies() {
     log_info "依存関係をチェックしています..."
 
     if [ ! -d "node_modules" ]; then
-        log_warning "node_modules が見つかりません。npm install を実行します..."
-        npm install
+        log_warning "node_modules が見つかりません。pnpm install を実行します..."
+        pnpm install
     fi
 
     log_success "依存関係のチェック完了"
@@ -72,26 +72,26 @@ build_typescript() {
 
     # フロントエンドのTypeScriptチェック
     log_info "フロントエンドのTypeScriptをチェック中..."
-    npx tsc --noEmit
+    pnpm exec tsc --noEmit
     log_success "フロントエンドのTypeScriptチェック完了"
 
     # Electronのビルド
     log_info "Electronのビルド中..."
-    npx tsc -p tsconfig.electron.json
+    pnpm exec tsc -p tsconfig.electron.json
     log_success "Electronのビルド完了"
 }
 
 # Viteビルド
 build_vite() {
     log_info "Viteでフロントエンドをビルドしています..."
-    npx vite build
+    pnpm exec vite build
     log_success "Viteビルド完了"
 }
 
 # パッケージング
 package_app() {
     log_info "アプリケーションをパッケージングしています..."
-    npx electron-builder
+    pnpm exec electron-builder
     log_success "パッケージング完了"
 
     if [ -d "release" ]; then

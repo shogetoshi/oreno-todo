@@ -16,32 +16,32 @@ Electron + React + TypeScript で作られたデスクトップTODO管理アプ�
 ### 必要な環境
 
 - Node.js 18以上
-- npm
+- pnpm
 
 ### セットアップ
 
 ```bash
 # 依存関係のインストール
-npm install
+pnpm install
 ```
 
 ### 開発
 
 ```bash
 # 開発モードで起動（ホットリロード付き）
-npm run electron:dev
+pnpm run electron:dev
 ```
 
 ### ビルド
 
-#### npmコマンドを使用
+#### pnpmコマンドを使用
 
 ```bash
 # プロジェクトをビルド
-npm run build
+pnpm run build
 
 # Electronアプリケーションをパッケージング
-npm run electron:build
+pnpm run electron:build
 ```
 
 #### ビルドスクリプトを使用（推奨）

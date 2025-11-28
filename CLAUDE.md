@@ -10,13 +10,13 @@ Electron + React + TypeScriptで構築されたデスクトップTODO管理ア�
 
 ### 開発環境の起動
 ```bash
-npm run electron:dev  # Vite開発サーバー + Electronを同時起動（ホットリロード有効）
+pnpm run electron:dev  # Vite開発サーバー + Electronを同時起動（ホットリロード有効）
 ```
 
 ### ビルド
 ```bash
-npm run build         # TypeScriptコンパイル + Viteビルド + Electronコード生成
-npm run electron:build  # 上記ビルド + electron-builderでパッケージング
+pnpm run build         # TypeScriptコンパイル + Viteビルド + Electronコード生成
+pnpm run electron:build  # 上記ビルド + electron-builderでパッケージング
 ```
 
 ビルドスクリプト（推奨）:
