@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { TimecardData, TimecardRepository } from '../models/TimecardRepository';
-import { TimecardEntry } from '../models/TimecardEntry';
 
 /**
  * Controller Layer: useTimecard Hook
@@ -60,24 +59,6 @@ export const useTimecard = () => {
     setTimecardDataWithPersist((prev) => TimecardRepository.addCheckOut(prev));
   }, [setTimecardDataWithPersist]);
 
-  // エントリを削除
-  const deleteEntry = useCallback(
-    (date: string, index: number) => {
-      setTimecardDataWithPersist((prev) => TimecardRepository.deleteEntry(prev, date, index));
-    },
-    [setTimecardDataWithPersist]
-  );
-
-  // エントリを更新
-  const updateEntry = useCallback(
-    (date: string, index: number, newEntry: TimecardEntry) => {
-      setTimecardDataWithPersist((prev) =>
-        TimecardRepository.updateEntry(prev, date, index, newEntry)
-      );
-    },
-    [setTimecardDataWithPersist]
-  );
-
   // JSON文字列からタイムカードデータを復元
   const replaceFromJson = useCallback(
     async (jsonText: string) => {
@@ -87,17 +68,11 @@ export const useTimecard = () => {
     [setTimecardDataWithPersist]
   );
 
-  // ソート済みの日付リストを取得
-  const sortedDates = TimecardRepository.getSortedDates(timecardData);
-
   return {
     timecardData,
     isLoading,
     checkIn,
     checkOut,
-    deleteEntry,
-    updateEntry,
     replaceFromJson,
-    sortedDates,
   };
 };

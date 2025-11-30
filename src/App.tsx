@@ -15,7 +15,7 @@ import './App.css';
  */
 function App() {
   const { todos, isLoading, addTodo, toggleTodo, deleteTodo, editTodo, editTaskcode, reorderTodos, replaceFromJson, editSingleItemFromJson, startTimer, stopTimer, importCalendarEvents } = useTodos();
-  const { timecardData, isLoading: isTimecardLoading, checkIn, checkOut, deleteEntry, replaceFromJson: replaceTimecardFromJson, sortedDates } = useTimecard();
+  const { timecardData, isLoading: isTimecardLoading, checkIn, checkOut, replaceFromJson: replaceTimecardFromJson } = useTimecard();
   const [isJsonEditorOpen, setIsJsonEditorOpen] = useState(false);
   const [jsonText, setJsonText] = useState('');
   const [jsonError, setJsonError] = useState('');
@@ -98,11 +98,8 @@ function App() {
 
       <main className="app-main">
         <TimecardPanel
-          timecardData={timecardData}
-          sortedDates={sortedDates}
           onCheckIn={checkIn}
           onCheckOut={checkOut}
-          onDeleteEntry={deleteEntry}
           onOpenJsonEditor={handleOpenTimecardJsonEditor}
         />
 
