@@ -49,6 +49,25 @@
   - 後方互換性のためのTodo専用メソッドを維持
 - **設計方針**: すべてのビジネスロジックをここに集約し、単体テスト可能にする
 
+#### `src/models/TimecardEntry.ts`
+- **役割**: タイムカードエントリのドメインモデル（エンティティ）
+- **内容**:
+  - TimecardEntryエンティティクラスの定義
+  - イミュータブルな設計（すべての更新メソッドは新しいインスタンスを返す）
+  - チェックイン（start）/チェックアウト（end）の2つのタイプ
+  - JSON変換機能（fromJSON/toJSON）
+  - 時刻とタイプの変更メソッド
+
+#### `src/models/TimecardRepository.ts`
+- **役割**: TimecardEntryエンティティの集合を管理するリポジトリパターン
+- **内容**:
+  - チェックイン/チェックアウトエントリの作成
+  - エントリの追加、削除、更新などのコレクション操作
+  - 日付別の管理（{[date: string]: TimecardEntry[]}）
+  - JSON配列との相互変換
+  - 日付のソート機能
+- **設計方針**: すべてのタイムカードビジネスロジックをここに集約し、単体テスト可能にする
+
 #### `src/utils/timeFormat.ts`
 - **役割**: JST時刻フォーマット用ユーティリティ
 - **内容**:
@@ -79,6 +98,15 @@
   - HTTPサーバー経由のイベント受信
   - カレンダーイベントのインポート処理
 - **設計方針**: ビジネスロジックは持たず、TodoRepositoryに委譲する
+
+#### `src/hooks/useTimecard.ts`
+- **役割**: タイムカード用Reactカスタムフック（Controllerパターン）
+- **内容**:
+  - タイムカードデータのグローバル状態管理
+  - ViewからのイベントをModel層のメソッドに委譲
+  - IPC通信（Electron API経由での独立したデータ永続化）
+  - 楽観的更新とロールバック処理
+- **設計方針**: ビジネスロジックは持たず、TimecardRepositoryに委譲する
 
 ---
 
@@ -118,6 +146,16 @@
   - 完了ボタン、削除ボタン、タイマーボタン
   - Controllerへのイベント通知
 - **ローカル状態**: 編集中のテキスト、編集モードフラグのみ
+
+#### `src/components/TimecardPanel.tsx`
+- **役割**: タイムカードパネルの表示
+- **内容**:
+  - チェックイン/チェックアウトボタン
+  - タイムカード履歴の表示（日付別グループ化）
+  - JSON編集ボタン
+  - 履歴の折りたたみ/展開
+  - Controllerへのイベント通知
+- **ローカル状態**: 履歴の展開状態のみ
 
 ---
 
@@ -210,19 +248,23 @@ View Re-render
 - `src/models/Todo.ts` - TODOエンティティ
 - `src/models/CalendarEvent.ts` - カレンダーイベントエンティティ
 - `src/models/TodoRepository.ts` - リポジトリパターン
+- `src/models/TimecardEntry.ts` - タイムカードエントリエンティティ
+- `src/models/TimecardRepository.ts` - タイムカードリポジトリパターン
 - `src/utils/timeFormat.ts` - 時刻ユーティリティ
 - `src/utils/validation.ts` - バリデーション
 - `src/utils/calendarSample.ts` - カレンダーイベントサンプルデータ
 - `src/types/calendar.ts` - Googleカレンダーイベント型定義
 
 ### Controller Layer
-- `src/hooks/useTodos.ts` - メインコントローラー
+- `src/hooks/useTodos.ts` - Todoコントローラー
+- `src/hooks/useTimecard.ts` - タイムカードコントローラー
 
 ### View Layer
 - `src/App.tsx` - メインアプリケーション
 - `src/components/TodoInput.tsx` - 入力フォーム
 - `src/components/TodoList.tsx` - リスト表示
 - `src/components/TodoItem.tsx` - アイテム表示
+- `src/components/TimecardPanel.tsx` - タイムカードパネル
 
 ### Infrastructure Layer (MVC外)
 - `electron/main.ts` - Electronメインプロセス（IPC, ファイルI/O）
@@ -232,6 +274,32 @@ View Re-render
 ---
 
 ## 変更履歴
+
+### 2025-11-30: タイムカード機能の追加（Issue #0018）
+- `src/models/TimecardEntry.ts` を新規作成
+  - タイムカードエントリのエンティティクラス
+  - チェックイン（start）/チェックアウト（end）の2タイプ
+  - イミュータブルな設計
+- `src/models/TimecardRepository.ts` を新規作成
+  - タイムカードデータのリポジトリパターン
+  - 日付別管理（{[date: string]: TimecardEntry[]}）
+  - チェックイン/チェックアウトエントリの作成・追加・削除・更新
+  - JSON変換機能、日付ソート機能
+- `src/hooks/useTimecard.ts` を新規作成
+  - タイムカード専用のコントローラー
+  - 独立した状態管理とIPC通信
+  - 楽観的更新とロールバック処理
+- `src/components/TimecardPanel.tsx` を新規作成
+  - タイムカードUIコンポーネント
+  - チェックイン/チェックアウトボタン
+  - 履歴表示（日付別グループ化、折りたたみ可能）
+  - JSON編集機能
+- `electron/main.ts` にタイムカード用IPC追加
+  - `load-timecard`, `save-timecard` ハンドラー
+  - 独立したファイル（timecard.json）で管理
+  - アトミックな書き込みとエラーハンドリング
+- 単体テスト追加（22テスト全て成功）
+- 設計文書を更新
 
 ### 2025-11-23: TodoとCalendarEventの分離（Issue #0015）
 - `src/models/ListItem.ts` を新規作成し、共通インターフェースを定義
