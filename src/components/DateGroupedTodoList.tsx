@@ -56,6 +56,13 @@ export const DateGroupedTodoList = ({
     setDraggedIndex(null);
   };
 
+  // パフォーマンス最適化: IDからグローバルインデックスへのマップを事前構築
+  // O(n²)の繰り返しfindIndex()呼び出しを回避
+  const idToGlobalIndex = new Map<string, number>();
+  todos.forEach((item, index) => {
+    idToGlobalIndex.set(item.getId(), index);
+  });
+
   return (
     <div className="date-grouped-todo-list">
       {dateGroups.map((group) => {
@@ -68,7 +75,8 @@ export const DateGroupedTodoList = ({
             <ul className="todo-list">
               {itemsForDate.map((item) => {
                 // グループ内のローカルインデックスではなく、全体のアイテムリスト内でのグローバルインデックスを取得
-                const globalIndex = todos.findIndex(t => t.getId() === item.getId());
+                // Map経由でO(1)の高速検索
+                const globalIndex = idToGlobalIndex.get(item.getId())!;
 
                 return (
                   <TodoItem
