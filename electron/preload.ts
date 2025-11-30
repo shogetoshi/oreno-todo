@@ -7,6 +7,8 @@ const electronAPI: ElectronAPI = {
   onAddTodoRequest: (callback) => {
     ipcRenderer.on('add-todo-request', (_event, taskcode, text) => callback(taskcode, text));
   },
+  loadTimecard: () => ipcRenderer.invoke('load-timecard'),
+  saveTimecard: (data) => ipcRenderer.invoke('save-timecard', data),
 };
 
 contextBridge.exposeInMainWorld('electronAPI', electronAPI);
