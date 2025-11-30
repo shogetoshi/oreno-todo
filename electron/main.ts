@@ -5,6 +5,7 @@ import express from 'express';
 
 const isDev = !app.isPackaged;
 const dataPath = path.join(app.getPath('userData'), 'todos.json');
+const timecardPath = path.join(app.getPath('userData'), 'timecard.json');
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -65,6 +66,56 @@ ipcMain.handle('save-todos', async (_, todos) => {
     return { success: true };
   } catch (error) {
     console.error('Failed to save todos:', error);
+    // 一時ファイルのクリーンアップ
+    try {
+      await fsPromises.unlink(tempPath);
+    } catch (unlinkError) {
+      // クリーンアップ失敗は無視（既に存在しない可能性）
+    }
+    return { success: false, error: String(error) };
+  }
+});
+
+// タイムカードデータの読み込み
+ipcMain.handle('load-timecard', async () => {
+  try {
+    const data = await fsPromises.readFile(timecardPath, 'utf-8');
+    const parsed = JSON.parse(data);
+    return parsed;
+  } catch (error) {
+    // ファイルが存在しない場合は空オブジェクトを返す
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      return {};
+    }
+
+    // JSON パースエラーの場合はバックアップを作成
+    if (error instanceof SyntaxError) {
+      console.error('Timecard JSON parse error, creating backup');
+      try {
+        const backupPath = `${timecardPath}.backup.${Date.now()}`;
+        await fsPromises.copyFile(timecardPath, backupPath);
+        console.log(`Backup created at: ${backupPath}`);
+      } catch (backupError) {
+        console.error('Failed to create backup:', backupError);
+      }
+    }
+
+    console.error('Failed to load timecard:', error);
+    return {};
+  }
+});
+
+// タイムカードデータの保存（アトミックな書き込み）
+ipcMain.handle('save-timecard', async (_, data) => {
+  const tempPath = `${timecardPath}.tmp`;
+  try {
+    // 一時ファイルに完全に書き込み
+    await fsPromises.writeFile(tempPath, JSON.stringify(data, null, 2), 'utf-8');
+    // アトミックにリネーム（OSレベルでアトミック操作）
+    await fsPromises.rename(tempPath, timecardPath);
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to save timecard:', error);
     // 一時ファイルのクリーンアップ
     try {
       await fsPromises.unlink(tempPath);

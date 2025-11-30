@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { useTodos } from './hooks/useTodos';
+import { useTimecard } from './hooks/useTimecard';
 import { TodoInput } from './components/TodoInput';
 import { DateGroupedTodoList } from './components/DateGroupedTodoList';
+import { TimecardPanel } from './components/TimecardPanel';
 import { TodoRepository } from './models/TodoRepository';
+import { TimecardRepository } from './models/TimecardRepository';
 import './App.css';
 
 /**
@@ -12,15 +15,26 @@ import './App.css';
  */
 function App() {
   const { todos, isLoading, addTodo, toggleTodo, deleteTodo, editTodo, editTaskcode, reorderTodos, replaceFromJson, editSingleItemFromJson, startTimer, stopTimer, importCalendarEvents } = useTodos();
+  const { timecardData, isLoading: isTimecardLoading, checkIn, checkOut, replaceFromJson: replaceTimecardFromJson } = useTimecard();
   const [isJsonEditorOpen, setIsJsonEditorOpen] = useState(false);
   const [jsonText, setJsonText] = useState('');
   const [jsonError, setJsonError] = useState('');
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [isTimecardJsonEditor, setIsTimecardJsonEditor] = useState(false);
 
   const handleOpenJsonEditor = () => {
     setJsonText(JSON.stringify(TodoRepository.itemsToJsonArray(todos), null, 2));
     setJsonError('');
     setEditingItemId(null);
+    setIsTimecardJsonEditor(false);
+    setIsJsonEditorOpen(true);
+  };
+
+  const handleOpenTimecardJsonEditor = () => {
+    setJsonText(TimecardRepository.toJsonText(timecardData));
+    setJsonError('');
+    setEditingItemId(null);
+    setIsTimecardJsonEditor(true);
     setIsJsonEditorOpen(true);
   };
 
@@ -32,6 +46,7 @@ function App() {
     setJsonText(JSON.stringify(item.toJSON(), null, 2));
     setJsonError('');
     setEditingItemId(id);
+    setIsTimecardJsonEditor(false);
     setIsJsonEditorOpen(true);
   };
 
@@ -40,11 +55,15 @@ function App() {
     setJsonText('');
     setJsonError('');
     setEditingItemId(null);
+    setIsTimecardJsonEditor(false);
   };
 
   const handleSaveJson = async () => {
     try {
-      if (editingItemId) {
+      if (isTimecardJsonEditor) {
+        // タイムカードJSONの置き換え
+        await replaceTimecardFromJson(jsonText);
+      } else if (editingItemId) {
         // 単一アイテムの編集
         await editSingleItemFromJson(editingItemId, jsonText);
       } else {
@@ -63,7 +82,7 @@ function App() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || isTimecardLoading) {
     return (
       <div className="app">
         <div className="loading">読み込み中...</div>
@@ -78,6 +97,12 @@ function App() {
       </header>
 
       <main className="app-main">
+        <TimecardPanel
+          onCheckIn={checkIn}
+          onCheckOut={checkOut}
+          onOpenJsonEditor={handleOpenTimecardJsonEditor}
+        />
+
         <div className="input-header">
           <TodoInput onAdd={addTodo} />
           <div className="input-header-buttons">
@@ -112,7 +137,13 @@ function App() {
           <div className="modal-overlay" onClick={handleCloseJsonEditor}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <div className="modal-header">
-                <h2>{editingItemId ? 'アイテムのJSON編集' : 'JSON編集'}</h2>
+                <h2>
+                  {isTimecardJsonEditor
+                    ? 'タイムカードのJSON編集'
+                    : editingItemId
+                    ? 'アイテムのJSON編集'
+                    : 'JSON編集'}
+                </h2>
                 <button className="modal-close" onClick={handleCloseJsonEditor}>
                   ×
                 </button>

@@ -1,0 +1,159 @@
+import { describe, it, expect, vi } from 'vitest';
+import { TimecardRepository, TimecardData } from './TimecardRepository';
+import { TimecardEntry } from './TimecardEntry';
+
+// timeFormat.tsのモック
+vi.mock('../utils/timeFormat', () => ({
+  getCurrentJSTTime: vi.fn(() => '2024-10-18 10:59:00'),
+}));
+
+describe('TimecardRepository', () => {
+  describe('createCheckInEntry', () => {
+    it('現在時刻でstartエントリを作成する', () => {
+      const entry = TimecardRepository.createCheckInEntry();
+      expect(entry.type).toBe('start');
+      expect(entry.time).toBe('2024-10-18 10:59:00');
+    });
+  });
+
+  describe('createCheckOutEntry', () => {
+    it('現在時刻でendエントリを作成する', () => {
+      const entry = TimecardRepository.createCheckOutEntry();
+      expect(entry.type).toBe('end');
+      expect(entry.time).toBe('2024-10-18 10:59:00');
+    });
+  });
+
+  describe('addCheckIn', () => {
+    it('空のデータにチェックインを追加できる', () => {
+      const data: TimecardData = {};
+      const newData = TimecardRepository.addCheckIn(data);
+      expect(newData['2024-10-18']).toHaveLength(1);
+      expect(newData['2024-10-18'][0].type).toBe('start');
+    });
+
+    it('既存の日付にチェックインを追加できる', () => {
+      const data: TimecardData = {
+        '2024-10-18': [new TimecardEntry('start', '2024-10-18 09:00:00')],
+      };
+      const newData = TimecardRepository.addCheckIn(data);
+      expect(newData['2024-10-18']).toHaveLength(2);
+      expect(newData['2024-10-18'][1].type).toBe('start');
+    });
+
+    it('指定した日付にチェックインを追加できる', () => {
+      const data: TimecardData = {};
+      const newData = TimecardRepository.addCheckIn(data, '2024-10-19');
+      expect(newData['2024-10-19']).toHaveLength(1);
+      expect(newData['2024-10-19'][0].type).toBe('start');
+    });
+  });
+
+  describe('addCheckOut', () => {
+    it('空のデータにチェックアウトを追加できる', () => {
+      const data: TimecardData = {};
+      const newData = TimecardRepository.addCheckOut(data);
+      expect(newData['2024-10-18']).toHaveLength(1);
+      expect(newData['2024-10-18'][0].type).toBe('end');
+    });
+
+    it('既存の日付にチェックアウトを追加できる', () => {
+      const data: TimecardData = {
+        '2024-10-18': [new TimecardEntry('start', '2024-10-18 09:00:00')],
+      };
+      const newData = TimecardRepository.addCheckOut(data);
+      expect(newData['2024-10-18']).toHaveLength(2);
+      expect(newData['2024-10-18'][1].type).toBe('end');
+    });
+  });
+
+  describe('deleteEntry', () => {
+    it('指定されたインデックスのエントリを削除できる', () => {
+      const data: TimecardData = {
+        '2024-10-18': [
+          new TimecardEntry('start', '2024-10-18 09:00:00'),
+          new TimecardEntry('end', '2024-10-18 18:00:00'),
+        ],
+      };
+      const newData = TimecardRepository.deleteEntry(data, '2024-10-18', 0);
+      expect(newData['2024-10-18']).toHaveLength(1);
+      expect(newData['2024-10-18'][0].type).toBe('end');
+    });
+
+    it('エントリが空になった場合は日付自体を削除する', () => {
+      const data: TimecardData = {
+        '2024-10-18': [new TimecardEntry('start', '2024-10-18 09:00:00')],
+      };
+      const newData = TimecardRepository.deleteEntry(data, '2024-10-18', 0);
+      expect(newData['2024-10-18']).toBeUndefined();
+    });
+  });
+
+  describe('updateEntry', () => {
+    it('指定されたインデックスのエントリを更新できる', () => {
+      const data: TimecardData = {
+        '2024-10-18': [
+          new TimecardEntry('start', '2024-10-18 09:00:00'),
+          new TimecardEntry('end', '2024-10-18 18:00:00'),
+        ],
+      };
+      const newEntry = new TimecardEntry('start', '2024-10-18 10:00:00');
+      const newData = TimecardRepository.updateEntry(data, '2024-10-18', 0, newEntry);
+      expect(newData['2024-10-18'][0].time).toBe('2024-10-18 10:00:00');
+    });
+  });
+
+  describe('fromJSON / toJSON', () => {
+    it('JSONからタイムカードデータを復元できる', () => {
+      const json = {
+        '2024-10-18': [
+          { type: 'start' as const, time: '2024-10-18 09:00:00' },
+          { type: 'end' as const, time: '2024-10-18 18:00:00' },
+        ],
+      };
+      const data = TimecardRepository.fromJSON(json);
+      expect(data['2024-10-18']).toHaveLength(2);
+      expect(data['2024-10-18'][0]).toBeInstanceOf(TimecardEntry);
+    });
+
+    it('タイムカードデータをJSONに変換できる', () => {
+      const data: TimecardData = {
+        '2024-10-18': [
+          new TimecardEntry('start', '2024-10-18 09:00:00'),
+          new TimecardEntry('end', '2024-10-18 18:00:00'),
+        ],
+      };
+      const json = TimecardRepository.toJSON(data);
+      expect(json['2024-10-18']).toHaveLength(2);
+      expect(json['2024-10-18'][0]).toEqual({ type: 'start', time: '2024-10-18 09:00:00' });
+    });
+  });
+
+  describe('fromJsonText / toJsonText', () => {
+    it('JSON文字列からタイムカードデータを復元できる', () => {
+      const jsonText = '{"2024-10-18":[{"type":"start","time":"2024-10-18 09:00:00"}]}';
+      const data = TimecardRepository.fromJsonText(jsonText);
+      expect(data['2024-10-18']).toHaveLength(1);
+    });
+
+    it('タイムカードデータをJSON文字列に変換できる', () => {
+      const data: TimecardData = {
+        '2024-10-18': [new TimecardEntry('start', '2024-10-18 09:00:00')],
+      };
+      const jsonText = TimecardRepository.toJsonText(data, false);
+      expect(jsonText).toBe('{"2024-10-18":[{"type":"start","time":"2024-10-18 09:00:00"}]}');
+    });
+  });
+
+  describe('getSortedDates', () => {
+    it('日付を降順でソートして返す', () => {
+      const data: TimecardData = {
+        '2024-10-16': [],
+        '2024-10-18': [],
+        '2024-10-17': [],
+      };
+      const dates = TimecardRepository.getSortedDates(data);
+      expect(dates).toEqual(['2024-10-18', '2024-10-17', '2024-10-16']);
+    });
+  });
+});
