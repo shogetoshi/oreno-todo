@@ -37,24 +37,31 @@ export const DateGroupedTodoList = ({
   // 今日から35日前までの日付グループを生成
   const dateGroups: DateGroup[] = generateDateGroups(35);
 
-  const handleDragStart = (index: number) => {
-    setDraggedIndex(index);
+  const handleDragStart = (globalIndex: number) => {
+    setDraggedIndex(globalIndex);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
   };
 
-  const handleDrop = (dropIndex: number) => {
-    if (draggedIndex === null || draggedIndex === dropIndex) return;
+  const handleDrop = (globalDropIndex: number) => {
+    if (draggedIndex === null || draggedIndex === globalDropIndex) return;
 
-    onReorder(draggedIndex, dropIndex);
+    onReorder(draggedIndex, globalDropIndex);
     setDraggedIndex(null);
   };
 
   const handleDragEnd = () => {
     setDraggedIndex(null);
   };
+
+  // パフォーマンス最適化: IDからグローバルインデックスへのマップを事前構築
+  // O(n²)の繰り返しfindIndex()呼び出しを回避
+  const idToGlobalIndex = new Map<string, number>();
+  todos.forEach((item, index) => {
+    idToGlobalIndex.set(item.getId(), index);
+  });
 
   return (
     <div className="date-grouped-todo-list">
@@ -66,25 +73,31 @@ export const DateGroupedTodoList = ({
           <div key={group.date} className="date-group">
             <h2 className="date-group-header">{group.displayDate}</h2>
             <ul className="todo-list">
-              {itemsForDate.map((item, index) => (
-                <TodoItem
-                  key={item.getId()}
-                  todo={item}
-                  index={index}
-                  isDragging={draggedIndex === index}
-                  onToggle={onToggle}
-                  onDelete={onDelete}
-                  onEdit={onEdit}
-                  onEditTaskcode={onEditTaskcode}
-                  onStartTimer={onStartTimer}
-                  onStopTimer={onStopTimer}
-                  onOpenJsonEditor={onOpenJsonEditor}
-                  onDragStart={handleDragStart}
-                  onDragOver={handleDragOver}
-                  onDrop={handleDrop}
-                  onDragEnd={handleDragEnd}
-                />
-              ))}
+              {itemsForDate.map((item) => {
+                // グループ内のローカルインデックスではなく、全体のアイテムリスト内でのグローバルインデックスを取得
+                // Map経由でO(1)の高速検索
+                const globalIndex = idToGlobalIndex.get(item.getId())!;
+
+                return (
+                  <TodoItem
+                    key={item.getId()}
+                    todo={item}
+                    index={globalIndex}
+                    isDragging={draggedIndex === globalIndex}
+                    onToggle={onToggle}
+                    onDelete={onDelete}
+                    onEdit={onEdit}
+                    onEditTaskcode={onEditTaskcode}
+                    onStartTimer={onStartTimer}
+                    onStopTimer={onStopTimer}
+                    onOpenJsonEditor={onOpenJsonEditor}
+                    onDragStart={handleDragStart}
+                    onDragOver={handleDragOver}
+                    onDrop={handleDrop}
+                    onDragEnd={handleDragEnd}
+                  />
+                );
+              })}
             </ul>
           </div>
         );
