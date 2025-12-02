@@ -1,6 +1,7 @@
 import { getCurrentJSTTime, parseJSTString, convertISOToJST } from '../utils/timeFormat';
 import { ListItem, ListItemType } from './ListItem';
 import { CalendarEvent as CalendarEventType } from '../types/calendar';
+import { TimeRange } from './Todo';
 
 /**
  * Model Layer: CalendarEvent Entity
@@ -22,7 +23,8 @@ export class CalendarEvent implements ListItem {
     public readonly createdAt: string,
     public readonly updatedAt: string,
     public readonly startTime: string | null,  // イベント開始時刻
-    public readonly endTime: string | null     // イベント終了時刻
+    public readonly endTime: string | null,    // イベント終了時刻
+    public readonly timeRanges: TimeRange[]    // 実行時間の記録
   ) {}
 
   /**
