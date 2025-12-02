@@ -910,7 +910,8 @@ describe('TodoRepository', () => {
           '2025-01-15 10:00:00',
           '2025-01-15 10:00:00',
           '2025-01-20 14:00:00',
-          '2025-01-20 15:00:00'
+          '2025-01-20 15:00:00',
+          []
         );
 
         expect(TodoRepository.shouldDisplayOnDate(calendarEvent, '2025-01-20')).toBe(true);
@@ -925,7 +926,8 @@ describe('TodoRepository', () => {
           '2025-01-15 10:00:00',
           '2025-01-15 10:00:00',
           '2025-01-20 14:00:00',
-          '2025-01-20 15:00:00'
+          '2025-01-20 15:00:00',
+          []
         );
 
         expect(TodoRepository.shouldDisplayOnDate(calendarEvent, '2025-01-19')).toBe(false);
@@ -941,7 +943,8 @@ describe('TodoRepository', () => {
           '2025-01-15 10:00:00',
           '2025-01-15 10:00:00',
           null,
-          null
+          null,
+          []
         );
 
         expect(TodoRepository.shouldDisplayOnDate(calendarEvent, '2025-01-20')).toBe(false);
@@ -980,7 +983,8 @@ describe('TodoRepository', () => {
         '2025-01-15 10:00:00',
         '2025-01-15 10:00:00',
         '2025-01-20 14:00:00',
-        '2025-01-20 15:00:00'
+        '2025-01-20 15:00:00',
+        []
       );
       const items = [calendarEvent];
 
