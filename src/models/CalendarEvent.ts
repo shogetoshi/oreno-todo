@@ -214,6 +214,13 @@ export class CalendarEvent implements ListItem {
   }
 
   /**
+   * 時間範囲の配列を取得する
+   */
+  getTimeRanges(): { start: string; end: string | null }[] {
+    return this.timeRanges;
+  }
+
+  /**
    * GoogleカレンダーイベントからCalendarEventインスタンスを作成する
    */
   static fromGoogleCalendarEvent(event: CalendarEventType): CalendarEvent {
