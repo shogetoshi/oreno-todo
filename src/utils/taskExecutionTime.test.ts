@@ -3,7 +3,8 @@ import { Todo } from '../models/Todo';
 import {
   calculateExecutionTimeForDate,
   calculateExecutionTimesForDate,
-  assignColorToTodo
+  assignColorToTodo,
+  calculateStackBarDisplay
 } from './taskExecutionTime';
 
 describe('taskExecutionTime utilities', () => {
@@ -212,6 +213,201 @@ describe('taskExecutionTime utilities', () => {
     it('HSL形式の色を返す', () => {
       const color = assignColorToTodo('test-id');
       expect(color).toMatch(/^hsl\(\d+, \d+%, \d+%\)$/);
+    });
+  });
+
+  describe('calculateStackBarDisplay', () => {
+    it('12時間未満の場合は12時間を基準にする', () => {
+      const todos = [
+        new Todo(
+          'test-id-1',
+          'TASK001',
+          'Task 1',
+          null,
+          '2025-11-28 10:00:00',
+          '2025-11-28 10:00:00',
+          [
+            {
+              start: '2025-11-28 10:00:00',
+              end: '2025-11-28 11:00:00' // 60分
+            }
+          ]
+        )
+      ];
+
+      const result = calculateStackBarDisplay(todos, '2025-11-28');
+
+      expect(result.totalMinutes).toBe(60);
+      expect(result.displayMaxMinutes).toBe(720); // 12時間 = 720分
+      expect(result.segments.length).toBe(1);
+      expect(result.segments[0].todoId).toBe('test-id-1');
+      expect(result.segments[0].todoText).toBe('Task 1');
+      expect(result.segments[0].minutes).toBe(60);
+    });
+
+    it('12時間を超える場合は実際の時間を使用する', () => {
+      const todos = [
+        new Todo(
+          'test-id-1',
+          'TASK001',
+          'Task 1',
+          null,
+          '2025-11-28 10:00:00',
+          '2025-11-28 10:00:00',
+          [
+            {
+              start: '2025-11-28 10:00:00',
+              end: '2025-11-28 23:00:00' // 13時間 = 780分
+            }
+          ]
+        )
+      ];
+
+      const result = calculateStackBarDisplay(todos, '2025-11-28');
+
+      expect(result.totalMinutes).toBe(780);
+      expect(result.displayMaxMinutes).toBe(780); // 実際の時間を使用
+      expect(result.segments.length).toBe(1);
+    });
+
+    it('実行時間が0の場合は空のセグメント配列を返す', () => {
+      const todos = [
+        new Todo(
+          'test-id-1',
+          'TASK001',
+          'Task 1',
+          null,
+          '2025-11-28 10:00:00',
+          '2025-11-28 10:00:00',
+          [] // 実行時間なし
+        )
+      ];
+
+      const result = calculateStackBarDisplay(todos, '2025-11-28');
+
+      expect(result.totalMinutes).toBe(0);
+      expect(result.displayMaxMinutes).toBe(720); // 12時間基準
+      expect(result.segments.length).toBe(0);
+    });
+
+    it('複数のTodoの実行時間を正しく集計する', () => {
+      const todos = [
+        new Todo(
+          'test-id-1',
+          'TASK001',
+          'Task 1',
+          null,
+          '2025-11-28 10:00:00',
+          '2025-11-28 10:00:00',
+          [
+            {
+              start: '2025-11-28 10:00:00',
+              end: '2025-11-28 11:00:00' // 60分
+            }
+          ]
+        ),
+        new Todo(
+          'test-id-2',
+          'TASK002',
+          'Task 2',
+          null,
+          '2025-11-28 10:00:00',
+          '2025-11-28 10:00:00',
+          [
+            {
+              start: '2025-11-28 14:00:00',
+              end: '2025-11-28 15:30:00' // 90分
+            }
+          ]
+        )
+      ];
+
+      const result = calculateStackBarDisplay(todos, '2025-11-28');
+
+      expect(result.totalMinutes).toBe(150);
+      expect(result.displayMaxMinutes).toBe(720); // 12時間基準
+      expect(result.segments.length).toBe(2);
+      expect(result.segments[0].todoId).toBe('test-id-1');
+      expect(result.segments[0].minutes).toBe(60);
+      expect(result.segments[1].todoId).toBe('test-id-2');
+      expect(result.segments[1].minutes).toBe(90);
+    });
+
+    it('hourMarkersが正しく生成される', () => {
+      const todos = [
+        new Todo(
+          'test-id-1',
+          'TASK001',
+          'Task 1',
+          null,
+          '2025-11-28 10:00:00',
+          '2025-11-28 10:00:00',
+          [
+            {
+              start: '2025-11-28 10:00:00',
+              end: '2025-11-28 11:00:00' // 60分
+            }
+          ]
+        )
+      ];
+
+      const result = calculateStackBarDisplay(todos, '2025-11-28');
+
+      // 12時間基準 = 720分 = 12時間
+      // hourMarkersは 0, 1, 2, ..., 12 の13要素
+      expect(result.hourMarkers.length).toBe(13);
+      expect(result.hourMarkers[0]).toBe(0);
+      expect(result.hourMarkers[12]).toBe(12);
+    });
+
+    it('13時間のデータに対してhourMarkersが正しく生成される', () => {
+      const todos = [
+        new Todo(
+          'test-id-1',
+          'TASK001',
+          'Task 1',
+          null,
+          '2025-11-28 10:00:00',
+          '2025-11-28 10:00:00',
+          [
+            {
+              start: '2025-11-28 10:00:00',
+              end: '2025-11-28 23:00:00' // 13時間 = 780分
+            }
+          ]
+        )
+      ];
+
+      const result = calculateStackBarDisplay(todos, '2025-11-28');
+
+      // 13時間 = 780分
+      // hourMarkersは 0, 1, 2, ..., 13 の14要素
+      expect(result.hourMarkers.length).toBe(14);
+      expect(result.hourMarkers[0]).toBe(0);
+      expect(result.hourMarkers[13]).toBe(13);
+    });
+
+    it('各セグメントに色が割り当てられる', () => {
+      const todos = [
+        new Todo(
+          'test-id-1',
+          'TASK001',
+          'Task 1',
+          null,
+          '2025-11-28 10:00:00',
+          '2025-11-28 10:00:00',
+          [
+            {
+              start: '2025-11-28 10:00:00',
+              end: '2025-11-28 11:00:00' // 60分
+            }
+          ]
+        )
+      ];
+
+      const result = calculateStackBarDisplay(todos, '2025-11-28');
+
+      expect(result.segments[0].color).toMatch(/^hsl\(\d+, \d+%, \d+%\)$/);
     });
   });
 });

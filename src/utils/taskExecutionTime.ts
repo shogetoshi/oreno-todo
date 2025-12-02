@@ -81,3 +81,68 @@ export function assignColorToTodo(todoId: string): string {
 
   return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 }
+
+/**
+ * 積み上げ棒グラフの1セグメント（1つのTodo）の表示情報
+ */
+export interface TaskExecutionSegment {
+  todoId: string;
+  todoText: string;
+  minutes: number;
+  color: string;
+}
+
+/**
+ * 積み上げ棒グラフの表示設定
+ */
+export interface StackBarDisplayConfig {
+  segments: TaskExecutionSegment[];
+  totalMinutes: number;
+  displayMaxMinutes: number;
+  hourMarkers: number[];
+}
+
+/**
+ * 積み上げ棒グラフの表示に必要な情報をすべて計算する
+ * @param todos Todoリスト
+ * @param date 日付（YYYY-MM-DD形式）
+ * @returns 積み上げ棒グラフの表示設定
+ */
+export function calculateStackBarDisplay(
+  todos: Todo[],
+  date: string
+): StackBarDisplayConfig {
+  const segments: TaskExecutionSegment[] = [];
+  let totalMinutes = 0;
+
+  // 各Todoの実行時間を計算してセグメント情報を作成
+  for (const todo of todos) {
+    const minutes = calculateExecutionTimeForDate(todo, date);
+    if (minutes > 0) {
+      segments.push({
+        todoId: todo.getId(),
+        todoText: todo.getText(),
+        minutes,
+        color: assignColorToTodo(todo.getId())
+      });
+      totalMinutes += minutes;
+    }
+  }
+
+  // 12時間（720分）を基準値とする
+  const BASE_MINUTES = 12 * 60;
+
+  // 表示する最大時間（12時間以上の場合は実際の時間、未満の場合は12時間）
+  const displayMaxMinutes = Math.max(totalMinutes, BASE_MINUTES);
+
+  // 1時間ごとの目盛を生成
+  const totalHours = Math.ceil(displayMaxMinutes / 60);
+  const hourMarkers = Array.from({ length: totalHours + 1 }, (_, i) => i);
+
+  return {
+    segments,
+    totalMinutes,
+    displayMaxMinutes,
+    hourMarkers
+  };
+}
