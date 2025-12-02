@@ -381,7 +381,8 @@ export class CalendarEvent implements ListItem {
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
       startTime: this.startTime,
-      endTime: this.endTime
+      endTime: this.endTime,
+      timeRanges: this.timeRanges
     };
   }
 }
