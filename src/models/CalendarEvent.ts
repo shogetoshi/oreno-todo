@@ -1,4 +1,4 @@
-import { getCurrentJSTTime, parseJSTString } from '../utils/timeFormat';
+import { getCurrentJSTTime, parseJSTString, convertISOToJST } from '../utils/timeFormat';
 import { ListItem, ListItemType } from './ListItem';
 import { CalendarEvent as CalendarEventType } from '../types/calendar';
 
@@ -256,7 +256,11 @@ export class CalendarEvent implements ListItem {
    * Googleカレンダーイベントから開始時刻を抽出する
    */
   private static extractStartTimeFromGoogleEvent(event: CalendarEventType): string | null {
-    return event.start.dateTime || event.start.date || null;
+    const rawTime = event.start.dateTime || event.start.date;
+    if (!rawTime) {
+      return null;
+    }
+    return convertISOToJST(rawTime);
   }
 
   /**
