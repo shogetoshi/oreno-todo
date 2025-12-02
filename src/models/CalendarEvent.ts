@@ -127,20 +127,44 @@ export class CalendarEvent implements ListItem {
 
   /**
    * 完了状態を設定した新しいCalendarEventインスタンスを返す
+   * 完了時: startTime/endTimeからTimeRangeを生成してtimeRangesに追加
+   * 完了解除時: timeRangesを空配列にリセット
    */
   setCompleted(completed: boolean): CalendarEvent {
     const now = getCurrentJSTTime();
-    const newCompletedAt = completed ? now : null;
-    return new CalendarEvent(
-      this.id,
-      this.taskcode,
-      this.text,
-      newCompletedAt,
-      this.createdAt,
-      now,
-      this.startTime,
-      this.endTime
-    );
+
+    if (completed) {
+      const newCompletedAt = now;
+      // startTimeとendTimeがある場合のみ、timeRangesに追加
+      let newTimeRanges = this.timeRanges;
+      if (this.startTime && this.endTime) {
+        newTimeRanges = [...this.timeRanges, { start: this.startTime, end: this.endTime }];
+      }
+      return new CalendarEvent(
+        this.id,
+        this.taskcode,
+        this.text,
+        newCompletedAt,
+        this.createdAt,
+        now,
+        this.startTime,
+        this.endTime,
+        newTimeRanges
+      );
+    } else {
+      // 完了解除時はtimeRangesを空配列にリセット
+      return new CalendarEvent(
+        this.id,
+        this.taskcode,
+        this.text,
+        null,
+        this.createdAt,
+        now,
+        this.startTime,
+        this.endTime,
+        []
+      );
+    }
   }
 
   /**
