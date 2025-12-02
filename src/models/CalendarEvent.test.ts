@@ -91,10 +91,118 @@ describe('CalendarEvent', () => {
       const event = CalendarEvent.fromGoogleCalendarEvent(googleEvent);
 
       expect(event.getText()).toBe('週次定例ミーティング');
-      expect(event.getStartTime()).toBe('2023-11-01T10:00:00+09:00');
-      expect(event.getEndTime()).toBe('2023-11-01T11:00:00+09:00');
+      expect(event.getStartTime()).toBe('2023-11-01 10:00:00');
+      expect(event.getEndTime()).toBe('2023-11-01 11:00:00');
       expect(event.isCompleted()).toBe(false);
       expect(event.getId()).toMatch(/^cal-/);
+    });
+
+    it('startTimeとendTimeがJSTフォーマット（YYYY-MM-DD HH:MI:SS）に変換される', () => {
+      const googleEvent: GoogleCalendarEvent = {
+        kind: 'calendar#event',
+        etag: '"3123456789012345"',
+        id: '12345abcde67890fghij12345',
+        status: 'confirmed',
+        htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
+        created: '2023-10-20T09:00:00.000Z',
+        updated: '2023-10-20T09:30:00.000Z',
+        summary: 'テストイベント',
+        creator: {
+          email: 'user@example.com'
+        },
+        organizer: {
+          email: 'user@example.com'
+        },
+        start: {
+          dateTime: '2023-11-01T10:00:00+09:00',
+          timeZone: 'Asia/Tokyo'
+        },
+        end: {
+          dateTime: '2023-11-01T11:30:00+09:00',
+          timeZone: 'Asia/Tokyo'
+        },
+        iCalUID: '12345abcde67890fghij12345@google.com',
+        sequence: 0,
+        eventType: 'default'
+      };
+
+      const event = CalendarEvent.fromGoogleCalendarEvent(googleEvent);
+
+      // ISO 8601形式からJSTフォーマットに変換されていることを確認
+      expect(event.getStartTime()).toBe('2023-11-01 10:00:00');
+      expect(event.getEndTime()).toBe('2023-11-01 11:30:00');
+      expect(event.getStartTime()).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
+      expect(event.getEndTime()).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
+    });
+
+    it('createdAtとupdatedAtがJSTフォーマット（YYYY-MM-DD HH:MI:SS）に変換される', () => {
+      const googleEvent: GoogleCalendarEvent = {
+        kind: 'calendar#event',
+        etag: '"3123456789012345"',
+        id: '12345abcde67890fghij12345',
+        status: 'confirmed',
+        htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
+        created: '2023-10-20T09:00:00.000Z',
+        updated: '2023-10-20T09:30:00.000Z',
+        summary: 'テストイベント',
+        creator: {
+          email: 'user@example.com'
+        },
+        organizer: {
+          email: 'user@example.com'
+        },
+        start: {
+          dateTime: '2023-11-01T10:00:00+09:00'
+        },
+        end: {
+          dateTime: '2023-11-01T11:00:00+09:00'
+        },
+        iCalUID: '12345abcde67890fghij12345@google.com',
+        sequence: 0,
+        eventType: 'default'
+      };
+
+      const event = CalendarEvent.fromGoogleCalendarEvent(googleEvent);
+
+      // ISO 8601 UTC形式からJSTフォーマットに変換されていることを確認
+      expect(event.createdAt).toBe('2023-10-20 18:00:00');
+      expect(event.updatedAt).toBe('2023-10-20 18:30:00');
+      expect(event.createdAt).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
+      expect(event.updatedAt).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
+    });
+
+    it('終日イベント（dateのみ）を正しく変換できる', () => {
+      const googleEvent: GoogleCalendarEvent = {
+        kind: 'calendar#event',
+        etag: '"3123456789012345"',
+        id: '12345abcde67890fghij12345',
+        status: 'confirmed',
+        htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
+        created: '2023-10-20T09:00:00.000Z',
+        updated: '2023-10-20T09:30:00.000Z',
+        summary: '終日イベント',
+        creator: {
+          email: 'user@example.com'
+        },
+        organizer: {
+          email: 'user@example.com'
+        },
+        start: {
+          date: '2023-11-05'
+        },
+        end: {
+          date: '2023-11-06'
+        },
+        iCalUID: '12345abcde67890fghij12345@google.com',
+        sequence: 0,
+        eventType: 'default'
+      };
+
+      const event = CalendarEvent.fromGoogleCalendarEvent(googleEvent);
+
+      // 日付のみの場合は 09:00:00 (UTC 00:00:00 -> JST 09:00:00) として変換される
+      expect(event.getStartTime()).toBe('2023-11-05 09:00:00');
+      expect(event.getEndTime()).toBe('2023-11-06 09:00:00');
     });
 
     it('同じGoogleイベントからは常に同じIDが生成される', () => {
