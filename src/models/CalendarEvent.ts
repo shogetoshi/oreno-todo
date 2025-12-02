@@ -353,6 +353,7 @@ export class CalendarEvent implements ListItem {
 
     const startTime = json.startTime || null;
     const endTime = json.endTime || null;
+    const timeRanges: TimeRange[] = json.timeRanges || [];
 
     return new CalendarEvent(
       json.id,
@@ -362,7 +363,8 @@ export class CalendarEvent implements ListItem {
       createdAt,
       updatedAt,
       startTime,
-      endTime
+      endTime,
+      timeRanges
     );
   }
 
