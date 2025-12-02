@@ -267,7 +267,11 @@ export class CalendarEvent implements ListItem {
    * Googleカレンダーイベントから終了時刻を抽出する
    */
   private static extractEndTimeFromGoogleEvent(event: CalendarEventType): string | null {
-    return event.end.dateTime || event.end.date || null;
+    const rawTime = event.end.dateTime || event.end.date;
+    if (!rawTime) {
+      return null;
+    }
+    return convertISOToJST(rawTime);
   }
 
   /**
