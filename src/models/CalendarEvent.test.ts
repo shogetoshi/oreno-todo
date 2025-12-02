@@ -367,7 +367,7 @@ describe('CalendarEvent', () => {
       expect(event.getEndTime()).toBe('2025-01-16 15:00:00');
     });
 
-    it('fromJSON -> toJSON で元のJSONと同じになる', () => {
+    it('fromJSON -> toJSON で元のJSONと同じになる（timeRangesが追加される）', () => {
       const original = {
         id: 'cal-123',
         type: 'calendar_event',
@@ -383,7 +383,11 @@ describe('CalendarEvent', () => {
       const event = CalendarEvent.fromJSON(original);
       const json = event.toJSON();
 
-      expect(json).toEqual(original);
+      // timeRangesフィールドが追加されることを期待
+      expect(json).toEqual({
+        ...original,
+        timeRanges: []
+      });
     });
   });
 
