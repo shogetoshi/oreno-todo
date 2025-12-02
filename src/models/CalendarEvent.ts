@@ -242,7 +242,7 @@ export class CalendarEvent implements ListItem {
    * Googleカレンダーイベントから作成日時を抽出する
    */
   private static extractCreatedAtFromGoogleEvent(event: CalendarEventType): string {
-    return new Date(event.created).toISOString();
+    return convertISOToJST(event.created);
   }
 
   /**
