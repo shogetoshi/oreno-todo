@@ -386,4 +386,322 @@ describe('CalendarEvent', () => {
       expect(json).toEqual(original);
     });
   });
+
+  describe('timeRanges管理', () => {
+    it('完了時にstartTime/endTimeからTimeRangeが追加される', () => {
+      const event = new CalendarEvent(
+        'cal-123',
+        '',
+        'ミーティング',
+        null,
+        '2025-01-15 10:00:00',
+        '2025-01-15 10:00:00',
+        '2025-01-16 14:00:00',
+        '2025-01-16 15:00:00',
+        []
+      );
+
+      const completed = event.setCompleted(true);
+
+      expect(completed.timeRanges).toHaveLength(1);
+      expect(completed.timeRanges[0].start).toBe('2025-01-16 14:00:00');
+      expect(completed.timeRanges[0].end).toBe('2025-01-16 15:00:00');
+    });
+
+    it('完了解除時にtimeRangesが空配列にリセットされる', () => {
+      const event = new CalendarEvent(
+        'cal-123',
+        '',
+        'ミーティング',
+        null,
+        '2025-01-15 10:00:00',
+        '2025-01-15 10:00:00',
+        '2025-01-16 14:00:00',
+        '2025-01-16 15:00:00',
+        [{ start: '2025-01-16 14:00:00', end: '2025-01-16 15:00:00' }]
+      );
+
+      const uncompleted = event.setCompleted(false);
+
+      expect(uncompleted.timeRanges).toHaveLength(0);
+      expect(uncompleted.timeRanges).toEqual([]);
+    });
+
+    it('toggleCompleted()で完了時にtimeRangeが追加される', () => {
+      const event = new CalendarEvent(
+        'cal-123',
+        '',
+        'ミーティング',
+        null,
+        '2025-01-15 10:00:00',
+        '2025-01-15 10:00:00',
+        '2025-01-16 14:00:00',
+        '2025-01-16 15:00:00',
+        []
+      );
+
+      const completed = event.toggleCompleted();
+
+      expect(completed.timeRanges).toHaveLength(1);
+      expect(completed.timeRanges[0].start).toBe('2025-01-16 14:00:00');
+      expect(completed.timeRanges[0].end).toBe('2025-01-16 15:00:00');
+    });
+
+    it('toggleCompleted()で完了解除時にtimeRangesが削除される', () => {
+      const event = new CalendarEvent(
+        'cal-123',
+        '',
+        'ミーティング',
+        '2025-01-15 12:34:56',
+        '2025-01-15 10:00:00',
+        '2025-01-15 10:00:00',
+        '2025-01-16 14:00:00',
+        '2025-01-16 15:00:00',
+        [{ start: '2025-01-16 14:00:00', end: '2025-01-16 15:00:00' }]
+      );
+
+      const uncompleted = event.toggleCompleted();
+
+      expect(uncompleted.timeRanges).toHaveLength(0);
+    });
+
+    it('startTimeがnullの場合、完了してもtimeRangesは空のまま', () => {
+      const event = new CalendarEvent(
+        'cal-123',
+        '',
+        'ミーティング',
+        null,
+        '2025-01-15 10:00:00',
+        '2025-01-15 10:00:00',
+        null,
+        '2025-01-16 15:00:00',
+        []
+      );
+
+      const completed = event.setCompleted(true);
+
+      expect(completed.timeRanges).toHaveLength(0);
+      expect(completed.isCompleted()).toBe(true);
+    });
+
+    it('endTimeがnullの場合、完了してもtimeRangesは空のまま', () => {
+      const event = new CalendarEvent(
+        'cal-123',
+        '',
+        'ミーティング',
+        null,
+        '2025-01-15 10:00:00',
+        '2025-01-15 10:00:00',
+        '2025-01-16 14:00:00',
+        null,
+        []
+      );
+
+      const completed = event.setCompleted(true);
+
+      expect(completed.timeRanges).toHaveLength(0);
+      expect(completed.isCompleted()).toBe(true);
+    });
+
+    it('startTime/endTimeが両方nullの場合、完了してもtimeRangesは空のまま', () => {
+      const event = new CalendarEvent(
+        'cal-123',
+        '',
+        'ミーティング',
+        null,
+        '2025-01-15 10:00:00',
+        '2025-01-15 10:00:00',
+        null,
+        null,
+        []
+      );
+
+      const completed = event.setCompleted(true);
+
+      expect(completed.timeRanges).toHaveLength(0);
+      expect(completed.isCompleted()).toBe(true);
+    });
+
+    it('完了→完了解除→完了のサイクルでtimeRangesが正しく管理される', () => {
+      const event = new CalendarEvent(
+        'cal-123',
+        '',
+        'ミーティング',
+        null,
+        '2025-01-15 10:00:00',
+        '2025-01-15 10:00:00',
+        '2025-01-16 14:00:00',
+        '2025-01-16 15:00:00',
+        []
+      );
+
+      // 最初の完了
+      const completed1 = event.setCompleted(true);
+      expect(completed1.timeRanges).toHaveLength(1);
+
+      // 完了解除
+      const uncompleted = completed1.setCompleted(false);
+      expect(uncompleted.timeRanges).toHaveLength(0);
+
+      // 再度完了
+      const completed2 = uncompleted.setCompleted(true);
+      expect(completed2.timeRanges).toHaveLength(1);
+      expect(completed2.timeRanges[0].start).toBe('2025-01-16 14:00:00');
+      expect(completed2.timeRanges[0].end).toBe('2025-01-16 15:00:00');
+    });
+
+    it('setText()でtimeRangesが保持される', () => {
+      const event = new CalendarEvent(
+        'cal-123',
+        '',
+        'ミーティング',
+        null,
+        '2025-01-15 10:00:00',
+        '2025-01-15 10:00:00',
+        '2025-01-16 14:00:00',
+        '2025-01-16 15:00:00',
+        [{ start: '2025-01-16 14:00:00', end: '2025-01-16 15:00:00' }]
+      );
+
+      const updated = event.setText('新しいタイトル');
+
+      expect(updated.timeRanges).toHaveLength(1);
+      expect(updated.timeRanges[0].start).toBe('2025-01-16 14:00:00');
+    });
+
+    it('setTaskcode()でtimeRangesが保持される', () => {
+      const event = new CalendarEvent(
+        'cal-123',
+        '',
+        'ミーティング',
+        null,
+        '2025-01-15 10:00:00',
+        '2025-01-15 10:00:00',
+        '2025-01-16 14:00:00',
+        '2025-01-16 15:00:00',
+        [{ start: '2025-01-16 14:00:00', end: '2025-01-16 15:00:00' }]
+      );
+
+      const updated = event.setTaskcode('ABC-123');
+
+      expect(updated.timeRanges).toHaveLength(1);
+      expect(updated.timeRanges[0].start).toBe('2025-01-16 14:00:00');
+    });
+
+    it('fromGoogleCalendarEvent()で生成されたCalendarEventのtimeRangesは空配列', () => {
+      const googleEvent: GoogleCalendarEvent = {
+        kind: 'calendar#event',
+        etag: '"3123456789012345"',
+        id: '12345abcde67890fghij12345',
+        status: 'confirmed',
+        htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
+        created: '2023-10-20T09:00:00.000Z',
+        updated: '2023-10-20T09:30:00.000Z',
+        summary: 'テストイベント',
+        creator: {
+          email: 'user@example.com'
+        },
+        organizer: {
+          email: 'user@example.com'
+        },
+        start: {
+          dateTime: '2023-11-01T10:00:00+09:00'
+        },
+        end: {
+          dateTime: '2023-11-01T11:00:00+09:00'
+        },
+        iCalUID: '12345abcde67890fghij12345@google.com',
+        sequence: 0,
+        eventType: 'default'
+      };
+
+      const event = CalendarEvent.fromGoogleCalendarEvent(googleEvent);
+
+      expect(event.timeRanges).toHaveLength(0);
+      expect(event.timeRanges).toEqual([]);
+    });
+
+    it('fromJSON()でtimeRangesを正しく復元できる', () => {
+      const json = {
+        id: 'cal-123',
+        type: 'calendar_event',
+        taskcode: '',
+        text: 'ミーティング',
+        completedAt: '2025-01-15 12:34:56',
+        createdAt: '2025-01-15 10:00:00',
+        updatedAt: '2025-01-15 12:34:56',
+        startTime: '2025-01-16 14:00:00',
+        endTime: '2025-01-16 15:00:00',
+        timeRanges: [{ start: '2025-01-16 14:00:00', end: '2025-01-16 15:00:00' }]
+      };
+
+      const event = CalendarEvent.fromJSON(json);
+
+      expect(event.timeRanges).toHaveLength(1);
+      expect(event.timeRanges[0].start).toBe('2025-01-16 14:00:00');
+      expect(event.timeRanges[0].end).toBe('2025-01-16 15:00:00');
+    });
+
+    it('fromJSON()でtimeRangesがない場合は空配列になる', () => {
+      const json = {
+        id: 'cal-123',
+        type: 'calendar_event',
+        taskcode: '',
+        text: 'ミーティング',
+        completedAt: null,
+        createdAt: '2025-01-15 10:00:00',
+        updatedAt: '2025-01-15 10:00:00',
+        startTime: '2025-01-16 14:00:00',
+        endTime: '2025-01-16 15:00:00'
+      };
+
+      const event = CalendarEvent.fromJSON(json);
+
+      expect(event.timeRanges).toHaveLength(0);
+      expect(event.timeRanges).toEqual([]);
+    });
+
+    it('toJSON()でtimeRangesを正しくシリアライズできる', () => {
+      const event = new CalendarEvent(
+        'cal-123',
+        '',
+        'ミーティング',
+        '2025-01-15 12:34:56',
+        '2025-01-15 10:00:00',
+        '2025-01-15 12:34:56',
+        '2025-01-16 14:00:00',
+        '2025-01-16 15:00:00',
+        [{ start: '2025-01-16 14:00:00', end: '2025-01-16 15:00:00' }]
+      );
+
+      const json = event.toJSON();
+
+      expect(json.timeRanges).toHaveLength(1);
+      expect(json.timeRanges[0].start).toBe('2025-01-16 14:00:00');
+      expect(json.timeRanges[0].end).toBe('2025-01-16 15:00:00');
+    });
+
+    it('fromJSON() -> toJSON()のラウンドトリップでtimeRangesが保持される', () => {
+      const original = {
+        id: 'cal-123',
+        type: 'calendar_event',
+        taskcode: '',
+        text: 'ミーティング',
+        completedAt: '2025-01-15 12:34:56',
+        createdAt: '2025-01-15 10:00:00',
+        updatedAt: '2025-01-15 12:34:56',
+        startTime: '2025-01-16 14:00:00',
+        endTime: '2025-01-16 15:00:00',
+        timeRanges: [
+          { start: '2025-01-16 14:00:00', end: '2025-01-16 15:00:00' }
+        ]
+      };
+
+      const event = CalendarEvent.fromJSON(original);
+      const json = event.toJSON();
+
+      expect(json).toEqual(original);
+      expect(json.timeRanges).toEqual(original.timeRanges);
+    });
+  });
 });
