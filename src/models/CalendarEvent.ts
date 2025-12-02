@@ -1,4 +1,4 @@
-import { getCurrentJSTTime, parseJSTString } from '../utils/timeFormat';
+import { getCurrentJSTTime, parseJSTString, convertISOToJST } from '../utils/timeFormat';
 import { ListItem, ListItemType } from './ListItem';
 import { CalendarEvent as CalendarEventType } from '../types/calendar';
 
@@ -242,28 +242,36 @@ export class CalendarEvent implements ListItem {
    * Googleカレンダーイベントから作成日時を抽出する
    */
   private static extractCreatedAtFromGoogleEvent(event: CalendarEventType): string {
-    return new Date(event.created).toISOString();
+    return convertISOToJST(event.created);
   }
 
   /**
    * Googleカレンダーイベントから更新日時を抽出する
    */
   private static extractUpdatedAtFromGoogleEvent(event: CalendarEventType): string {
-    return new Date(event.updated).toISOString();
+    return convertISOToJST(event.updated);
   }
 
   /**
    * Googleカレンダーイベントから開始時刻を抽出する
    */
   private static extractStartTimeFromGoogleEvent(event: CalendarEventType): string | null {
-    return event.start.dateTime || event.start.date || null;
+    const rawTime = event.start.dateTime || event.start.date;
+    if (!rawTime) {
+      return null;
+    }
+    return convertISOToJST(rawTime);
   }
 
   /**
    * Googleカレンダーイベントから終了時刻を抽出する
    */
   private static extractEndTimeFromGoogleEvent(event: CalendarEventType): string | null {
-    return event.end.dateTime || event.end.date || null;
+    const rawTime = event.end.dateTime || event.end.date;
+    if (!rawTime) {
+      return null;
+    }
+    return convertISOToJST(rawTime);
   }
 
   /**

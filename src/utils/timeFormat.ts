@@ -56,6 +56,20 @@ export function parseJSTString(jstString: string): Date {
 }
 
 /**
+ * ISO 8601形式の日時文字列をJSTフォーマット（"YYYY-MM-DD HH:MI:SS"）に変換
+ * @param isoString ISO 8601形式の日時文字列
+ *   - 例: "2023-11-01T10:00:00+09:00" (タイムゾーン付き)
+ *   - 例: "2023-10-20T09:00:00.000Z" (UTC)
+ *   - 例: "2023-11-05" (日付のみ)
+ * @returns JST日時文字列（"YYYY-MM-DD HH:MI:SS"）
+ *   - 日付のみの場合は "YYYY-MM-DD 00:00:00" を返す
+ */
+export function convertISOToJST(isoString: string): string {
+  const date = new Date(isoString);
+  return formatToJST(date);
+}
+
+/**
  * JST時刻文字列から日付部分のみを抽出する（YYYY-MM-DD形式）
  * @param jstString JST時刻文字列（"YYYY-MM-DD HH:MI:SS" or "YYYY-MM-DD"）
  * @returns 日付文字列（"YYYY-MM-DD"）
