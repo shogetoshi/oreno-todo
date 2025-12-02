@@ -1,0 +1,67 @@
+/* TaskExecutionStackBar Component Styles */
+
+.task-execution-stackbar {
+  margin: 8px 0;
+  padding: 4px 0;
+}
+
+.stackbar-container {
+  position: relative;
+  width: 100%;
+}
+
+.stackbar-bar {
+  display: flex;
+  height: 24px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: #f9f9f9;
+}
+
+.stackbar-empty {
+  width: 100%;
+  background-color: #f9f9f9;
+}
+
+.stackbar-segment {
+  height: 100%;
+  transition: opacity 0.2s;
+  cursor: pointer;
+  border-right: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.stackbar-segment:last-child {
+  border-right: none;
+}
+
+.stackbar-segment:hover {
+  opacity: 0.8;
+}
+
+.stackbar-scale {
+  position: relative;
+  height: 20px;
+  margin-top: 2px;
+}
+
+.stackbar-scale-marker {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+}
+
+.stackbar-scale-line {
+  width: 1px;
+  height: 6px;
+  background-color: #999;
+  margin: 0 auto;
+}
+
+.stackbar-scale-label {
+  font-size: 10px;
+  color: #666;
+  text-align: center;
+  margin-top: 2px;
+  white-space: nowrap;
+}

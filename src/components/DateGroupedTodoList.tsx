@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import type { ListItem } from '../models/ListItem';
+import { Todo } from '../models/Todo';
 import { TodoRepository } from '../models/TodoRepository';
 import { generateDateGroups, type DateGroup } from '../utils/dateGrouping';
 import { TodoItem } from './TodoItem';
+import { TaskExecutionStackBar } from './TaskExecutionStackBar';
 
 /**
  * View Layer: DateGroupedTodoList Component
@@ -63,6 +65,9 @@ export const DateGroupedTodoList = ({
     idToGlobalIndex.set(item.getId(), index);
   });
 
+  // Todo型のアイテムのみを抽出（積み上げ棒グラフの計算に使用）
+  const todoItems = todos.filter((item): item is Todo => item.getType() === 'todo');
+
   return (
     <div className="date-grouped-todo-list">
       {dateGroups.map((group) => {
@@ -72,6 +77,8 @@ export const DateGroupedTodoList = ({
         return (
           <div key={group.date} className="date-group">
             <h2 className="date-group-header">{group.displayDate}</h2>
+            {/* タスク実行時間の積み上げ棒グラフ */}
+            <TaskExecutionStackBar todos={todoItems} date={group.date} />
             <ul className="todo-list">
               {itemsForDate.map((item) => {
                 // グループ内のローカルインデックスではなく、全体のアイテムリスト内でのグローバルインデックスを取得
