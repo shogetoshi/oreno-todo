@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getCurrentJSTTime, formatToJST, parseJSTString, extractDateFromJST, compareDates } from './timeFormat';
+import { getCurrentJSTTime, formatToJST, parseJSTString, extractDateFromJST, compareDates, convertISOToJST } from './timeFormat';
 
 describe('timeFormat', () => {
   describe('getCurrentJSTTime', () => {
@@ -156,6 +156,51 @@ describe('timeFormat', () => {
     });
   });
 
+  describe('convertISOToJST', () => {
+    it('ISO 8601タイムゾーン付き形式をJSTフォーマットに変換できる', () => {
+      // 2023-11-01T10:00:00+09:00 (JST) -> "2023-11-01 10:00:00"
+      const isoString = '2023-11-01T10:00:00+09:00';
+      const result = convertISOToJST(isoString);
+      expect(result).toBe('2023-11-01 10:00:00');
+    });
+
+    it('ISO 8601 UTC形式をJSTフォーマットに変換できる', () => {
+      // 2023-10-20T09:00:00.000Z (UTC) -> "2023-10-20 18:00:00" (JST = UTC+9)
+      const isoString = '2023-10-20T09:00:00.000Z';
+      const result = convertISOToJST(isoString);
+      expect(result).toBe('2023-10-20 18:00:00');
+    });
+
+    it('日付のみの形式を00:00:00の時刻付きJSTフォーマットに変換できる', () => {
+      // "2023-11-05" -> "2023-11-05 09:00:00" (UTCの00:00:00がJSTの09:00:00)
+      const isoString = '2023-11-05';
+      const result = convertISOToJST(isoString);
+      expect(result).toBe('2023-11-05 09:00:00');
+    });
+
+    it('異なるタイムゾーンのISO 8601形式を正しくJSTに変換できる', () => {
+      // 2023-11-01T01:00:00+00:00 (UTC) -> "2023-11-01 10:00:00" (JST)
+      const isoString = '2023-11-01T01:00:00+00:00';
+      const result = convertISOToJST(isoString);
+      expect(result).toBe('2023-11-01 10:00:00');
+    });
+
+    it('ISO 8601形式とformatToJSTの結果が一致する', () => {
+      const date = new Date('2023-11-01T10:00:00+09:00');
+      const fromISO = convertISOToJST('2023-11-01T10:00:00+09:00');
+      const fromDate = formatToJST(date);
+      expect(fromISO).toBe(fromDate);
+    });
+
+    it('convertISOToJST -> parseJSTString -> formatToJST の往復変換が成功する', () => {
+      const isoString = '2023-11-01T10:00:00+09:00';
+      const jstFormatted = convertISOToJST(isoString);
+      const parsed = parseJSTString(jstFormatted);
+      const formatted = formatToJST(parsed);
+      expect(formatted).toBe(jstFormatted);
+    });
+  });
+
   describe('extractDateFromJST', () => {
     it('JST時刻文字列から日付部分のみを抽出できる', () => {
       const jstString = '2025-01-15 12:34:56';
@@ -185,6 +230,18 @@ describe('timeFormat', () => {
       const jstString = '2025-01-01 09:30:45';
       const result = extractDateFromJST(jstString);
       expect(result).toBe('2025-01-01');
+    });
+
+    it('ISO 8601形式から日付を抽出できる', () => {
+      const isoString = '2023-11-01T10:00:00+09:00';
+      const result = extractDateFromJST(isoString);
+      expect(result).toBe('2023-11-01');
+    });
+
+    it('ISO 8601 UTC形式から日付を抽出できる', () => {
+      const isoString = '2023-10-20T09:00:00.000Z';
+      const result = extractDateFromJST(isoString);
+      expect(result).toBe('2023-10-20');
     });
   });
 
