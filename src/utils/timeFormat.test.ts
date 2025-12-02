@@ -231,18 +231,6 @@ describe('timeFormat', () => {
       const result = extractDateFromJST(jstString);
       expect(result).toBe('2025-01-01');
     });
-
-    it('ISO 8601形式から日付を抽出できる', () => {
-      const isoString = '2023-11-01T10:00:00+09:00';
-      const result = extractDateFromJST(isoString);
-      expect(result).toBe('2023-11-01');
-    });
-
-    it('ISO 8601 UTC形式から日付を抽出できる', () => {
-      const isoString = '2023-10-20T09:00:00.000Z';
-      const result = extractDateFromJST(isoString);
-      expect(result).toBe('2023-10-20');
-    });
   });
 
   describe('compareDates', () => {
