@@ -234,7 +234,8 @@ export class CalendarEvent implements ListItem {
       createdAt,
       updatedAt,
       startTime,
-      endTime
+      endTime,
+      []  // 新規作成時は空配列
     );
   }
 
