@@ -23,7 +23,8 @@ describe('CalendarEvent', () => {
         '2025-01-15 10:00:00',
         '2025-01-15 10:00:00',
         '2025-01-16 14:00:00',
-        '2025-01-16 15:00:00'
+        '2025-01-16 15:00:00',
+        []
       );
 
       expect(event.getId()).toBe('cal-123');
@@ -46,7 +47,8 @@ describe('CalendarEvent', () => {
         '2025-01-15 10:00:00',
         '2025-01-15 10:00:00',
         null,
-        null
+        null,
+        []
       );
 
       expect(event.getType()).toBe(ListItemType.CALENDAR_EVENT);
@@ -249,7 +251,8 @@ describe('CalendarEvent', () => {
         '2025-01-15 10:00:00',
         '2025-01-15 10:00:00',
         null,
-        null
+        null,
+        []
       );
 
       const completed = event.toggleCompleted();
@@ -272,7 +275,8 @@ describe('CalendarEvent', () => {
         '2025-01-15 10:00:00',
         '2025-01-15 10:00:00',
         null,
-        null
+        null,
+        []
       );
 
       expect(event.isTimerRunning()).toBe(false);
@@ -293,7 +297,8 @@ describe('CalendarEvent', () => {
         '2025-01-15 10:00:00',
         '2025-01-15 10:00:00',
         '2025-01-15 10:00:00',
-        '2025-01-15 11:00:00'
+        '2025-01-15 11:00:00',
+        []
       );
 
       expect(event.getTotalExecutionTimeInMinutes()).toBe(60);
@@ -308,7 +313,8 @@ describe('CalendarEvent', () => {
         '2025-01-15 10:00:00',
         '2025-01-15 10:00:00',
         null,
-        null
+        null,
+        []
       );
 
       expect(event.getTotalExecutionTimeInMinutes()).toBe(0);
@@ -325,7 +331,8 @@ describe('CalendarEvent', () => {
         '2025-01-15 10:00:00',
         '2025-01-15 10:00:00',
         '2025-01-16 14:00:00',
-        '2025-01-16 15:00:00'
+        '2025-01-16 15:00:00',
+        []
       );
 
       const json = event.toJSON();
