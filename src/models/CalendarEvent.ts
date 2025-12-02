@@ -97,7 +97,8 @@ export class CalendarEvent implements ListItem {
       this.createdAt,
       now,
       this.startTime,
-      this.endTime
+      this.endTime,
+      this.timeRanges
     );
   }
 
@@ -114,7 +115,8 @@ export class CalendarEvent implements ListItem {
       this.createdAt,
       now,
       this.startTime,
-      this.endTime
+      this.endTime,
+      this.timeRanges
     );
   }
 
