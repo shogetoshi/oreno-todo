@@ -249,7 +249,7 @@ export class CalendarEvent implements ListItem {
    * Googleカレンダーイベントから更新日時を抽出する
    */
   private static extractUpdatedAtFromGoogleEvent(event: CalendarEventType): string {
-    return new Date(event.updated).toISOString();
+    return convertISOToJST(event.updated);
   }
 
   /**
