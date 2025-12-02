@@ -946,6 +946,26 @@ describe('TodoRepository', () => {
 
         expect(TodoRepository.shouldDisplayOnDate(calendarEvent, '2025-01-20')).toBe(false);
       });
+
+      it('startTimeがISO 8601形式でも正しく日付を抽出して表示できる（後方互換性）', () => {
+        // 注: 通常、fromGoogleCalendarEventを通るとJSTフォーマットに変換されるが、
+        // 既存のJSONファイルにISO 8601形式が残っている可能性があるため、
+        // extractDateFromJSTがISO 8601形式もサポートすることを確認する
+        const calendarEvent = new CalendarEvent(
+          'event-1',
+          'TASK-001',
+          'Meeting',
+          null,
+          '2025-01-15 10:00:00',
+          '2025-01-15 10:00:00',
+          '2023-11-01T10:00:00+09:00', // ISO 8601形式
+          '2023-11-01T11:00:00+09:00'  // ISO 8601形式
+        );
+
+        // extractDateFromJSTがISO 8601形式から日付を抽出できる
+        expect(TodoRepository.shouldDisplayOnDate(calendarEvent, '2023-11-01')).toBe(true);
+        expect(TodoRepository.shouldDisplayOnDate(calendarEvent, '2023-11-02')).toBe(false);
+      });
     });
   });
 
