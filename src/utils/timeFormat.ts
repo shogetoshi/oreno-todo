@@ -72,11 +72,16 @@ export function convertISOToJST(isoString: string): string {
 /**
  * JST時刻文字列から日付部分のみを抽出する（YYYY-MM-DD形式）
  * @param jstString JST時刻文字列（"YYYY-MM-DD HH:MI:SS" or "YYYY-MM-DD"）
+ *   - ISO 8601形式（"YYYY-MM-DDTHH:MI:SS+XX:XX"）にも対応
  * @returns 日付文字列（"YYYY-MM-DD"）
  */
 export function extractDateFromJST(jstString: string): string {
   if (jstString.includes(' ')) {
     return jstString.split(' ')[0];
+  }
+  // ISO 8601形式（T区切り）にも対応
+  if (jstString.includes('T')) {
+    return jstString.split('T')[0];
   }
   return jstString;
 }
