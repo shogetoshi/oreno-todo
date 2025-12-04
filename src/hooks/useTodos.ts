@@ -107,6 +107,18 @@ export const useTodos = () => {
     setTodosWithPersist((prev) => TodoRepository.stopItemTimer(prev, id));
   }, [setTodosWithPersist]);
 
+  // 現在進行中のTodoを停止する
+  const stopRunningTodo = useCallback(() => {
+    setTodosWithPersist((prev) => TodoRepository.stopAllRunningItems(prev));
+  }, [setTodosWithPersist]);
+
+  // HTTPサーバー経由の停止リクエストを受信
+  useEffect(() => {
+    window.electronAPI.onStopRunningTodoRequest(() => {
+      stopRunningTodo();
+    });
+  }, [stopRunningTodo]);
+
   // Googleカレンダーからイベントを取得してCalendarEventを追加
   const importCalendarEvents = useCallback(() => {
     const events = fetchCalendarEventsSample();

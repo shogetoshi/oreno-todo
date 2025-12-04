@@ -153,6 +153,36 @@ function startHttpServer() {
     res.json({ success: true });
   });
 
+  // 進行中のTodo停止API
+  httpApp.post('/api/todos/stop-running', (_req, res) => {
+    // 全てのウィンドウにイベントを送信
+    const windows = BrowserWindow.getAllWindows();
+    windows.forEach(window => {
+      window.webContents.send('stop-running-todo-request');
+    });
+    res.json({ success: true });
+  });
+
+  // タイムカードチェックインAPI
+  httpApp.post('/api/timecard/check-in', (_req, res) => {
+    // 全てのウィンドウにイベントを送信
+    const windows = BrowserWindow.getAllWindows();
+    windows.forEach(window => {
+      window.webContents.send('check-in-request');
+    });
+    res.json({ success: true });
+  });
+
+  // タイムカードチェックアウトAPI
+  httpApp.post('/api/timecard/check-out', (_req, res) => {
+    // 全てのウィンドウにイベントを送信
+    const windows = BrowserWindow.getAllWindows();
+    windows.forEach(window => {
+      window.webContents.send('check-out-request');
+    });
+    res.json({ success: true });
+  });
+
   const PORT = 3000;
   httpApp.listen(PORT, () => {
     console.log(`HTTP server running on http://localhost:${PORT}`);

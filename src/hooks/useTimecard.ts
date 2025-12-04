@@ -59,6 +59,20 @@ export const useTimecard = () => {
     setTimecardDataWithPersist((prev) => TimecardRepository.addCheckOut(prev));
   }, [setTimecardDataWithPersist]);
 
+  // HTTPサーバー経由のチェックインリクエストを受信
+  useEffect(() => {
+    window.electronAPI.onCheckInRequest(() => {
+      checkIn();
+    });
+  }, [checkIn]);
+
+  // HTTPサーバー経由のチェックアウトリクエストを受信
+  useEffect(() => {
+    window.electronAPI.onCheckOutRequest(() => {
+      checkOut();
+    });
+  }, [checkOut]);
+
   // JSON文字列からタイムカードデータを復元
   const replaceFromJson = useCallback(
     async (jsonText: string) => {

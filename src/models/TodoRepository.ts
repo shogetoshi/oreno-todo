@@ -123,6 +123,27 @@ export class TodoRepository {
   }
 
   /**
+   * 現在進行中のListItem（タイマーが開始されているもの）を検索する
+   * @param items ListItemリスト
+   * @returns 進行中のListItem、見つからない場合はnull
+   */
+  static findRunningItem(items: ListItem[]): ListItem | null {
+    const runningItem = items.find(item => item.isTimerRunning());
+    return runningItem || null;
+  }
+
+  /**
+   * 現在進行中のすべてのListItemのタイマーを停止する
+   * @param items ListItemリスト
+   * @returns 新しいListItemリスト
+   */
+  static stopAllRunningItems(items: ListItem[]): ListItem[] {
+    return items.map((item) =>
+      item.isTimerRunning() ? item.stopTimer() : item
+    );
+  }
+
+  /**
    * JSON配列からListItemリスト（TodoまたはCalendarEvent）を生成する
    * typeフィールドでTodoとCalendarEventを判別する
    * @param jsonArray JSON配列
