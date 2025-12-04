@@ -87,6 +87,7 @@ export const DateGroupedTodoList = ({
                     todo={item}
                     index={globalIndex}
                     isDragging={draggedIndex === globalIndex}
+                    currentDate={group.date}
                     onToggle={onToggle}
                     onDelete={onDelete}
                     onEdit={onEdit}
