@@ -10,6 +10,7 @@ interface TodoItemProps {
   todo: ListItem;
   index: number;
   isDragging: boolean;
+  currentDate: string; // YYYY-MM-DD形式
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (id: string, newText: string) => void;
@@ -23,7 +24,7 @@ interface TodoItemProps {
   onDragEnd: () => void;
 }
 
-export const TodoItem = ({ todo, index, isDragging, onToggle, onDelete, onEdit, onEditTaskcode, onStartTimer, onStopTimer, onOpenJsonEditor, onDragStart, onDragOver, onDrop, onDragEnd }: TodoItemProps) => {
+export const TodoItem = ({ todo, index, isDragging, currentDate, onToggle, onDelete, onEdit, onEditTaskcode, onStartTimer, onStopTimer, onOpenJsonEditor, onDragStart, onDragOver, onDrop, onDragEnd }: TodoItemProps) => {
   const [isEditingText, setIsEditingText] = useState(false);
   const [isEditingTaskcode, setIsEditingTaskcode] = useState(false);
   const [editText, setEditText] = useState(todo.getText());
@@ -34,7 +35,9 @@ export const TodoItem = ({ todo, index, isDragging, onToggle, onDelete, onEdit, 
   const todoText = todo.getText();
   const completed = todo.isCompleted();
   const isTimerRunning = todo.isTimerRunning();
-  const executionTimeMinutes = todo.getTotalExecutionTimeInMinutes();
+  // TODO: 実装
+  const executionTimeForDate = todo.getExecutionTimeForDate(currentDate);
+  const totalExecutionTime = todo.getTotalExecutionTimeInMinutes();
 
   // タイマーボタンのクリックハンドラ
   const handleTimerClick = () => {
@@ -145,7 +148,7 @@ export const TodoItem = ({ todo, index, isDragging, onToggle, onDelete, onEdit, 
           </span>
         )}
         <span className="execution-time">
-          {executionTimeMinutes}
+          {executionTimeForDate}/{totalExecutionTime}
         </span>
       </div>
       <div className="todo-actions">

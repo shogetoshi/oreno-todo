@@ -1,4 +1,4 @@
-import { getCurrentJSTTime, parseJSTString } from '../utils/timeFormat';
+import { getCurrentJSTTime, parseJSTString, extractDateFromJST } from '../utils/timeFormat';
 import { ListItem, ListItemType } from './ListItem';
 
 /**
@@ -176,6 +176,18 @@ export class Todo implements ListItem {
 
     // 秒を分に変換（小数第1位まで）
     return Math.round(totalSeconds / 60);
+  }
+
+  /**
+   * 指定日付における実行時間を分単位で取得する
+   * @param date 日付（YYYY-MM-DD形式）
+   * @returns 指定日付における実行時間（分）
+   */
+  getExecutionTimeForDate(date: string): number {
+    // TODO: 実装
+    // timeRangesをループし、指定日付のものだけを集計
+    // extractDateFromJST, parseJSTStringを使用
+    return 0;
   }
 
   /**
