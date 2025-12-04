@@ -155,11 +155,74 @@ const useTodos = () => {
 - `tsconfig.electron.json`: Electronプロセスコード（`electron/`）
 - `tsconfig.node.json`: Node.js関連の設定
 
+## HTTP API
+
+アプリケーションは`localhost:3000`でHTTP APIサーバーを起動します。
+
+### Todo API
+
+#### `POST /api/todos`
+新しいTodoを追加します。
+
+**リクエストボディ**:
+```json
+{
+  "taskcode": "TASK-001",
+  "text": "新しいタスク"
+}
+```
+
+**レスポンス**:
+```json
+{
+  "success": true
+}
+```
+
+#### `POST /api/todos/stop-running`
+現在進行中のTodoのタイマーを停止します。
+
+**リクエストボディ**: なし
+
+**レスポンス**:
+```json
+{
+  "success": true
+}
+```
+
+### Timecard API
+
+#### `POST /api/timecard/check-in`
+タイムカードにチェックインを記録します。
+
+**リクエストボディ**: なし
+
+**レスポンス**:
+```json
+{
+  "success": true
+}
+```
+
+#### `POST /api/timecard/check-out`
+タイムカードにチェックアウトを記録します。
+
+**リクエストボディ**: なし
+
+**レスポンス**:
+```json
+{
+  "success": true
+}
+```
+
 ## 注意事項
 
 - ブラウザでは動作しない（Electron専用）
 - `contextIsolation: true`, `nodeIntegration: false`によるセキュアな設定
 - 開発時は`http://localhost:5173`、本番時は`dist/index.html`をロード
+- HTTP APIサーバーは開発・本番ともに`localhost:3000`で起動
 
 ## 特記事項
 - ソースコードを変更した場合は、必ずそれに対応するテスト・ドキュメントを合わせて更新すること

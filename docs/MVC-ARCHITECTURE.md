@@ -275,6 +275,26 @@ View Re-render
 
 ## 変更履歴
 
+### 2025-12-04: タイムカードのAPI操作（Issue #0023）
+- `src/models/TodoRepository.ts` に新メソッドを追加
+  - `findRunningItem()`: 現在進行中のListItem（タイマーが開始されているもの）を検索
+  - `stopAllRunningItems()`: 現在進行中のすべてのListItemのタイマーを停止
+- `src/hooks/useTodos.ts` に進行中のTodo停止機能を追加
+  - `stopRunningTodo()`: 現在進行中のTodoを停止するメソッド
+  - HTTPサーバー経由の停止リクエストを受信するリスナー（`onStopRunningTodoRequest`）
+- `src/hooks/useTimecard.ts` にHTTPリクエストリスナーを追加
+  - チェックインリクエストリスナー（`onCheckInRequest`）
+  - チェックアウトリクエストリスナー（`onCheckOutRequest`）
+- `electron/main.ts` に新しいHTTPエンドポイントを追加
+  - `POST /api/todos/stop-running`: 進行中のTodoを停止
+  - `POST /api/timecard/check-in`: タイムカードにチェックイン
+  - `POST /api/timecard/check-out`: タイムカードにチェックアウト
+- `electron/preload.ts` に新しいIPCリスナーを追加
+  - `onStopRunningTodoRequest`, `onCheckInRequest`, `onCheckOutRequest`
+- `src/types/electron.d.ts` に新しいAPIメソッドの型定義を追加
+- 単体テスト追加（8テスト追加、計325テスト全て成功）
+- 設計文書とCLAUDE.mdを更新（HTTP APIセクションを追加）
+
 ### 2025-11-30: タイムカード機能の追加（Issue #0018）
 - `src/models/TimecardEntry.ts` を新規作成
   - タイムカードエントリのエンティティクラス
