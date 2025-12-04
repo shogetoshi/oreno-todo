@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Todo } from '../models/Todo';
+import { CalendarEvent } from '../models/CalendarEvent';
 import {
   calculateExecutionTimeForDate,
   calculateExecutionTimesForDate,
@@ -240,8 +241,8 @@ describe('taskExecutionTime utilities', () => {
       expect(result.totalMinutes).toBe(60);
       expect(result.displayMaxMinutes).toBe(720); // 12時間 = 720分
       expect(result.segments.length).toBe(1);
-      expect(result.segments[0].todoId).toBe('test-id-1');
-      expect(result.segments[0].todoText).toBe('Task 1');
+      expect(result.segments[0].itemId).toBe('test-id-1');
+      expect(result.segments[0].itemText).toBe('Task 1');
       expect(result.segments[0].minutes).toBe(60);
     });
 
@@ -327,9 +328,9 @@ describe('taskExecutionTime utilities', () => {
       expect(result.totalMinutes).toBe(150);
       expect(result.displayMaxMinutes).toBe(720); // 12時間基準
       expect(result.segments.length).toBe(2);
-      expect(result.segments[0].todoId).toBe('test-id-1');
+      expect(result.segments[0].itemId).toBe('test-id-1');
       expect(result.segments[0].minutes).toBe(60);
-      expect(result.segments[1].todoId).toBe('test-id-2');
+      expect(result.segments[1].itemId).toBe('test-id-2');
       expect(result.segments[1].minutes).toBe(90);
     });
 
@@ -408,6 +409,117 @@ describe('taskExecutionTime utilities', () => {
       const result = calculateStackBarDisplay(todos, '2025-11-28');
 
       expect(result.segments[0].color).toMatch(/^hsl\(\d+, \d+%, \d+%\)$/);
+    });
+  });
+
+  describe('CalendarEventのサポート', () => {
+    it('CalendarEventの実行時間を正しく計算する', () => {
+      const calendarEvent = new CalendarEvent(
+        'event-1',
+        'TASK-001',
+        'Meeting',
+        null,
+        '2025-11-28 10:00:00',
+        '2025-11-28 10:00:00',
+        '2025-11-28 14:00:00',
+        '2025-11-28 16:00:00',
+        [
+          {
+            start: '2025-11-28 14:00:00',
+            end: '2025-11-28 16:00:00' // 120分
+          }
+        ]
+      );
+
+      const result = calculateExecutionTimeForDate(calendarEvent, '2025-11-28');
+      expect(result).toBe(120);
+    });
+
+    it('TodoとCalendarEventが混在する場合の合計時間を計算する', () => {
+      const todo = new Todo(
+        'todo-1',
+        'TASK-001',
+        'Todo task',
+        null,
+        '2025-11-28 10:00:00',
+        '2025-11-28 10:00:00',
+        [
+          {
+            start: '2025-11-28 10:00:00',
+            end: '2025-11-28 11:00:00' // 60分
+          }
+        ]
+      );
+
+      const calendarEvent = new CalendarEvent(
+        'event-1',
+        'TASK-002',
+        'Meeting',
+        null,
+        '2025-11-28 10:00:00',
+        '2025-11-28 10:00:00',
+        '2025-11-28 14:00:00',
+        '2025-11-28 15:00:00',
+        [
+          {
+            start: '2025-11-28 14:00:00',
+            end: '2025-11-28 15:00:00' // 60分
+          }
+        ]
+      );
+
+      const items = [todo, calendarEvent];
+      const result = calculateExecutionTimesForDate(items, '2025-11-28');
+
+      expect(result.size).toBe(2);
+      expect(result.get('todo-1')).toBe(60);
+      expect(result.get('event-1')).toBe(60);
+    });
+
+    it('積み上げ棒グラフにCalendarEventが含まれる', () => {
+      const todo = new Todo(
+        'todo-1',
+        'TASK-001',
+        'Todo task',
+        null,
+        '2025-11-28 10:00:00',
+        '2025-11-28 10:00:00',
+        [
+          {
+            start: '2025-11-28 10:00:00',
+            end: '2025-11-28 11:00:00' // 60分
+          }
+        ]
+      );
+
+      const calendarEvent = new CalendarEvent(
+        'event-1',
+        'TASK-002',
+        'Meeting',
+        null,
+        '2025-11-28 10:00:00',
+        '2025-11-28 10:00:00',
+        '2025-11-28 14:00:00',
+        '2025-11-28 16:00:00',
+        [
+          {
+            start: '2025-11-28 14:00:00',
+            end: '2025-11-28 16:00:00' // 120分
+          }
+        ]
+      );
+
+      const items = [todo, calendarEvent];
+      const result = calculateStackBarDisplay(items, '2025-11-28');
+
+      expect(result.segments).toHaveLength(2);
+      expect(result.totalMinutes).toBe(180); // 60 + 120
+      expect(result.segments[0].itemId).toBe('todo-1');
+      expect(result.segments[0].itemText).toBe('Todo task');
+      expect(result.segments[0].minutes).toBe(60);
+      expect(result.segments[1].itemId).toBe('event-1');
+      expect(result.segments[1].itemText).toBe('Meeting');
+      expect(result.segments[1].minutes).toBe(120);
     });
   });
 });

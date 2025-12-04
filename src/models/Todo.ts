@@ -179,6 +179,13 @@ export class Todo implements ListItem {
   }
 
   /**
+   * 時間範囲の配列を取得する
+   */
+  getTimeRanges(): TimeRange[] {
+    return this.timeRanges;
+  }
+
+  /**
    * JSONからTodoインスタンスを作成する
    */
   static fromJSON(json: any): Todo {

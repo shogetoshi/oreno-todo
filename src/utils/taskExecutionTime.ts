@@ -1,20 +1,21 @@
-import { Todo } from '../models/Todo';
+import { ListItem } from '../models/ListItem';
 import { extractDateFromJST, parseJSTString } from './timeFormat';
 
 /**
- * 特定の日付におけるTodoの実行時間を分単位で計算する
- * @param todo 対象のTodo
+ * 特定の日付におけるListItem（TodoまたはCalendarEvent）の実行時間を分単位で計算する
+ * @param item 対象のListItem
  * @param date 日付（YYYY-MM-DD形式）
  * @returns 実行時間（分）
  */
-export function calculateExecutionTimeForDate(todo: Todo, date: string): number {
-  if (todo.timeRanges.length === 0) {
+export function calculateExecutionTimeForDate(item: ListItem, date: string): number {
+  const timeRanges = item.getTimeRanges();
+  if (timeRanges.length === 0) {
     return 0;
   }
 
   let totalMinutes = 0;
 
-  for (const range of todo.timeRanges) {
+  for (const range of timeRanges) {
     const startTime = parseJSTString(range.start);
     const startDate = extractDateFromJST(range.start);
 
@@ -37,21 +38,21 @@ export function calculateExecutionTimeForDate(todo: Todo, date: string): number 
 }
 
 /**
- * 全てのTodoの特定日付における実行時間を計算する
- * @param todos Todoリスト
+ * 全てのListItemの特定日付における実行時間を計算する
+ * @param items ListItemリスト（TodoまたはCalendarEvent）
  * @param date 日付（YYYY-MM-DD形式）
- * @returns Todoごとの実行時間マップ（TodoID -> 分）
+ * @returns ListItemごとの実行時間マップ（ItemID -> 分）
  */
 export function calculateExecutionTimesForDate(
-  todos: Todo[],
+  items: ListItem[],
   date: string
 ): Map<string, number> {
   const executionTimes = new Map<string, number>();
 
-  for (const todo of todos) {
-    const minutes = calculateExecutionTimeForDate(todo, date);
+  for (const item of items) {
+    const minutes = calculateExecutionTimeForDate(item, date);
     if (minutes > 0) {
-      executionTimes.set(todo.getId(), minutes);
+      executionTimes.set(item.getId(), minutes);
     }
   }
 
@@ -59,16 +60,16 @@ export function calculateExecutionTimesForDate(
 }
 
 /**
- * Todoに対して一貫性のある色を割り当てる
+ * ListItem（TodoまたはCalendarEvent）に対して一貫性のある色を割り当てる
  * 現在は仮実装として、IDから決定論的に色を生成する
- * @param todoId TodoのID
+ * @param itemId ListItemのID
  * @returns CSS color値（hex形式）
  */
-export function assignColorToTodo(todoId: string): string {
+export function assignColorToTodo(itemId: string): string {
   // IDをハッシュ化して色を生成（仮実装）
   let hash = 0;
-  for (let i = 0; i < todoId.length; i++) {
-    hash = todoId.charCodeAt(i) + ((hash << 5) - hash);
+  for (let i = 0; i < itemId.length; i++) {
+    hash = itemId.charCodeAt(i) + ((hash << 5) - hash);
   }
 
   // HSL色空間で色相を分散させ、彩度と明度を固定
@@ -83,11 +84,11 @@ export function assignColorToTodo(todoId: string): string {
 }
 
 /**
- * 積み上げ棒グラフの1セグメント（1つのTodo）の表示情報
+ * 積み上げ棒グラフの1セグメント（1つのListItem）の表示情報
  */
 export interface TaskExecutionSegment {
-  todoId: string;
-  todoText: string;
+  itemId: string;
+  itemText: string;
   minutes: number;
   color: string;
 }
@@ -104,26 +105,26 @@ export interface StackBarDisplayConfig {
 
 /**
  * 積み上げ棒グラフの表示に必要な情報をすべて計算する
- * @param todos Todoリスト
+ * @param items ListItemリスト（TodoまたはCalendarEvent）
  * @param date 日付（YYYY-MM-DD形式）
  * @returns 積み上げ棒グラフの表示設定
  */
 export function calculateStackBarDisplay(
-  todos: Todo[],
+  items: ListItem[],
   date: string
 ): StackBarDisplayConfig {
   const segments: TaskExecutionSegment[] = [];
   let totalMinutes = 0;
 
-  // 各Todoの実行時間を計算してセグメント情報を作成
-  for (const todo of todos) {
-    const minutes = calculateExecutionTimeForDate(todo, date);
+  // 各ListItemの実行時間を計算してセグメント情報を作成
+  for (const item of items) {
+    const minutes = calculateExecutionTimeForDate(item, date);
     if (minutes > 0) {
       segments.push({
-        todoId: todo.getId(),
-        todoText: todo.getText(),
+        itemId: item.getId(),
+        itemText: item.getText(),
         minutes,
-        color: assignColorToTodo(todo.getId())
+        color: assignColorToTodo(item.getId())
       });
       totalMinutes += minutes;
     }

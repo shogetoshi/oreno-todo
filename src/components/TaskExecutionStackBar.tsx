@@ -1,19 +1,19 @@
-import { Todo } from '../models/Todo';
+import { ListItem } from '../models/ListItem';
 import { calculateStackBarDisplay } from '../utils/taskExecutionTime';
 import './TaskExecutionStackBar.css';
 
 /**
  * View Layer: TaskExecutionStackBar Component
- * 特定日付におけるTodoの実行時間を積み上げ棒グラフで表示する
+ * 特定日付におけるListItem（TodoまたはCalendarEvent）の実行時間を積み上げ棒グラフで表示する
  */
 interface TaskExecutionStackBarProps {
-  todos: Todo[];
+  items: ListItem[];
   date: string; // YYYY-MM-DD形式
 }
 
-export const TaskExecutionStackBar = ({ todos, date }: TaskExecutionStackBarProps) => {
+export const TaskExecutionStackBar = ({ items, date }: TaskExecutionStackBarProps) => {
   // すべての計算をModel層に委譲
-  const displayConfig = calculateStackBarDisplay(todos, date);
+  const displayConfig = calculateStackBarDisplay(items, date);
 
   return (
     <div className="task-execution-stackbar">
@@ -24,8 +24,8 @@ export const TaskExecutionStackBar = ({ todos, date }: TaskExecutionStackBarProp
             // 実行時間が0の場合は空の棒グラフを表示
             <div className="stackbar-empty"></div>
           ) : (
-            // 各Todoの実行時間を積み上げて表示
-            displayConfig.segments.map(({ todoId, todoText, minutes, color }) => {
+            // 各ListItemの実行時間を積み上げて表示
+            displayConfig.segments.map(({ itemId, itemText, minutes, color }) => {
               // 全体の時間に対する割合を計算
               const widthPercent = (minutes / displayConfig.displayMaxMinutes) * 100;
 
@@ -34,13 +34,13 @@ export const TaskExecutionStackBar = ({ todos, date }: TaskExecutionStackBarProp
 
               return (
                 <div
-                  key={todoId}
+                  key={itemId}
                   className="stackbar-segment"
                   style={{
                     width: `${widthPercent}%`,
                     backgroundColor: color
                   }}
-                  title={`${todoText}: ${hours}h`}
+                  title={`${itemText}: ${hours}h`}
                 />
               );
             })

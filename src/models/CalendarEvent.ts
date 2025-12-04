@@ -1,6 +1,7 @@
 import { getCurrentJSTTime, parseJSTString, convertISOToJST } from '../utils/timeFormat';
 import { ListItem, ListItemType } from './ListItem';
 import { CalendarEvent as CalendarEventType } from '../types/calendar';
+import { TimeRange } from './Todo';
 
 /**
  * Model Layer: CalendarEvent Entity
@@ -22,7 +23,8 @@ export class CalendarEvent implements ListItem {
     public readonly createdAt: string,
     public readonly updatedAt: string,
     public readonly startTime: string | null,  // イベント開始時刻
-    public readonly endTime: string | null     // イベント終了時刻
+    public readonly endTime: string | null,    // イベント終了時刻
+    public readonly timeRanges: TimeRange[]    // 実行時間の記録
   ) {}
 
   /**
@@ -95,7 +97,8 @@ export class CalendarEvent implements ListItem {
       this.createdAt,
       now,
       this.startTime,
-      this.endTime
+      this.endTime,
+      this.timeRanges
     );
   }
 
@@ -112,7 +115,8 @@ export class CalendarEvent implements ListItem {
       this.createdAt,
       now,
       this.startTime,
-      this.endTime
+      this.endTime,
+      this.timeRanges
     );
   }
 
@@ -125,20 +129,44 @@ export class CalendarEvent implements ListItem {
 
   /**
    * 完了状態を設定した新しいCalendarEventインスタンスを返す
+   * 完了時: startTime/endTimeからTimeRangeを生成してtimeRangesに追加
+   * 完了解除時: timeRangesを空配列にリセット
    */
   setCompleted(completed: boolean): CalendarEvent {
     const now = getCurrentJSTTime();
-    const newCompletedAt = completed ? now : null;
-    return new CalendarEvent(
-      this.id,
-      this.taskcode,
-      this.text,
-      newCompletedAt,
-      this.createdAt,
-      now,
-      this.startTime,
-      this.endTime
-    );
+
+    if (completed) {
+      const newCompletedAt = now;
+      // startTimeとendTimeがある場合のみ、timeRangesに追加
+      let newTimeRanges = this.timeRanges;
+      if (this.startTime && this.endTime) {
+        newTimeRanges = [...this.timeRanges, { start: this.startTime, end: this.endTime }];
+      }
+      return new CalendarEvent(
+        this.id,
+        this.taskcode,
+        this.text,
+        newCompletedAt,
+        this.createdAt,
+        now,
+        this.startTime,
+        this.endTime,
+        newTimeRanges
+      );
+    } else {
+      // 完了解除時はtimeRangesを空配列にリセット
+      return new CalendarEvent(
+        this.id,
+        this.taskcode,
+        this.text,
+        null,
+        this.createdAt,
+        now,
+        this.startTime,
+        this.endTime,
+        []
+      );
+    }
   }
 
   /**
@@ -186,6 +214,13 @@ export class CalendarEvent implements ListItem {
   }
 
   /**
+   * 時間範囲の配列を取得する
+   */
+  getTimeRanges(): { start: string; end: string | null }[] {
+    return this.timeRanges;
+  }
+
+  /**
    * GoogleカレンダーイベントからCalendarEventインスタンスを作成する
    */
   static fromGoogleCalendarEvent(event: CalendarEventType): CalendarEvent {
@@ -206,7 +241,8 @@ export class CalendarEvent implements ListItem {
       createdAt,
       updatedAt,
       startTime,
-      endTime
+      endTime,
+      []  // 新規作成時は空配列
     );
   }
 
@@ -325,6 +361,7 @@ export class CalendarEvent implements ListItem {
 
     const startTime = json.startTime || null;
     const endTime = json.endTime || null;
+    const timeRanges: TimeRange[] = json.timeRanges || [];
 
     return new CalendarEvent(
       json.id,
@@ -334,7 +371,8 @@ export class CalendarEvent implements ListItem {
       createdAt,
       updatedAt,
       startTime,
-      endTime
+      endTime,
+      timeRanges
     );
   }
 
@@ -351,7 +389,8 @@ export class CalendarEvent implements ListItem {
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
       startTime: this.startTime,
-      endTime: this.endTime
+      endTime: this.endTime,
+      timeRanges: this.timeRanges
     };
   }
 }

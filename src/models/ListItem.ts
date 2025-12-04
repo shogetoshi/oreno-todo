@@ -59,6 +59,11 @@ export interface ListItem {
   getTotalExecutionTimeInMinutes(): number;
 
   /**
+   * 時間範囲の配列を取得する
+   */
+  getTimeRanges(): { start: string; end: string | null }[];
+
+  /**
    * JSON形式に変換する
    */
   toJSON(): any;
