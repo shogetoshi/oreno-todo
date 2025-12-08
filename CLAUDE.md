@@ -155,6 +155,26 @@ const useTodos = () => {
 - `tsconfig.electron.json`: Electronプロセスコード（`electron/`）
 - `tsconfig.node.json`: Node.js関連の設定
 
+### pnpm設定（重要）
+
+このプロジェクトではpnpmを使用していますが、electron-builderとの互換性のために`.npmrc`で特別な設定が必要です。
+
+**`.npmrc`の内容:**
+```
+node-linker=hoisted
+shamefully-hoist=true
+```
+
+**この設定が必要な理由:**
+
+1. **pnpmのデフォルト動作**: pnpmはディスク容量節約のため、`node_modules/.pnpm/`に実際のパッケージを配置し、`node_modules/パッケージ名`はシンボリックリンクにします
+
+2. **electron-builderの問題**: electron-builderがアプリをasarにパッケージングする際、pnpmのシンボリックリンク構造を正しく解決できず、依存関係（例: expressのbody-parser）が欠落してランタイムエラーになります
+
+3. **解決策**: `node-linker=hoisted`と`shamefully-hoist=true`を設定することで、pnpmがnpmと同様のフラットなnode_modules構造を作成し、electron-builderが全ての依存関係を正しくバンドルできます
+
+**注意**: この設定を削除すると、パッケージングしたアプリで`Cannot find module`エラーが発生します。npmを使用している場合はこの問題は発生しません。
+
 ## HTTP API
 
 アプリケーションは`localhost:3000`でHTTP APIサーバーを起動します。
@@ -217,12 +237,52 @@ const useTodos = () => {
 }
 ```
 
+## Google Calendar連携
+
+アプリケーションはGoogleカレンダーから予定を取得して、CalendarEventとして追加する機能を持っています。
+
+### 認証設定
+
+Google Calendar APIを使用するには、OAuth2.0の認証情報を設定する必要があります。
+
+**方法1: 環境変数で設定**
+```bash
+export GOOGLE_CLIENT_ID="your-client-id.apps.googleusercontent.com"
+export GOOGLE_CLIENT_SECRET="your-client-secret"
+```
+
+**方法2: 設定ファイルで設定**
+`~/.google-calendar-credentials.json`に以下の形式で保存:
+```json
+{
+  "installed": {
+    "client_id": "your-client-id",
+    "client_secret": "your-client-secret",
+    "redirect_uris": ["http://localhost:3456/oauth2callback"]
+  }
+}
+```
+
+### 認証フロー
+
+1. 初回使用時、ブラウザが自動的に開きGoogleの認証画面が表示されます
+2. Googleアカウントでログインし、カレンダーへのアクセスを許可します
+3. 認証成功後、トークンは`~/.google-calendar-token.json`に保存されます
+4. 次回以降は保存されたトークンが自動的に使用されます
+
+### アーキテクチャ
+
+- **Main Process** (`electron/googleCalendar.ts`): Google Calendar API認証・取得ロジック
+- **IPC通信** (`fetch-calendar-events`): Main ProcessからRenderer Processへの橋渡し
+- **Controller層** (`useTodos.ts`): `importCalendarEvents()`関数がIPC経由でイベントを取得
+
 ## 注意事項
 
 - ブラウザでは動作しない（Electron専用）
 - `contextIsolation: true`, `nodeIntegration: false`によるセキュアな設定
 - 開発時は`http://localhost:5173`、本番時は`dist/index.html`をロード
 - HTTP APIサーバーは開発・本番ともに`localhost:3000`で起動
+- Google Calendar認証のコールバックサーバーはポート`3456`で起動
 
 ## 特記事項
 - ソースコードを変更した場合は、必ずそれに対応するテスト・ドキュメントを合わせて更新すること
