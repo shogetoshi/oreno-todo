@@ -82,11 +82,22 @@ export const useTimecard = () => {
     [setTimecardDataWithPersist]
   );
 
+  // 指定日付のタイムカードエントリをJSON文字列から置き換え
+  const replaceTimecardForDate = useCallback(
+    async (date: string, jsonText: string) => {
+      setTimecardDataWithPersist((prev) =>
+        TimecardRepository.replaceEntriesForDate(prev, date, jsonText)
+      );
+    },
+    [setTimecardDataWithPersist]
+  );
+
   return {
     timecardData,
     isLoading,
     checkIn,
     checkOut,
     replaceFromJson,
+    replaceTimecardForDate,
   };
 };

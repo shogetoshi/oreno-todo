@@ -373,16 +373,51 @@ body {
   font-size: 1.1rem;
 }
 
-/* JSON編集機能のスタイル */
-.input-header {
+/* JSON編集機能とヘッダーコントロールのスタイル */
+.app-header-controls {
   display: flex;
   flex-direction: column;
   gap: 15px;
   margin-bottom: 30px;
 }
 
-.input-header .todo-input-form {
+.app-header-controls .todo-input-form {
   margin-bottom: 0;
+}
+
+.control-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.check-in-button,
+.check-out-button {
+  padding: 12px 20px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.check-in-button {
+  background-color: #28a745;
+  color: white;
+}
+
+.check-in-button:hover {
+  background-color: #218838;
+}
+
+.check-out-button {
+  background-color: #dc3545;
+  color: white;
+}
+
+.check-out-button:hover {
+  background-color: #c82333;
 }
 
 .json-edit-button {
@@ -555,16 +590,27 @@ body {
   margin: 0;
 }
 
-.calendar-import-button-small {
+.date-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.calendar-import-button-small,
+.date-json-edit-button,
+.date-timecard-edit-button {
   padding: 4px 12px;
   font-size: 12px;
-  background-color: #4a90e2;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   white-space: nowrap;
   transition: background-color 0.3s;
+}
+
+.calendar-import-button-small {
+  background-color: #4a90e2;
 }
 
 .calendar-import-button-small:hover:not(:disabled) {
@@ -574,6 +620,22 @@ body {
 .calendar-import-button-small:disabled {
   background-color: #ccc;
   cursor: not-allowed;
+}
+
+.date-json-edit-button {
+  background-color: #764ba2;
+}
+
+.date-json-edit-button:hover {
+  background-color: #5f3a82;
+}
+
+.date-timecard-edit-button {
+  background-color: #28a745;
+}
+
+.date-timecard-edit-button:hover {
+  background-color: #218838;
 }
 
 .calendar-error-inline {

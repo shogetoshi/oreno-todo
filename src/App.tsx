@@ -3,9 +3,9 @@ import { useTodos } from './hooks/useTodos';
 import { useTimecard } from './hooks/useTimecard';
 import { TodoInput } from './components/TodoInput';
 import { DateGroupedTodoList } from './components/DateGroupedTodoList';
-import { TimecardPanel } from './components/TimecardPanel';
 import { TodoRepository } from './models/TodoRepository';
 import { TimecardRepository } from './models/TimecardRepository';
+import type { ListItem } from './models/ListItem';
 import './App.css';
 
 /**
@@ -14,19 +14,23 @@ import './App.css';
  * JSON編集関連のローカル状態のみを管理
  */
 function App() {
-  const { todos, isLoading, addTodo, toggleTodo, deleteTodo, editTodo, editTaskcode, reorderTodos, replaceFromJson, editSingleItemFromJson, startTimer, stopTimer, importCalendarEvents } = useTodos();
-  const { timecardData, isLoading: isTimecardLoading, checkIn, checkOut, replaceFromJson: replaceTimecardFromJson } = useTimecard();
+  const { todos, isLoading, addTodo, toggleTodo, deleteTodo, editTodo, editTaskcode, reorderTodos, replaceFromJson, editSingleItemFromJson, replaceItemsForDate, startTimer, stopTimer, importCalendarEvents } = useTodos();
+  const { timecardData, isLoading: isTimecardLoading, checkIn, checkOut, replaceFromJson: replaceTimecardFromJson, replaceTimecardForDate } = useTimecard();
   const [isJsonEditorOpen, setIsJsonEditorOpen] = useState(false);
   const [jsonText, setJsonText] = useState('');
   const [jsonError, setJsonError] = useState('');
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [isTimecardJsonEditor, setIsTimecardJsonEditor] = useState(false);
+  const [editingDate, setEditingDate] = useState<string | null>(null);
+  const [editingTimecardDate, setEditingTimecardDate] = useState<string | null>(null);
 
   const handleOpenJsonEditor = () => {
     setJsonText(JSON.stringify(TodoRepository.itemsToJsonArray(todos), null, 2));
     setJsonError('');
     setEditingItemId(null);
     setIsTimecardJsonEditor(false);
+    setEditingDate(null);
+    setEditingTimecardDate(null);
     setIsJsonEditorOpen(true);
   };
 
@@ -35,6 +39,8 @@ function App() {
     setJsonError('');
     setEditingItemId(null);
     setIsTimecardJsonEditor(true);
+    setEditingDate(null);
+    setEditingTimecardDate(null);
     setIsJsonEditorOpen(true);
   };
 
@@ -47,6 +53,29 @@ function App() {
     setJsonError('');
     setEditingItemId(id);
     setIsTimecardJsonEditor(false);
+    setEditingDate(null);
+    setEditingTimecardDate(null);
+    setIsJsonEditorOpen(true);
+  };
+
+  const handleOpenJsonEditorForDate = (date: string, items: ListItem[]) => {
+    setJsonText(JSON.stringify(TodoRepository.itemsToJsonArray(items), null, 2));
+    setJsonError('');
+    setEditingDate(date);
+    setEditingItemId(null);
+    setIsTimecardJsonEditor(false);
+    setEditingTimecardDate(null);
+    setIsJsonEditorOpen(true);
+  };
+
+  const handleOpenTimecardEditorForDate = (date: string) => {
+    const entriesForDate = timecardData[date] || [];
+    setJsonText(JSON.stringify(entriesForDate.map(entry => entry.toJSON()), null, 2));
+    setJsonError('');
+    setEditingTimecardDate(date);
+    setEditingDate(null);
+    setEditingItemId(null);
+    setIsTimecardJsonEditor(false);
     setIsJsonEditorOpen(true);
   };
 
@@ -56,6 +85,8 @@ function App() {
     setJsonError('');
     setEditingItemId(null);
     setIsTimecardJsonEditor(false);
+    setEditingDate(null);
+    setEditingTimecardDate(null);
   };
 
   const handleSaveJson = async () => {
@@ -63,6 +94,12 @@ function App() {
       if (isTimecardJsonEditor) {
         // タイムカードJSONの置き換え
         await replaceTimecardFromJson(jsonText);
+      } else if (editingTimecardDate) {
+        // 日付別タイムカードの編集
+        await replaceTimecardForDate(editingTimecardDate, jsonText);
+      } else if (editingDate) {
+        // 日付別の編集
+        await replaceItemsForDate(editingDate, jsonText);
       } else if (editingItemId) {
         // 単一アイテムの編集
         await editSingleItemFromJson(editingItemId, jsonText);
@@ -97,20 +134,22 @@ function App() {
       </header>
 
       <main className="app-main">
-        <TimecardPanel
-          onCheckIn={checkIn}
-          onCheckOut={checkOut}
-          onOpenJsonEditor={handleOpenTimecardJsonEditor}
-        />
-
-        <div className="input-header">
+        <div className="app-header-controls">
           <TodoInput onAdd={addTodo} />
-          <button
-            className="json-edit-button"
-            onClick={handleOpenJsonEditor}
-          >
-            JSON編集
-          </button>
+          <div className="control-buttons">
+            <button className="check-in-button" onClick={checkIn}>
+              🟢
+            </button>
+            <button className="check-out-button" onClick={checkOut}>
+              ⚪
+            </button>
+            <button className="json-edit-button" onClick={handleOpenJsonEditor}>
+              Todo JSON編集
+            </button>
+            <button className="json-edit-button" onClick={handleOpenTimecardJsonEditor}>
+              タイムカードJSON編集
+            </button>
+          </div>
         </div>
 
         <DateGroupedTodoList
@@ -124,6 +163,8 @@ function App() {
           onStopTimer={stopTimer}
           onOpenJsonEditor={handleOpenSingleItemJsonEditor}
           onImportCalendarEvents={importCalendarEvents}
+          onOpenJsonEditorForDate={handleOpenJsonEditorForDate}
+          onOpenTimecardEditorForDate={handleOpenTimecardEditorForDate}
         />
 
         {isJsonEditorOpen && (

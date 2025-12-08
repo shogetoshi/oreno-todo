@@ -163,4 +163,26 @@ export class TimecardRepository {
   static getSortedDates(data: TimecardData): string[] {
     return Object.keys(data).sort((a, b) => b.localeCompare(a));
   }
+
+  /**
+   * 指定日付のタイムカードエントリをJSON文字列から置き換える
+   * @param data 既存のタイムカードデータ
+   * @param date 日付（YYYY-MM-DD形式）
+   * @param jsonText 新しいエントリ配列を表すJSON文字列
+   * @returns 新しいタイムカードデータ
+   * @throws JSONパースエラー
+   */
+  static replaceEntriesForDate(data: TimecardData, date: string, jsonText: string): TimecardData {
+    // JSON解析
+    const jsonArray = JSON.parse(jsonText);
+
+    // TimecardEntryに変換
+    const newEntries = jsonArray.map((json: any) => TimecardEntry.fromJSON(json));
+
+    // 新しいデータを作成
+    return {
+      ...data,
+      [date]: newEntries
+    };
+  }
 }

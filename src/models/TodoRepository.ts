@@ -351,4 +351,27 @@ export class TodoRepository {
       item.getId() === id ? newItem : item
     );
   }
+
+  /**
+   * 指定日付のListItemをJSON文字列から置き換える
+   * @param items 既存のListItemリスト
+   * @param date 日付（YYYY-MM-DD形式）
+   * @param jsonText 新しいListItem配列を表すJSON文字列
+   * @returns 新しいListItemリスト
+   * @throws JSONパースエラー
+   */
+  static replaceItemsForDate(items: ListItem[], date: string, jsonText: string): ListItem[] {
+    // JSON解析
+    const jsonArray = JSON.parse(jsonText);
+    const newItemsForDate = TodoRepository.fromJsonArrayToItems(jsonArray);
+
+    // 指定日付以外のアイテムを保持
+    const otherItems = items.filter(item => {
+      const itemsForDate = TodoRepository.filterItemsByDate([item], date);
+      return itemsForDate.length === 0;
+    });
+
+    // 新しいアイテムと結合
+    return [...otherItems, ...newItemsForDate];
+  }
 }
