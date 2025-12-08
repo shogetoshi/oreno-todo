@@ -211,7 +211,11 @@ export class TimecardRepository {
         currentStartEntry = entry;
       } else if (entry.type === 'end' && currentStartEntry !== null) {
         // startとendのペアが見つかった場合、時間差を計算
-        // TODO: 時刻のパース処理と時間差計算を実装
+        const startTime = new Date(currentStartEntry.time);
+        const endTime = new Date(entry.time);
+        const diffMs = endTime.getTime() - startTime.getTime();
+        const diffMinutes = Math.floor(diffMs / (1000 * 60));
+        totalMinutes += diffMinutes;
         currentStartEntry = null;
       }
     }
