@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { ListItem } from '../models/ListItem';
 import { TodoRepository } from '../models/TodoRepository';
+import { TimecardData } from '../models/TimecardRepository';
 import { generateDateGroups, type DateGroup } from '../utils/dateGrouping';
 import { TodoItem } from './TodoItem';
 import { TaskExecutionStackBar } from './TaskExecutionStackBar';
@@ -12,6 +13,7 @@ import { TaskExecutionStackBar } from './TaskExecutionStackBar';
  */
 interface DateGroupedTodoListProps {
   todos: ListItem[];
+  timecardData: TimecardData;
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (id: string, newText: string) => void;
@@ -27,6 +29,7 @@ interface DateGroupedTodoListProps {
 
 export const DateGroupedTodoList = ({
   todos,
+  timecardData,
   onToggle,
   onDelete,
   onEdit,
@@ -127,7 +130,7 @@ export const DateGroupedTodoList = ({
               </div>
             )}
             {/* タスク実行時間の積み上げ棒グラフ */}
-            <TaskExecutionStackBar items={itemsForDate} date={group.date} />
+            <TaskExecutionStackBar items={itemsForDate} date={group.date} timecardData={timecardData} />
             <ul className="todo-list">
               {itemsForDate.map((item) => {
                 // グループ内のローカルインデックスではなく、全体のアイテムリスト内でのグローバルインデックスを取得

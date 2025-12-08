@@ -185,4 +185,37 @@ export class TimecardRepository {
       [date]: newEntries
     };
   }
+
+  /**
+   * 指定日付の稼働時間を分単位で計算する
+   * @param data タイムカードデータ
+   * @param date 日付（YYYY-MM-DD形式）
+   * @returns 稼働時間（分）
+   */
+  static calculateWorkingTimeForDate(data: TimecardData, date: string): number {
+    // 指定日付のエントリを取得
+    const entries = data[date] || [];
+
+    // エントリが存在しない場合は0を返す
+    if (entries.length === 0) {
+      return 0;
+    }
+
+    let totalMinutes = 0;
+    let currentStartEntry: TimecardEntry | null = null;
+
+    // エントリを順番に走査し、startとendのペアを見つける
+    for (const entry of entries) {
+      if (entry.type === 'start') {
+        // 新しいstartエントリを記録
+        currentStartEntry = entry;
+      } else if (entry.type === 'end' && currentStartEntry !== null) {
+        // startとendのペアが見つかった場合、時間差を計算
+        // TODO: 時刻のパース処理と時間差計算を実装
+        currentStartEntry = null;
+      }
+    }
+
+    return totalMinutes;
+  }
 }

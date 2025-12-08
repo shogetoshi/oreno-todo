@@ -65,3 +65,18 @@
   margin-top: 2px;
   white-space: nowrap;
 }
+
+/* 稼働時間を示す縦棒 */
+.stackbar-working-time-marker {
+  position: absolute;
+  top: -24px; /* 棒グラフの位置まで伸ばす */
+  transform: translateX(-50%);
+  z-index: 10; /* 他の要素より上に表示 */
+}
+
+.stackbar-working-time-line {
+  width: 2px; /* 時間目盛より太く */
+  height: 50px; /* 棒グラフ全体を貫く高さ */
+  background-color: #ff4444; /* 赤色で目立つように */
+  margin: 0 auto;
+}

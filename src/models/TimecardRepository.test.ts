@@ -156,4 +156,32 @@ describe('TimecardRepository', () => {
       expect(dates).toEqual(['2024-10-18', '2024-10-17', '2024-10-16']);
     });
   });
+
+  describe('calculateWorkingTimeForDate', () => {
+    it('稼働がない場合は0を返す', () => {
+      const data: TimecardData = {};
+      const workingTime = TimecardRepository.calculateWorkingTimeForDate(data, '2024-10-18');
+      expect(workingTime).toBe(0);
+    });
+
+    it('1つのstart-endペアで正しく計算できる', () => {
+      // TODO: 実装後にテストを追加
+    });
+
+    it('複数のstart-endペアで合計を計算できる', () => {
+      // TODO: 実装後にテストを追加
+    });
+
+    it('ペアになっていないstartは無視する', () => {
+      // TODO: 実装後にテストを追加
+    });
+
+    it('エントリが存在しない日付では0を返す', () => {
+      const data: TimecardData = {
+        '2024-10-18': [new TimecardEntry('start', '2024-10-18 09:00:00')],
+      };
+      const workingTime = TimecardRepository.calculateWorkingTimeForDate(data, '2024-10-19');
+      expect(workingTime).toBe(0);
+    });
+  });
 });

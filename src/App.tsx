@@ -154,6 +154,7 @@ function App() {
 
         <DateGroupedTodoList
           todos={todos}
+          timecardData={timecardData}
           onToggle={toggleTodo}
           onDelete={deleteTodo}
           onEdit={editTodo}
