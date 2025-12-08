@@ -155,6 +155,26 @@ const useTodos = () => {
 - `tsconfig.electron.json`: Electronプロセスコード（`electron/`）
 - `tsconfig.node.json`: Node.js関連の設定
 
+### pnpm設定（重要）
+
+このプロジェクトではpnpmを使用していますが、electron-builderとの互換性のために`.npmrc`で特別な設定が必要です。
+
+**`.npmrc`の内容:**
+```
+node-linker=hoisted
+shamefully-hoist=true
+```
+
+**この設定が必要な理由:**
+
+1. **pnpmのデフォルト動作**: pnpmはディスク容量節約のため、`node_modules/.pnpm/`に実際のパッケージを配置し、`node_modules/パッケージ名`はシンボリックリンクにします
+
+2. **electron-builderの問題**: electron-builderがアプリをasarにパッケージングする際、pnpmのシンボリックリンク構造を正しく解決できず、依存関係（例: expressのbody-parser）が欠落してランタイムエラーになります
+
+3. **解決策**: `node-linker=hoisted`と`shamefully-hoist=true`を設定することで、pnpmがnpmと同様のフラットなnode_modules構造を作成し、electron-builderが全ての依存関係を正しくバンドルできます
+
+**注意**: この設定を削除すると、パッケージングしたアプリで`Cannot find module`エラーが発生します。npmを使用している場合はこの問題は発生しません。
+
 ## HTTP API
 
 アプリケーションは`localhost:3000`でHTTP APIサーバーを起動します。
