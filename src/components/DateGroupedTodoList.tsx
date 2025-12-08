@@ -21,6 +21,8 @@ interface DateGroupedTodoListProps {
   onStopTimer: (id: string) => void;
   onOpenJsonEditor: (id: string) => void;
   onImportCalendarEvents: (date: string) => Promise<void>;
+  onOpenJsonEditorForDate: (date: string, items: ListItem[]) => void;
+  onOpenTimecardEditorForDate: (date: string) => void;
 }
 
 export const DateGroupedTodoList = ({
@@ -33,7 +35,9 @@ export const DateGroupedTodoList = ({
   onStartTimer,
   onStopTimer,
   onOpenJsonEditor,
-  onImportCalendarEvents
+  onImportCalendarEvents,
+  onOpenJsonEditorForDate,
+  onOpenTimecardEditorForDate
 }: DateGroupedTodoListProps) => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [importingStates, setImportingStates] = useState<{[date: string]: boolean}>({});
@@ -94,13 +98,27 @@ export const DateGroupedTodoList = ({
           <div key={group.date} className="date-group">
             <div className="date-group-header-container">
               <h2 className="date-group-header">{group.displayDate}</h2>
-              <button
-                className="calendar-import-button-small"
-                onClick={() => handleImportForDate(group.date)}
-                disabled={importingStates[group.date]}
-              >
-                {importingStates[group.date] ? '取得中...' : '予定取得'}
-              </button>
+              <div className="date-buttons">
+                <button
+                  className="calendar-import-button-small"
+                  onClick={() => handleImportForDate(group.date)}
+                  disabled={importingStates[group.date]}
+                >
+                  {importingStates[group.date] ? '取得中...' : '予定取得'}
+                </button>
+                <button
+                  className="date-json-edit-button"
+                  onClick={() => onOpenJsonEditorForDate(group.date, itemsForDate)}
+                >
+                  JSON編集
+                </button>
+                <button
+                  className="date-timecard-edit-button"
+                  onClick={() => onOpenTimecardEditorForDate(group.date)}
+                >
+                  タイムカード編集
+                </button>
+              </div>
             </div>
             {errorStates[group.date] && (
               <div className="calendar-error-inline">
