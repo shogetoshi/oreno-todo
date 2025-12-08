@@ -20,6 +20,7 @@ interface DateGroupedTodoListProps {
   onStartTimer: (id: string) => void;
   onStopTimer: (id: string) => void;
   onOpenJsonEditor: (id: string) => void;
+  onImportCalendarEvents: (date: string) => Promise<void>;
 }
 
 export const DateGroupedTodoList = ({
@@ -31,9 +32,12 @@ export const DateGroupedTodoList = ({
   onReorder,
   onStartTimer,
   onStopTimer,
-  onOpenJsonEditor
+  onOpenJsonEditor,
+  onImportCalendarEvents
 }: DateGroupedTodoListProps) => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [importingStates, setImportingStates] = useState<{[date: string]: boolean}>({});
+  const [errorStates, setErrorStates] = useState<{[date: string]: string | null}>({});
 
   // 今日から35日前までの日付グループを生成
   const dateGroups: DateGroup[] = generateDateGroups(35);
@@ -57,6 +61,22 @@ export const DateGroupedTodoList = ({
     setDraggedIndex(null);
   };
 
+  const handleImportForDate = async (date: string) => {
+    setImportingStates(prev => ({...prev, [date]: true}));
+    setErrorStates(prev => ({...prev, [date]: null}));
+
+    try {
+      await onImportCalendarEvents(date);
+    } catch (error) {
+      setErrorStates(prev => ({
+        ...prev,
+        [date]: error instanceof Error ? error.message : 'カレンダーの取得に失敗しました'
+      }));
+    } finally {
+      setImportingStates(prev => ({...prev, [date]: false}));
+    }
+  };
+
   // パフォーマンス最適化: IDからグローバルインデックスへのマップを事前構築
   // O(n²)の繰り返しfindIndex()呼び出しを回避
   const idToGlobalIndex = new Map<string, number>();
@@ -72,7 +92,22 @@ export const DateGroupedTodoList = ({
 
         return (
           <div key={group.date} className="date-group">
-            <h2 className="date-group-header">{group.displayDate}</h2>
+            <div className="date-group-header-container">
+              <h2 className="date-group-header">{group.displayDate}</h2>
+              <button
+                className="calendar-import-button-small"
+                onClick={() => handleImportForDate(group.date)}
+                disabled={importingStates[group.date]}
+              >
+                {importingStates[group.date] ? '取得中...' : '予定取得'}
+              </button>
+            </div>
+            {errorStates[group.date] && (
+              <div className="calendar-error-inline">
+                <span>{errorStates[group.date]}</span>
+                <button onClick={() => setErrorStates(prev => ({...prev, [group.date]: null}))}>×</button>
+              </div>
+            )}
             {/* タスク実行時間の積み上げ棒グラフ */}
             <TaskExecutionStackBar items={itemsForDate} date={group.date} />
             <ul className="todo-list">
