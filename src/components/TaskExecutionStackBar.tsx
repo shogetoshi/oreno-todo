@@ -1,5 +1,6 @@
 import { ListItem } from '../models/ListItem';
 import { calculateStackBarDisplay } from '../utils/taskExecutionTime';
+import { TimecardData, TimecardRepository } from '../models/TimecardRepository';
 import './TaskExecutionStackBar.css';
 
 /**
@@ -9,11 +10,20 @@ import './TaskExecutionStackBar.css';
 interface TaskExecutionStackBarProps {
   items: ListItem[];
   date: string; // YYYY-MM-DD形式
+  timecardData: TimecardData;
 }
 
-export const TaskExecutionStackBar = ({ items, date }: TaskExecutionStackBarProps) => {
+export const TaskExecutionStackBar = ({ items, date, timecardData }: TaskExecutionStackBarProps) => {
   // すべての計算をModel層に委譲
   const displayConfig = calculateStackBarDisplay(items, date);
+
+  // タイムカードから稼働時間を計算
+  const workingTimeMinutes = TimecardRepository.calculateWorkingTimeForDate(timecardData, date);
+
+  // 稼働時間の位置をパーセンテージで計算
+  const workingTimePositionPercent = displayConfig.displayMaxMinutes > 0
+    ? (workingTimeMinutes / displayConfig.displayMaxMinutes) * 100
+    : 0;
 
   return (
     <div className="task-execution-stackbar">
@@ -63,6 +73,15 @@ export const TaskExecutionStackBar = ({ items, date }: TaskExecutionStackBarProp
               </div>
             );
           })}
+
+          {/* 稼働時間を示す縦棒 */}
+          <div
+            className="stackbar-working-time-marker"
+            style={{ left: `${workingTimePositionPercent}%` }}
+            title={`稼働時間: ${(workingTimeMinutes / 60).toFixed(1)}h`}
+          >
+            <div className="stackbar-working-time-line"></div>
+          </div>
         </div>
       </div>
     </div>

@@ -156,4 +156,62 @@ describe('TimecardRepository', () => {
       expect(dates).toEqual(['2024-10-18', '2024-10-17', '2024-10-16']);
     });
   });
+
+  describe('calculateWorkingTimeForDate', () => {
+    it('稼働がない場合は0を返す', () => {
+      const data: TimecardData = {};
+      const workingTime = TimecardRepository.calculateWorkingTimeForDate(data, '2024-10-18');
+      expect(workingTime).toBe(0);
+    });
+
+    it('1つのstart-endペアで正しく計算できる', () => {
+      const data: TimecardData = {
+        '2024-10-18': [
+          new TimecardEntry('start', '2024-10-18 09:00:00'),
+          new TimecardEntry('end', '2024-10-18 18:00:00'),
+        ],
+      };
+      const workingTime = TimecardRepository.calculateWorkingTimeForDate(data, '2024-10-18');
+      // 9:00-18:00 = 9時間 = 540分
+      expect(workingTime).toBe(540);
+    });
+
+    it('複数のstart-endペアで合計を計算できる', () => {
+      const data: TimecardData = {
+        '2024-10-18': [
+          new TimecardEntry('start', '2024-10-18 09:00:00'),
+          new TimecardEntry('end', '2024-10-18 12:00:00'),
+          new TimecardEntry('start', '2024-10-18 13:00:00'),
+          new TimecardEntry('end', '2024-10-18 18:00:00'),
+        ],
+      };
+      const workingTime = TimecardRepository.calculateWorkingTimeForDate(data, '2024-10-18');
+      // 9:00-12:00 = 3時間 = 180分
+      // 13:00-18:00 = 5時間 = 300分
+      // 合計 = 480分
+      expect(workingTime).toBe(480);
+    });
+
+    it('ペアになっていないstartは無視する', () => {
+      const data: TimecardData = {
+        '2024-10-18': [
+          new TimecardEntry('start', '2024-10-18 09:00:00'),
+          new TimecardEntry('end', '2024-10-18 12:00:00'),
+          new TimecardEntry('start', '2024-10-18 13:00:00'),
+          // 最後のstartにはendがない
+        ],
+      };
+      const workingTime = TimecardRepository.calculateWorkingTimeForDate(data, '2024-10-18');
+      // 9:00-12:00 = 3時間 = 180分のみカウント
+      expect(workingTime).toBe(180);
+    });
+
+    it('エントリが存在しない日付では0を返す', () => {
+      const data: TimecardData = {
+        '2024-10-18': [new TimecardEntry('start', '2024-10-18 09:00:00')],
+      };
+      const workingTime = TimecardRepository.calculateWorkingTimeForDate(data, '2024-10-19');
+      expect(workingTime).toBe(0);
+    });
+  });
 });
