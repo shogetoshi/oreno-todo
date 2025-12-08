@@ -153,6 +153,7 @@ function App() {
           onStartTimer={startTimer}
           onStopTimer={stopTimer}
           onOpenJsonEditor={handleOpenSingleItemJsonEditor}
+          onImportCalendarEvents={importCalendarEvents}
         />
 
         {isJsonEditorOpen && (
