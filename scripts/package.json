@@ -1,9 +1,0 @@
-{
-  "name": "oreno-todo-calendar-cli",
-  "version": "1.0.0",
-  "description": "Google Calendar CLI for OrenoTodo",
-  "type": "module",
-  "dependencies": {
-    "googleapis": "^167.0.0"
-  }
-}
