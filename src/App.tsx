@@ -21,8 +21,6 @@ function App() {
   const [jsonError, setJsonError] = useState('');
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [isTimecardJsonEditor, setIsTimecardJsonEditor] = useState(false);
-  const [isImportingCalendar, setIsImportingCalendar] = useState(false);
-  const [calendarError, setCalendarError] = useState<string | null>(null);
 
   const handleOpenJsonEditor = () => {
     setJsonText(JSON.stringify(TodoRepository.itemsToJsonArray(todos), null, 2));
@@ -58,18 +56,6 @@ function App() {
     setJsonError('');
     setEditingItemId(null);
     setIsTimecardJsonEditor(false);
-  };
-
-  const handleImportCalendar = async () => {
-    setIsImportingCalendar(true);
-    setCalendarError(null);
-    try {
-      await importCalendarEvents();
-    } catch (error) {
-      setCalendarError(error instanceof Error ? error.message : 'カレンダーの取得に失敗しました');
-    } finally {
-      setIsImportingCalendar(false);
-    }
   };
 
   const handleSaveJson = async () => {
@@ -119,29 +105,13 @@ function App() {
 
         <div className="input-header">
           <TodoInput onAdd={addTodo} />
-          <div className="input-header-buttons">
-            <button
-              className="json-edit-button"
-              onClick={handleOpenJsonEditor}
-            >
-              JSON編集
-            </button>
-            <button
-              className="calendar-import-button"
-              onClick={handleImportCalendar}
-              disabled={isImportingCalendar}
-            >
-              {isImportingCalendar ? '取得中...' : 'カレンダーから取得'}
-            </button>
-          </div>
+          <button
+            className="json-edit-button"
+            onClick={handleOpenJsonEditor}
+          >
+            JSON編集
+          </button>
         </div>
-
-        {calendarError && (
-          <div className="calendar-error">
-            <span>{calendarError}</span>
-            <button onClick={() => setCalendarError(null)}>×</button>
-          </div>
-        )}
 
         <DateGroupedTodoList
           todos={todos}
