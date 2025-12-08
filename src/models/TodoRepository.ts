@@ -353,25 +353,52 @@ export class TodoRepository {
   }
 
   /**
-   * 指定日付のListItemをJSON文字列から置き換える
+   * 複数のListItemをIDベースで一括更新・追加・削除する
+   * - JSON内に存在し、既存リストにも存在するID: 更新
+   * - JSON内に存在し、既存リストに存在しないID: 追加
+   * - JSON内に存在せず、既存リストに存在し、かつtargetIdsに含まれるID: 削除
+   *
    * @param items 既存のListItemリスト
-   * @param date 日付（YYYY-MM-DD形式）
    * @param jsonText 新しいListItem配列を表すJSON文字列
+   * @param targetIds 編集対象のIDリスト（省略時はJSON内のアイテムのみ更新・追加）
    * @returns 新しいListItemリスト
    * @throws JSONパースエラー
    */
-  static replaceItemsForDate(items: ListItem[], date: string, jsonText: string): ListItem[] {
+  static replaceItemsById(items: ListItem[], jsonText: string, targetIds?: string[]): ListItem[] {
     // JSON解析
     const jsonArray = JSON.parse(jsonText);
-    const newItemsForDate = TodoRepository.fromJsonArrayToItems(jsonArray);
+    const newItems = TodoRepository.fromJsonArrayToItems(jsonArray);
 
-    // 指定日付以外のアイテムを保持
-    const otherItems = items.filter(item => {
-      const itemsForDate = TodoRepository.filterItemsByDate([item], date);
-      return itemsForDate.length === 0;
+    // 新しいアイテムのIDとアイテムのマップを作成
+    const newItemsMap = new Map<string, ListItem>();
+    newItems.forEach(item => {
+      newItemsMap.set(item.getId(), item);
     });
 
-    // 新しいアイテムと結合
-    return [...otherItems, ...newItemsForDate];
+    // 削除対象のIDセット（targetIdsが指定されている場合のみ）
+    const targetIdSet = targetIds ? new Set(targetIds) : null;
+
+    // 既存のアイテムを処理
+    const updatedItems: ListItem[] = [];
+    items.forEach(item => {
+      const itemId = item.getId();
+      if (newItemsMap.has(itemId)) {
+        // JSON内に存在する場合は更新
+        updatedItems.push(newItemsMap.get(itemId)!);
+        newItemsMap.delete(itemId); // 処理済みとしてマップから削除
+      } else if (targetIdSet && targetIdSet.has(itemId)) {
+        // targetIdsに含まれるが、JSON内に存在しない場合は削除（何もしない）
+      } else {
+        // それ以外は保持
+        updatedItems.push(item);
+      }
+    });
+
+    // JSON内に残っている新規アイテムを追加
+    newItemsMap.forEach(item => {
+      updatedItems.push(item);
+    });
+
+    return updatedItems;
   }
 }
