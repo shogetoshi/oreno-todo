@@ -53,6 +53,13 @@
       "dist/**/*",
       "dist-electron/**/*"
     ],
+    "extraResources": [
+      {
+        "from": "scripts",
+        "to": "scripts",
+        "filter": ["**/*"]
+      }
+    ],
     "mac": {
       "target": "dmg",
       "category": "public.app-category.productivity"

@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import * as path from 'path';
 import { promises as fsPromises } from 'fs';
 import express from 'express';
+import { fetchCalendarEvents, getTodayDateString } from './googleCalendar';
 
 const isDev = !app.isPackaged;
 const dataPath = path.join(app.getPath('userData'), 'todos.json');
@@ -124,6 +125,12 @@ ipcMain.handle('save-timecard', async (_, data) => {
     }
     return { success: false, error: String(error) };
   }
+});
+
+// Googleカレンダーからイベントを取得
+ipcMain.handle('fetch-calendar-events', async (_, date?: string) => {
+  const targetDate = date || getTodayDateString();
+  return await fetchCalendarEvents(targetDate);
 });
 
 // HTTPサーバーの起動

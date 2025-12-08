@@ -18,6 +18,7 @@ const electronAPI: ElectronAPI = {
   onCheckOutRequest: (callback) => {
     ipcRenderer.on('check-out-request', () => callback());
   },
+  fetchCalendarEvents: (date) => ipcRenderer.invoke('fetch-calendar-events', date),
 };
 
 contextBridge.exposeInMainWorld('electronAPI', electronAPI);

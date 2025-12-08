@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ListItem } from '../models/ListItem';
 import { TodoRepository } from '../models/TodoRepository';
-import { fetchCalendarEventsSample } from '../utils/calendarSample';
 
 /**
  * Controller Layer: useTodos Hook
@@ -120,9 +119,14 @@ export const useTodos = () => {
   }, [stopRunningTodo]);
 
   // Googleカレンダーからイベントを取得してCalendarEventを追加
-  const importCalendarEvents = useCallback(() => {
-    const events = fetchCalendarEventsSample();
-    setTodosWithPersist((prev) => TodoRepository.addCalendarEventsToItems(prev, events));
+  const importCalendarEvents = useCallback(async (date?: string) => {
+    const result = await window.electronAPI.fetchCalendarEvents(date);
+    if (result.success && result.events) {
+      setTodosWithPersist((prev) => TodoRepository.addCalendarEventsToItems(prev, result.events!));
+    } else {
+      console.error('Failed to fetch calendar events:', result.error);
+      throw new Error(result.error || 'カレンダーイベントの取得に失敗しました');
+    }
   }, [setTodosWithPersist]);
 
   return {

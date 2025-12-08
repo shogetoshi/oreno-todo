@@ -8,6 +8,7 @@ import { TodoItem } from './TodoItem';
  */
 interface TodoListProps {
   todos: ListItem[];
+  currentDate: string; // YYYY-MM-DD形式
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (id: string, newText: string) => void;
@@ -18,7 +19,7 @@ interface TodoListProps {
   onOpenJsonEditor: (id: string) => void;
 }
 
-export const TodoList = ({ todos, onToggle, onDelete, onEdit, onEditTaskcode, onReorder, onStartTimer, onStopTimer, onOpenJsonEditor }: TodoListProps) => {
+export const TodoList = ({ todos, currentDate, onToggle, onDelete, onEdit, onEditTaskcode, onReorder, onStartTimer, onStopTimer, onOpenJsonEditor }: TodoListProps) => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   const handleDragStart = (index: number) => {
@@ -48,6 +49,7 @@ export const TodoList = ({ todos, onToggle, onDelete, onEdit, onEditTaskcode, on
           todo={todo}
           index={index}
           isDragging={draggedIndex === index}
+          currentDate={currentDate}
           onToggle={onToggle}
           onDelete={onDelete}
           onEdit={onEdit}
