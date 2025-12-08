@@ -3,9 +3,9 @@ import { useTodos } from './hooks/useTodos';
 import { useTimecard } from './hooks/useTimecard';
 import { TodoInput } from './components/TodoInput';
 import { DateGroupedTodoList } from './components/DateGroupedTodoList';
-import { TimecardPanel } from './components/TimecardPanel';
 import { TodoRepository } from './models/TodoRepository';
 import { TimecardRepository } from './models/TimecardRepository';
+import type { ListItem } from './models/ListItem';
 import './App.css';
 
 /**
@@ -134,20 +134,22 @@ function App() {
       </header>
 
       <main className="app-main">
-        <TimecardPanel
-          onCheckIn={checkIn}
-          onCheckOut={checkOut}
-          onOpenJsonEditor={handleOpenTimecardJsonEditor}
-        />
-
-        <div className="input-header">
+        <div className="app-header-controls">
           <TodoInput onAdd={addTodo} />
-          <button
-            className="json-edit-button"
-            onClick={handleOpenJsonEditor}
-          >
-            JSON編集
-          </button>
+          <div className="control-buttons">
+            <button className="check-in-button" onClick={checkIn}>
+              🟢
+            </button>
+            <button className="check-out-button" onClick={checkOut}>
+              ⚪
+            </button>
+            <button className="json-edit-button" onClick={handleOpenJsonEditor}>
+              Todo JSON編集
+            </button>
+            <button className="json-edit-button" onClick={handleOpenTimecardJsonEditor}>
+              タイムカードJSON編集
+            </button>
+          </div>
         </div>
 
         <DateGroupedTodoList
