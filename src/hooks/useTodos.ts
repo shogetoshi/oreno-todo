@@ -98,7 +98,14 @@ export const useTodos = () => {
 
   // 指定日付のアイテムをJSON文字列から置き換え
   const replaceItemsForDate = useCallback(async (date: string, jsonText: string) => {
-    setTodosWithPersist((prev) => TodoRepository.replaceItemsForDate(prev, date, jsonText));
+    setTodosWithPersist((prev) => {
+      // その日付に表示されるアイテムのIDリストを取得
+      const itemsForDate = TodoRepository.filterItemsByDate(prev, date);
+      const targetIds = itemsForDate.map(item => item.getId());
+
+      // IDベースで一括更新・追加・削除
+      return TodoRepository.replaceItemsById(prev, jsonText, targetIds);
+    });
   }, [setTodosWithPersist]);
 
   // タイマーを開始
