@@ -75,15 +75,13 @@ export const TaskExecutionStackBar = ({ items, date, timecardData }: TaskExecuti
           })}
 
           {/* 稼働時間を示す縦棒 */}
-          {workingTimeMinutes > 0 && (
-            <div
-              className="stackbar-working-time-marker"
-              style={{ left: `${workingTimePositionPercent}%` }}
-              title={`稼働時間: ${(workingTimeMinutes / 60).toFixed(1)}h`}
-            >
-              <div className="stackbar-working-time-line"></div>
-            </div>
-          )}
+          <div
+            className="stackbar-working-time-marker"
+            style={{ left: `${workingTimePositionPercent}%` }}
+            title={`稼働時間: ${(workingTimeMinutes / 60).toFixed(1)}h`}
+          >
+            <div className="stackbar-working-time-line"></div>
+          </div>
         </div>
       </div>
     </div>
