@@ -187,12 +187,41 @@ export class TimecardRepository {
   }
 
   /**
+   * タイムカードエントリが正常なstart-endペアになっているかを検証する
+   *
+   * 正常なパターン:
+   * - start, end, start, end, ... （完全なペア）
+   * - start, end, start, end, ..., start （最後がstartで終わる）
+   *
+   * 異常なパターン:
+   * - start, start, ... （startが連続）
+   * - end, ... （endから始まる）
+   * - start, end, end, ... （endが連続）
+   * - 空配列 （エントリなし）
+   *
+   * @param entries タイムカードエントリ配列
+   * @returns true: 正常、false: 異常
+   */
+  static validateTimecardEntries(entries: TimecardEntry[]): boolean {
+    // TODO: 実装
+    throw new Error('Not implemented');
+  }
+
+  /**
    * 指定日付の稼働時間を分単位で計算する
+   *
+   * - 正常なstart-endペアの場合: 各ペアの時間差を合計
+   * - 最後がstartで終わる場合: 最後のstartから現在時刻までを含めて計算
+   * - 異常なパターンの場合: null を返す
+   *
    * @param data タイムカードデータ
    * @param date 日付（YYYY-MM-DD形式）
-   * @returns 稼働時間（分）
+   * @returns 稼働時間（分）、または異常時は null
    */
-  static calculateWorkingTimeForDate(data: TimecardData, date: string): number {
+  static calculateWorkingTimeForDate(data: TimecardData, date: string): number | null {
+    // TODO: validateTimecardEntriesを呼び出して検証
+    // TODO: 最後がstartの場合は現在時刻までを計算
+
     // 指定日付のエントリを取得
     const entries = data[date] || [];
 
