@@ -19,6 +19,8 @@ const electronAPI: ElectronAPI = {
     ipcRenderer.on('check-out-request', () => callback());
   },
   fetchCalendarEvents: (date) => ipcRenderer.invoke('fetch-calendar-events', date),
+  loadProjectDefinitions: () => ipcRenderer.invoke('load-project-definitions'),
+  saveProjectDefinitions: (data) => ipcRenderer.invoke('save-project-definitions', data),
 };
 
 contextBridge.exposeInMainWorld('electronAPI', electronAPI);
