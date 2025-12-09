@@ -73,11 +73,14 @@ export function assignColorToItem(
   date: string,
   projectRepo: ProjectDefinitionRepository
 ): string {
-  // TODO: 実装
-  // - item.getTaskcode()でtaskcodeを取得
-  // - ProjectDefinitionRepository.getColorForTaskcode()で色を取得
-  // - 該当プロジェクトがない場合（nullの場合）は灰色 (#808080) を返す
-  throw new Error('Not implemented');
+  // item.getTaskcode()でtaskcodeを取得
+  const taskcode = item.getTaskcode();
+
+  // ProjectDefinitionRepository.getColorForTaskcode()で色を取得
+  const color = ProjectDefinitionRepository.getColorForTaskcode(projectRepo, date, taskcode);
+
+  // 該当プロジェクトがない場合（nullの場合）は灰色 (#808080) を返す
+  return color ?? '#808080';
 }
 
 /**

@@ -20,11 +20,22 @@ export class ProjectDefinition {
    * @returns ProjectDefinitionインスタンス
    */
   static fromJSON(json: any): ProjectDefinition {
-    // TODO: 実装
-    // - projectcode, colorを取得
-    // - taskcodes配列から各taskcode.taskcodeを抽出して配列にする
-    // - 未使用フィールド（assign, keywords, quickTasks, projectnameなど）は無視
-    throw new Error('Not implemented');
+    // projectcode, colorを取得
+    const projectcode = json.projectcode;
+    const color = json.color;
+
+    // taskcodes配列から各taskcode.taskcodeを抽出
+    const taskcodes: string[] = [];
+    if (Array.isArray(json.taskcodes)) {
+      for (const item of json.taskcodes) {
+        if (item && typeof item === 'object' && item.taskcode) {
+          taskcodes.push(item.taskcode);
+        }
+      }
+    }
+
+    // 未使用フィールド(assign, keywords, quickTasks, projectnameなど)は無視
+    return new ProjectDefinition(projectcode, color, taskcodes);
   }
 
   /**
@@ -32,10 +43,11 @@ export class ProjectDefinition {
    * @returns JSONオブジェクト
    */
   toJSON(): any {
-    // TODO: 実装
-    // - projectcode, color, taskcodesをオブジェクトに変換
-    // - taskcodes配列は各要素を { taskcode: string } 形式にする
-    throw new Error('Not implemented');
+    return {
+      projectcode: this.projectcode,
+      color: this.color,
+      taskcodes: this.taskcodes.map(taskcode => ({ taskcode }))
+    };
   }
 }
 
@@ -57,12 +69,22 @@ export class ProjectDefinitionRepository {
    * @returns ProjectDefinitionRepositoryインスタンス
    */
   static fromJsonText(jsonText: string): ProjectDefinitionRepository {
-    // TODO: 実装
-    // - JSON.parse()でパース
-    // - { "2025-12": [...], "2025-11": [...] } 形式を想定
-    // - 各月のプロジェクト定義配列をProjectDefinition.fromJSON()で変換
-    // - Map<string, ProjectDefinition[]>を構築
-    throw new Error('Not implemented');
+    // JSON.parse()でパース
+    const json = JSON.parse(jsonText);
+
+    // Map<string, ProjectDefinition[]>を構築
+    const definitions = new Map<string, ProjectDefinition[]>();
+
+    // { "2025-12": [...], "2025-11": [...] } 形式を想定
+    for (const month in json) {
+      if (Array.isArray(json[month])) {
+        // 各月のプロジェクト定義配列をProjectDefinition.fromJSON()で変換
+        const projectDefs = json[month].map((item: any) => ProjectDefinition.fromJSON(item));
+        definitions.set(month, projectDefs);
+      }
+    }
+
+    return new ProjectDefinitionRepository(definitions);
   }
 
   /**
@@ -71,11 +93,16 @@ export class ProjectDefinitionRepository {
    * @returns JSON文字列
    */
   static toJsonText(repo: ProjectDefinitionRepository): string {
-    // TODO: 実装
-    // - definitions MapをObjectに変換
-    // - 各ProjectDefinitionをtoJSON()でJSONに変換
-    // - JSON.stringify()で文字列化（インデント2）
-    throw new Error('Not implemented');
+    // definitions MapをObjectに変換
+    const obj: Record<string, any[]> = {};
+
+    // 各ProjectDefinitionをtoJSON()でJSONに変換
+    repo.definitions.forEach((projectDefs, month) => {
+      obj[month] = projectDefs.map(def => def.toJSON());
+    });
+
+    // JSON.stringify()で文字列化（インデント2）
+    return JSON.stringify(obj, null, 2);
   }
 
   /**
@@ -90,12 +117,25 @@ export class ProjectDefinitionRepository {
     date: string,
     taskcode: string
   ): string | null {
-    // TODO: 実装
-    // - dateから月（YYYY-MM）を抽出
-    // - repo.definitions.get(month)で該当月のプロジェクト定義を取得
-    // - 各ProjectDefinitionのtaskcodesにtaskcodeが含まれているか確認
-    // - マッチしたプロジェクトのcolorを返す、見つからない場合はnull
-    throw new Error('Not implemented');
+    // dateから月（YYYY-MM）を抽出
+    const month = date.substring(0, 7); // "YYYY-MM-DD" -> "YYYY-MM"
+
+    // repo.definitions.get(month)で該当月のプロジェクト定義を取得
+    const projectDefs = repo.definitions.get(month);
+    if (!projectDefs) {
+      return null;
+    }
+
+    // 各ProjectDefinitionのtaskcodesにtaskcodeが含まれているか確認
+    for (const projectDef of projectDefs) {
+      if (projectDef.taskcodes.includes(taskcode)) {
+        // マッチしたプロジェクトのcolorを返す
+        return projectDef.color;
+      }
+    }
+
+    // 見つからない場合はnull
+    return null;
   }
 
   /**

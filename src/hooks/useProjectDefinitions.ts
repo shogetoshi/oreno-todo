@@ -22,13 +22,25 @@ export function useProjectDefinitions() {
    * IPC経由でプロジェクト定義を読み込む
    */
   const loadProjectDefinitions = async () => {
-    // TODO: 実装
-    // - window.electronAPI.loadProjectDefinitions()を呼び出し
-    // - 取得したJSONをJSON.stringify()で文字列化
-    // - ProjectDefinitionRepository.fromJsonText()でパース
-    // - setProjectRepo()で状態を更新
-    // - setIsLoading(false)
-    // - エラー時はconsole.errorでログ出力し、空のリポジトリを設定
+    try {
+      // window.electronAPI.loadProjectDefinitions()を呼び出し
+      const json = await window.electronAPI.loadProjectDefinitions();
+
+      // 取得したJSONをJSON.stringify()で文字列化
+      const jsonText = JSON.stringify(json);
+
+      // ProjectDefinitionRepository.fromJsonText()でパース
+      const repo = ProjectDefinitionRepository.fromJsonText(jsonText);
+
+      // setProjectRepo()で状態を更新
+      setProjectRepo(repo);
+    } catch (error) {
+      // エラー時はconsole.errorでログ出力し、空のリポジトリを設定
+      console.error('Failed to load project definitions:', error);
+      setProjectRepo(ProjectDefinitionRepository.createEmpty());
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   /**
@@ -36,11 +48,19 @@ export function useProjectDefinitions() {
    * @param repo 保存するProjectDefinitionRepository
    */
   const saveProjectDefinitions = async (repo: ProjectDefinitionRepository) => {
-    // TODO: 実装
-    // - ProjectDefinitionRepository.toJsonText()でJSON文字列化
-    // - JSON.parse()でオブジェクトに変換
-    // - window.electronAPI.saveProjectDefinitions()で保存
-    // - エラー時は例外をスロー
+    // ProjectDefinitionRepository.toJsonText()でJSON文字列化
+    const jsonText = ProjectDefinitionRepository.toJsonText(repo);
+
+    // JSON.parse()でオブジェクトに変換
+    const json = JSON.parse(jsonText);
+
+    // window.electronAPI.saveProjectDefinitions()で保存
+    const result = await window.electronAPI.saveProjectDefinitions(json);
+
+    // エラー時は例外をスロー
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to save project definitions');
+    }
   };
 
   /**
@@ -48,10 +68,14 @@ export function useProjectDefinitions() {
    * @param jsonText プロジェクト定義のJSON文字列
    */
   const replaceFromJson = async (jsonText: string) => {
-    // TODO: 実装
-    // - ProjectDefinitionRepository.fromJsonText()でパース（エラー時は例外がスロー）
-    // - saveProjectDefinitions()で保存
-    // - 成功したらsetProjectRepo()で状態を更新
+    // ProjectDefinitionRepository.fromJsonText()でパース（エラー時は例外がスロー）
+    const repo = ProjectDefinitionRepository.fromJsonText(jsonText);
+
+    // saveProjectDefinitions()で保存
+    await saveProjectDefinitions(repo);
+
+    // 成功したらsetProjectRepo()で状態を更新
+    setProjectRepo(repo);
   };
 
   return {

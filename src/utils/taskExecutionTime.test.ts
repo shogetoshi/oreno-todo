@@ -1,10 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { Todo } from '../models/Todo';
 import { CalendarEvent } from '../models/CalendarEvent';
+import { ProjectDefinitionRepository, ProjectDefinition } from '../models/ProjectDefinition';
 import {
   calculateExecutionTimeForDate,
   calculateExecutionTimesForDate,
   assignColorToTodo,
+  assignColorToItem,
   calculateStackBarDisplay
 } from './taskExecutionTime';
 
@@ -217,6 +219,65 @@ describe('taskExecutionTime utilities', () => {
     });
   });
 
+  describe('assignColorToItem', () => {
+    it('プロジェクト定義から色を取得する', () => {
+      const projectDef = new ProjectDefinition('ProjectA', 'red', ['TASK-001']);
+      const definitions = new Map<string, ProjectDefinition[]>();
+      definitions.set('2025-11', [projectDef]);
+      const repo = new ProjectDefinitionRepository(definitions);
+
+      const todo = new Todo(
+        'test-id',
+        'TASK-001',
+        'Test task',
+        null,
+        '2025-11-28 10:00:00',
+        '2025-11-28 10:00:00',
+        []
+      );
+
+      const color = assignColorToItem(todo, '2025-11-28', repo);
+      expect(color).toBe('red');
+    });
+
+    it('該当プロジェクトがない場合は灰色を返す', () => {
+      const emptyRepo = ProjectDefinitionRepository.createEmpty();
+
+      const todo = new Todo(
+        'test-id',
+        'TASK-999',
+        'Test task',
+        null,
+        '2025-11-28 10:00:00',
+        '2025-11-28 10:00:00',
+        []
+      );
+
+      const color = assignColorToItem(todo, '2025-11-28', emptyRepo);
+      expect(color).toBe('#808080');
+    });
+
+    it('月が異なる場合は灰色を返す', () => {
+      const projectDef = new ProjectDefinition('ProjectA', 'blue', ['TASK-001']);
+      const definitions = new Map<string, ProjectDefinition[]>();
+      definitions.set('2025-11', [projectDef]);
+      const repo = new ProjectDefinitionRepository(definitions);
+
+      const todo = new Todo(
+        'test-id',
+        'TASK-001',
+        'Test task',
+        null,
+        '2025-12-01 10:00:00',
+        '2025-12-01 10:00:00',
+        []
+      );
+
+      const color = assignColorToItem(todo, '2025-12-01', repo);
+      expect(color).toBe('#808080');
+    });
+  });
+
   describe('calculateStackBarDisplay', () => {
     it('12時間未満の場合は12時間を基準にする', () => {
       const todos = [
@@ -236,7 +297,8 @@ describe('taskExecutionTime utilities', () => {
         )
       ];
 
-      const result = calculateStackBarDisplay(todos, '2025-11-28');
+      const emptyRepo = ProjectDefinitionRepository.createEmpty();
+      const result = calculateStackBarDisplay(todos, '2025-11-28', emptyRepo);
 
       expect(result.totalMinutes).toBe(60);
       expect(result.displayMaxMinutes).toBe(720); // 12時間 = 720分
@@ -264,7 +326,8 @@ describe('taskExecutionTime utilities', () => {
         )
       ];
 
-      const result = calculateStackBarDisplay(todos, '2025-11-28');
+      const emptyRepo = ProjectDefinitionRepository.createEmpty();
+      const result = calculateStackBarDisplay(todos, '2025-11-28', emptyRepo);
 
       expect(result.totalMinutes).toBe(780);
       expect(result.displayMaxMinutes).toBe(780); // 実際の時間を使用
@@ -284,7 +347,8 @@ describe('taskExecutionTime utilities', () => {
         )
       ];
 
-      const result = calculateStackBarDisplay(todos, '2025-11-28');
+      const emptyRepo = ProjectDefinitionRepository.createEmpty();
+      const result = calculateStackBarDisplay(todos, '2025-11-28', emptyRepo);
 
       expect(result.totalMinutes).toBe(0);
       expect(result.displayMaxMinutes).toBe(720); // 12時間基準
@@ -323,7 +387,8 @@ describe('taskExecutionTime utilities', () => {
         )
       ];
 
-      const result = calculateStackBarDisplay(todos, '2025-11-28');
+      const emptyRepo = ProjectDefinitionRepository.createEmpty();
+      const result = calculateStackBarDisplay(todos, '2025-11-28', emptyRepo);
 
       expect(result.totalMinutes).toBe(150);
       expect(result.displayMaxMinutes).toBe(720); // 12時間基準
@@ -352,7 +417,8 @@ describe('taskExecutionTime utilities', () => {
         )
       ];
 
-      const result = calculateStackBarDisplay(todos, '2025-11-28');
+      const emptyRepo = ProjectDefinitionRepository.createEmpty();
+      const result = calculateStackBarDisplay(todos, '2025-11-28', emptyRepo);
 
       // 12時間基準 = 720分 = 12時間
       // hourMarkersは 0, 1, 2, ..., 12 の13要素
@@ -379,7 +445,8 @@ describe('taskExecutionTime utilities', () => {
         )
       ];
 
-      const result = calculateStackBarDisplay(todos, '2025-11-28');
+      const emptyRepo = ProjectDefinitionRepository.createEmpty();
+      const result = calculateStackBarDisplay(todos, '2025-11-28', emptyRepo);
 
       // 13時間 = 780分
       // hourMarkersは 0, 1, 2, ..., 13 の14要素
@@ -388,7 +455,7 @@ describe('taskExecutionTime utilities', () => {
       expect(result.hourMarkers[13]).toBe(13);
     });
 
-    it('各セグメントに色が割り当てられる', () => {
+    it('プロジェクト定義がない場合、セグメントに灰色が割り当てられる', () => {
       const todos = [
         new Todo(
           'test-id-1',
@@ -406,9 +473,38 @@ describe('taskExecutionTime utilities', () => {
         )
       ];
 
-      const result = calculateStackBarDisplay(todos, '2025-11-28');
+      const emptyRepo = ProjectDefinitionRepository.createEmpty();
+      const result = calculateStackBarDisplay(todos, '2025-11-28', emptyRepo);
 
-      expect(result.segments[0].color).toMatch(/^hsl\(\d+, \d+%, \d+%\)$/);
+      expect(result.segments[0].color).toBe('#808080');
+    });
+
+    it('プロジェクト定義がある場合、セグメントにプロジェクト色が割り当てられる', () => {
+      const projectDef = new ProjectDefinition('ProjectA', 'green', ['TASK001']);
+      const definitions = new Map<string, ProjectDefinition[]>();
+      definitions.set('2025-11', [projectDef]);
+      const repo = new ProjectDefinitionRepository(definitions);
+
+      const todos = [
+        new Todo(
+          'test-id-1',
+          'TASK001',
+          'Task 1',
+          null,
+          '2025-11-28 10:00:00',
+          '2025-11-28 10:00:00',
+          [
+            {
+              start: '2025-11-28 10:00:00',
+              end: '2025-11-28 11:00:00' // 60分
+            }
+          ]
+        )
+      ];
+
+      const result = calculateStackBarDisplay(todos, '2025-11-28', repo);
+
+      expect(result.segments[0].color).toBe('green');
     });
   });
 
@@ -510,7 +606,8 @@ describe('taskExecutionTime utilities', () => {
       );
 
       const items = [todo, calendarEvent];
-      const result = calculateStackBarDisplay(items, '2025-11-28');
+      const emptyRepo = ProjectDefinitionRepository.createEmpty();
+      const result = calculateStackBarDisplay(items, '2025-11-28', emptyRepo);
 
       expect(result.segments).toHaveLength(2);
       expect(result.totalMinutes).toBe(180); // 60 + 120
