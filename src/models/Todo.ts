@@ -1,4 +1,4 @@
-import { getCurrentJSTTime, parseJSTString } from '../utils/timeFormat';
+import { getCurrentJSTTime, parseJSTString, extractDateFromJST } from '../utils/timeFormat';
 import { ListItem, ListItemType } from './ListItem';
 
 /**
@@ -183,11 +183,33 @@ export class Todo implements ListItem {
    * @param date 日付（YYYY-MM-DD形式）
    * @returns 指定日付における実行時間（分）
    */
-  getExecutionTimeForDate(_date: string): number {
-    // TODO: 実装
-    // timeRangesをループし、指定日付のものだけを集計
-    // extractDateFromJST, parseJSTStringを使用
-    return 0;
+  getExecutionTimeForDate(date: string): number {
+    if (this.timeRanges.length === 0) {
+      return 0;
+    }
+
+    let totalMinutes = 0;
+
+    for (const range of this.timeRanges) {
+      const startDate = extractDateFromJST(range.start);
+
+      // このtimeRangeが指定日付に該当しない場合はスキップ
+      if (startDate !== date) {
+        continue;
+      }
+
+      // 終了時刻を取得(endがnullの場合は現在時刻)
+      const startTime = parseJSTString(range.start);
+      const endTime = range.end ? parseJSTString(range.end) : parseJSTString(getCurrentJSTTime());
+
+      // 時間差を分に変換
+      const durationMs = endTime.getTime() - startTime.getTime();
+      const durationMinutes = Math.floor(durationMs / (1000 * 60));
+
+      totalMinutes += durationMinutes;
+    }
+
+    return totalMinutes;
   }
 
   /**
