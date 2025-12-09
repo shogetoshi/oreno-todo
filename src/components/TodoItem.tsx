@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { ListItem } from '../models/ListItem';
 import { ProjectDefinitionRepository } from '../models/ProjectDefinition';
-import { assignColorToItem } from '../utils/taskExecutionTime';
+import { assignColorToItem, colorToRgba } from '../utils/taskExecutionTime';
 
 /**
  * View Layer: TodoItem Component
@@ -115,6 +115,7 @@ export const TodoItem = ({ todo, index, isDragging, currentDate, projectRepo, on
       onDoubleClick={() => onOpenJsonEditor(todoId)}
       style={{
         borderLeft: `4px solid ${projectColor}`,
+        backgroundColor: colorToRgba(projectColor, 0.1), // 薄い背景色（10%透明度）
         opacity: isDragging ? 0.5 : 1
       }}
     >
