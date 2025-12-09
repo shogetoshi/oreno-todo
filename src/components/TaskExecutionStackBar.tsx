@@ -1,6 +1,7 @@
 import { ListItem } from '../models/ListItem';
 import { calculateStackBarDisplay } from '../utils/taskExecutionTime';
 import { TimecardData, TimecardRepository } from '../models/TimecardRepository';
+import { ProjectDefinitionRepository } from '../models/ProjectDefinition';
 import './TaskExecutionStackBar.css';
 
 /**
@@ -11,11 +12,12 @@ interface TaskExecutionStackBarProps {
   items: ListItem[];
   date: string; // YYYY-MM-DD形式
   timecardData: TimecardData;
+  projectRepo: ProjectDefinitionRepository; // 追加
 }
 
-export const TaskExecutionStackBar = ({ items, date, timecardData }: TaskExecutionStackBarProps) => {
+export const TaskExecutionStackBar = ({ items, date, timecardData, projectRepo }: TaskExecutionStackBarProps) => {
   // すべての計算をModel層に委譲
-  const displayConfig = calculateStackBarDisplay(items, date);
+  const displayConfig = calculateStackBarDisplay(items, date, projectRepo);
 
   // タイムカードから稼働時間を計算
   const workingTimeMinutes = TimecardRepository.calculateWorkingTimeForDate(timecardData, date);

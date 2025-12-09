@@ -7,6 +7,7 @@ import { fetchCalendarEvents, getTodayDateString } from './googleCalendar';
 const isDev = !app.isPackaged;
 const dataPath = path.join(app.getPath('userData'), 'todos.json');
 const timecardPath = path.join(app.getPath('userData'), 'timecard.json');
+const projectDefinitionsPath = path.join(app.getPath('userData'), 'project-definitions.json');
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -131,6 +132,56 @@ ipcMain.handle('save-timecard', async (_, data) => {
 ipcMain.handle('fetch-calendar-events', async (_, date?: string) => {
   const targetDate = date || getTodayDateString();
   return await fetchCalendarEvents(targetDate);
+});
+
+// プロジェクト定義の読み込み
+ipcMain.handle('load-project-definitions', async () => {
+  try {
+    const data = await fsPromises.readFile(projectDefinitionsPath, 'utf-8');
+    const parsed = JSON.parse(data);
+    return parsed;
+  } catch (error) {
+    // ファイルが存在しない場合は空オブジェクトを返す
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      return {};
+    }
+
+    // JSON パースエラーの場合はバックアップを作成
+    if (error instanceof SyntaxError) {
+      console.error('Project definitions JSON parse error, creating backup');
+      try {
+        const backupPath = `${projectDefinitionsPath}.backup.${Date.now()}`;
+        await fsPromises.copyFile(projectDefinitionsPath, backupPath);
+        console.log(`Backup created at: ${backupPath}`);
+      } catch (backupError) {
+        console.error('Failed to create backup:', backupError);
+      }
+    }
+
+    console.error('Failed to load project definitions:', error);
+    return {};
+  }
+});
+
+// プロジェクト定義の保存（アトミックな書き込み）
+ipcMain.handle('save-project-definitions', async (_, data) => {
+  const tempPath = `${projectDefinitionsPath}.tmp`;
+  try {
+    // 一時ファイルに完全に書き込み
+    await fsPromises.writeFile(tempPath, JSON.stringify(data, null, 2), 'utf-8');
+    // アトミックにリネーム（OSレベルでアトミック操作）
+    await fsPromises.rename(tempPath, projectDefinitionsPath);
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to save project definitions:', error);
+    // 一時ファイルのクリーンアップ
+    try {
+      await fsPromises.unlink(tempPath);
+    } catch (unlinkError) {
+      // クリーンアップ失敗は無視（既に存在しない可能性）
+    }
+    return { success: false, error: String(error) };
+  }
 });
 
 // HTTPサーバーの起動

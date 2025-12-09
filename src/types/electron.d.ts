@@ -20,6 +20,8 @@ export interface ElectronAPI {
   onCheckInRequest: (callback: () => void) => void;
   onCheckOutRequest: (callback: () => void) => void;
   fetchCalendarEvents: (date?: string) => Promise<FetchCalendarEventsResult>;
+  loadProjectDefinitions: () => Promise<any>;
+  saveProjectDefinitions: (data: any) => Promise<{ success: boolean; error?: string }>;
 }
 
 declare global {

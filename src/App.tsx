@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useTodos } from './hooks/useTodos';
 import { useTimecard } from './hooks/useTimecard';
+import { useProjectDefinitions } from './hooks/useProjectDefinitions';
 import { TodoInput } from './components/TodoInput';
 import { DateGroupedTodoList } from './components/DateGroupedTodoList';
 import { TodoRepository } from './models/TodoRepository';
 import { TimecardRepository } from './models/TimecardRepository';
+import { ProjectDefinitionRepository } from './models/ProjectDefinition';
 import type { ListItem } from './models/ListItem';
 import './App.css';
 
@@ -16,11 +18,13 @@ import './App.css';
 function App() {
   const { todos, isLoading, addTodo, toggleTodo, deleteTodo, editTodo, editTaskcode, reorderTodos, replaceFromJson, editSingleItemFromJson, replaceItemsForDate, startTimer, stopTimer, importCalendarEvents } = useTodos();
   const { timecardData, isLoading: isTimecardLoading, checkIn, checkOut, replaceFromJson: replaceTimecardFromJson, replaceTimecardForDate } = useTimecard();
+  const { projectRepo, isLoading: isProjectLoading, replaceFromJson: replaceProjectFromJson } = useProjectDefinitions();
   const [isJsonEditorOpen, setIsJsonEditorOpen] = useState(false);
   const [jsonText, setJsonText] = useState('');
   const [jsonError, setJsonError] = useState('');
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [isTimecardJsonEditor, setIsTimecardJsonEditor] = useState(false);
+  const [isProjectJsonEditor, setIsProjectJsonEditor] = useState(false);
   const [editingDate, setEditingDate] = useState<string | null>(null);
   const [editingTimecardDate, setEditingTimecardDate] = useState<string | null>(null);
 
@@ -29,6 +33,7 @@ function App() {
     setJsonError('');
     setEditingItemId(null);
     setIsTimecardJsonEditor(false);
+    setIsProjectJsonEditor(false);
     setEditingDate(null);
     setEditingTimecardDate(null);
     setIsJsonEditorOpen(true);
@@ -39,6 +44,18 @@ function App() {
     setJsonError('');
     setEditingItemId(null);
     setIsTimecardJsonEditor(true);
+    setIsProjectJsonEditor(false);
+    setEditingDate(null);
+    setEditingTimecardDate(null);
+    setIsJsonEditorOpen(true);
+  };
+
+  const handleOpenProjectJsonEditor = () => {
+    setJsonText(ProjectDefinitionRepository.toJsonText(projectRepo));
+    setJsonError('');
+    setEditingItemId(null);
+    setIsTimecardJsonEditor(false);
+    setIsProjectJsonEditor(true);
     setEditingDate(null);
     setEditingTimecardDate(null);
     setIsJsonEditorOpen(true);
@@ -53,6 +70,7 @@ function App() {
     setJsonError('');
     setEditingItemId(id);
     setIsTimecardJsonEditor(false);
+    setIsProjectJsonEditor(false);
     setEditingDate(null);
     setEditingTimecardDate(null);
     setIsJsonEditorOpen(true);
@@ -64,6 +82,7 @@ function App() {
     setEditingDate(date);
     setEditingItemId(null);
     setIsTimecardJsonEditor(false);
+    setIsProjectJsonEditor(false);
     setEditingTimecardDate(null);
     setIsJsonEditorOpen(true);
   };
@@ -76,6 +95,7 @@ function App() {
     setEditingDate(null);
     setEditingItemId(null);
     setIsTimecardJsonEditor(false);
+    setIsProjectJsonEditor(false);
     setIsJsonEditorOpen(true);
   };
 
@@ -85,13 +105,17 @@ function App() {
     setJsonError('');
     setEditingItemId(null);
     setIsTimecardJsonEditor(false);
+    setIsProjectJsonEditor(false);
     setEditingDate(null);
     setEditingTimecardDate(null);
   };
 
   const handleSaveJson = async () => {
     try {
-      if (isTimecardJsonEditor) {
+      if (isProjectJsonEditor) {
+        // プロジェクト定義JSONの置き換え
+        await replaceProjectFromJson(jsonText);
+      } else if (isTimecardJsonEditor) {
         // タイムカードJSONの置き換え
         await replaceTimecardFromJson(jsonText);
       } else if (editingTimecardDate) {
@@ -119,7 +143,7 @@ function App() {
     }
   };
 
-  if (isLoading || isTimecardLoading) {
+  if (isLoading || isTimecardLoading || isProjectLoading) {
     return (
       <div className="app">
         <div className="loading">読み込み中...</div>
@@ -149,12 +173,16 @@ function App() {
             <button className="json-edit-button" onClick={handleOpenTimecardJsonEditor}>
               タイムカードJSON編集
             </button>
+            <button className="json-edit-button" onClick={handleOpenProjectJsonEditor}>
+              プロジェクト定義JSON編集
+            </button>
           </div>
         </div>
 
         <DateGroupedTodoList
           todos={todos}
           timecardData={timecardData}
+          projectRepo={projectRepo}
           onToggle={toggleTodo}
           onDelete={deleteTodo}
           onEdit={editTodo}
@@ -173,7 +201,9 @@ function App() {
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <div className="modal-header">
                 <h2>
-                  {isTimecardJsonEditor
+                  {isProjectJsonEditor
+                    ? 'プロジェクト定義のJSON編集'
+                    : isTimecardJsonEditor
                     ? 'タイムカードのJSON編集'
                     : editingItemId
                     ? 'アイテムのJSON編集'

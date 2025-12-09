@@ -1,5 +1,6 @@
 import { ListItem } from '../models/ListItem';
 import { extractDateFromJST, parseJSTString } from './timeFormat';
+import { ProjectDefinitionRepository } from '../models/ProjectDefinition';
 
 /**
  * 特定の日付におけるListItem（TodoまたはCalendarEvent）の実行時間を分単位で計算する
@@ -60,10 +61,31 @@ export function calculateExecutionTimesForDate(
 }
 
 /**
- * ListItem（TodoまたはCalendarEvent）に対して一貫性のある色を割り当てる
- * 現在は仮実装として、IDから決定論的に色を生成する
- * @param itemId ListItemのID
- * @returns CSS color値（hex形式）
+ * ListItem（TodoまたはCalendarEvent）に対して色を割り当てる
+ * プロジェクト定義から色を取得し、該当プロジェクトがない場合は灰色を返す
+ * @param item 対象のListItem
+ * @param date 日付（YYYY-MM-DD形式）
+ * @param projectRepo プロジェクト定義リポジトリ
+ * @returns CSS color値
+ */
+export function assignColorToItem(
+  item: ListItem,
+  date: string,
+  projectRepo: ProjectDefinitionRepository
+): string {
+  // item.getTaskcode()でtaskcodeを取得
+  const taskcode = item.getTaskcode();
+
+  // ProjectDefinitionRepository.getColorForTaskcode()で色を取得
+  const color = ProjectDefinitionRepository.getColorForTaskcode(projectRepo, date, taskcode);
+
+  // 該当プロジェクトがない場合（nullの場合）は灰色 (#808080) を返す
+  return color ?? '#808080';
+}
+
+/**
+ * 後方互換性のため残す（非推奨）
+ * @deprecated assignColorToItemを使用してください
  */
 export function assignColorToTodo(itemId: string): string {
   // IDをハッシュ化して色を生成（仮実装）
@@ -107,11 +129,13 @@ export interface StackBarDisplayConfig {
  * 積み上げ棒グラフの表示に必要な情報をすべて計算する
  * @param items ListItemリスト（TodoまたはCalendarEvent）
  * @param date 日付（YYYY-MM-DD形式）
+ * @param projectRepo プロジェクト定義リポジトリ
  * @returns 積み上げ棒グラフの表示設定
  */
 export function calculateStackBarDisplay(
   items: ListItem[],
-  date: string
+  date: string,
+  projectRepo: ProjectDefinitionRepository
 ): StackBarDisplayConfig {
   const segments: TaskExecutionSegment[] = [];
   let totalMinutes = 0;
@@ -124,7 +148,7 @@ export function calculateStackBarDisplay(
         itemId: item.getId(),
         itemText: item.getText(),
         minutes,
-        color: assignColorToTodo(item.getId())
+        color: assignColorToItem(item, date, projectRepo)
       });
       totalMinutes += minutes;
     }
