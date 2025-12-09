@@ -713,15 +713,14 @@ describe('CalendarEvent', () => {
     it('指定日付に実行時間がない場合は0を返す', () => {
       const event = new CalendarEvent(
         'test-id',
+        '',
         'Test event',
         null,
         '2025-11-28 10:00:00',
         '2025-11-28 10:00:00',
-        [],
         '2025-11-28 10:00:00',
         '2025-11-28 11:00:00',
-        'Test Location',
-        'Test Description'
+        []
       );
 
       const result = event.getExecutionTimeForDate('2025-11-28');
@@ -731,20 +730,19 @@ describe('CalendarEvent', () => {
     it('指定日付の実行時間を正しく計算する', () => {
       const event = new CalendarEvent(
         'test-id',
+        '',
         'Test event',
         null,
         '2025-11-28 10:00:00',
         '2025-11-28 10:00:00',
+        '2025-11-28 10:00:00',
+        '2025-11-28 11:00:00',
         [
           {
             start: '2025-11-28 10:00:00',
             end: '2025-11-28 11:30:00' // 90分
           }
-        ],
-        '2025-11-28 10:00:00',
-        '2025-11-28 11:00:00',
-        'Test Location',
-        'Test Description'
+        ]
       );
 
       const result = event.getExecutionTimeForDate('2025-11-28');
@@ -754,10 +752,13 @@ describe('CalendarEvent', () => {
     it('複数のtimeRangesがある場合は合計時間を返す', () => {
       const event = new CalendarEvent(
         'test-id',
+        '',
         'Test event',
         null,
         '2025-11-28 10:00:00',
         '2025-11-28 10:00:00',
+        '2025-11-28 10:00:00',
+        '2025-11-28 11:00:00',
         [
           {
             start: '2025-11-28 10:00:00',
@@ -767,11 +768,7 @@ describe('CalendarEvent', () => {
             start: '2025-11-28 14:00:00',
             end: '2025-11-28 15:30:00' // 90分
           }
-        ],
-        '2025-11-28 10:00:00',
-        '2025-11-28 11:00:00',
-        'Test Location',
-        'Test Description'
+        ]
       );
 
       const result = event.getExecutionTimeForDate('2025-11-28');
@@ -781,10 +778,13 @@ describe('CalendarEvent', () => {
     it('異なる日付のtimeRangesは除外する', () => {
       const event = new CalendarEvent(
         'test-id',
+        '',
         'Test event',
         null,
         '2025-11-28 10:00:00',
         '2025-11-28 10:00:00',
+        '2025-11-28 10:00:00',
+        '2025-11-28 11:00:00',
         [
           {
             start: '2025-11-28 10:00:00',
@@ -794,11 +794,7 @@ describe('CalendarEvent', () => {
             start: '2025-11-29 14:00:00',
             end: '2025-11-29 15:00:00' // 60分(2025-11-29)
           }
-        ],
-        '2025-11-28 10:00:00',
-        '2025-11-28 11:00:00',
-        'Test Location',
-        'Test Description'
+        ]
       );
 
       const result = event.getExecutionTimeForDate('2025-11-28');
@@ -812,20 +808,19 @@ describe('CalendarEvent', () => {
       // 固定時刻: 2025-01-15 12:34:56(vitest beforeEachで設定済み)
       const event = new CalendarEvent(
         'test-id',
+        '',
         'Test event',
         null,
         '2025-01-15 10:00:00',
         '2025-01-15 10:00:00',
+        '2025-01-15 10:00:00',
+        '2025-01-15 11:00:00',
         [
           {
             start: '2025-01-15 10:00:00',
             end: null
           }
-        ],
-        '2025-01-15 10:00:00',
-        '2025-01-15 11:00:00',
-        'Test Location',
-        'Test Description'
+        ]
       );
 
       // 10:00:00 から 12:34:56 まで = 154分
