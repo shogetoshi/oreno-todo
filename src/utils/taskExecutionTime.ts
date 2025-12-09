@@ -84,6 +84,29 @@ export function assignColorToItem(
 }
 
 /**
+ * CSS色名や16進数をRGBA形式に変換する
+ * @param color CSS色名または16進数色コード
+ * @param alpha 透明度（0-1）
+ * @returns RGBA形式の色文字列
+ */
+export function colorToRgba(color: string, alpha: number): string {
+  // 一時的なcanvas要素を使って色を解析
+  const canvas = document.createElement('canvas');
+  canvas.width = 1;
+  canvas.height = 1;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    return `rgba(128, 128, 128, ${alpha})`; // フォールバック
+  }
+
+  ctx.fillStyle = color;
+  ctx.fillRect(0, 0, 1, 1);
+  const imageData = ctx.getImageData(0, 0, 1, 1).data;
+
+  return `rgba(${imageData[0]}, ${imageData[1]}, ${imageData[2]}, ${alpha})`;
+}
+
+/**
  * 後方互換性のため残す（非推奨）
  * @deprecated assignColorToItemを使用してください
  */

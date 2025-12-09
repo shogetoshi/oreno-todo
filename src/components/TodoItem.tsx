@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import type { ListItem } from '../models/ListItem';
+import { ProjectDefinitionRepository } from '../models/ProjectDefinition';
+import { assignColorToItem, colorToRgba } from '../utils/taskExecutionTime';
 
 /**
  * View Layer: TodoItem Component
@@ -11,6 +13,7 @@ interface TodoItemProps {
   index: number;
   isDragging: boolean;
   currentDate: string; // YYYY-MM-DD形式
+  projectRepo: ProjectDefinitionRepository; // プロジェクト定義リポジトリ（色付け用）
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (id: string, newText: string) => void;
@@ -24,7 +27,7 @@ interface TodoItemProps {
   onDragEnd: () => void;
 }
 
-export const TodoItem = ({ todo, index, isDragging, currentDate, onToggle, onDelete, onEdit, onEditTaskcode, onStartTimer, onStopTimer, onOpenJsonEditor, onDragStart, onDragOver, onDrop, onDragEnd }: TodoItemProps) => {
+export const TodoItem = ({ todo, index, isDragging, currentDate, projectRepo, onToggle, onDelete, onEdit, onEditTaskcode, onStartTimer, onStopTimer, onOpenJsonEditor, onDragStart, onDragOver, onDrop, onDragEnd }: TodoItemProps) => {
   const [isEditingText, setIsEditingText] = useState(false);
   const [isEditingTaskcode, setIsEditingTaskcode] = useState(false);
   const [editText, setEditText] = useState(todo.getText());
@@ -37,6 +40,9 @@ export const TodoItem = ({ todo, index, isDragging, currentDate, onToggle, onDel
   const isTimerRunning = todo.isTimerRunning();
   const executionTimeForDate = todo.getExecutionTimeForDate(currentDate);
   const totalExecutionTime = todo.getTotalExecutionTimeInMinutes();
+
+  // プロジェクト定義からtaskcodeに対応する色を取得（該当なしの場合は灰色）
+  const projectColor = assignColorToItem(todo, currentDate, projectRepo);
 
   // タイマーボタンのクリックハンドラ
   const handleTimerClick = () => {
@@ -107,7 +113,11 @@ export const TodoItem = ({ todo, index, isDragging, currentDate, onToggle, onDel
       onDrop={() => onDrop(index)}
       onDragEnd={onDragEnd}
       onDoubleClick={() => onOpenJsonEditor(todoId)}
-      style={{ opacity: isDragging ? 0.5 : 1 }}
+      style={{
+        borderLeft: `20px solid ${projectColor}`,
+        backgroundColor: colorToRgba(projectColor, 0.5), // 背景色（50%透明度）
+        opacity: isDragging ? 0.5 : 1
+      }}
     >
       <div className="todo-content">
         {isEditingTaskcode ? (

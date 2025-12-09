@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { ListItem } from '../models/ListItem';
+import { ProjectDefinitionRepository } from '../models/ProjectDefinition';
 import { TodoItem } from './TodoItem';
 
 /**
@@ -9,6 +10,7 @@ import { TodoItem } from './TodoItem';
 interface TodoListProps {
   todos: ListItem[];
   currentDate: string; // YYYY-MM-DD形式
+  projectRepo: ProjectDefinitionRepository; // プロジェクト定義リポジトリ（色付け用）
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (id: string, newText: string) => void;
@@ -19,7 +21,7 @@ interface TodoListProps {
   onOpenJsonEditor: (id: string) => void;
 }
 
-export const TodoList = ({ todos, currentDate, onToggle, onDelete, onEdit, onEditTaskcode, onReorder, onStartTimer, onStopTimer, onOpenJsonEditor }: TodoListProps) => {
+export const TodoList = ({ todos, currentDate, projectRepo, onToggle, onDelete, onEdit, onEditTaskcode, onReorder, onStartTimer, onStopTimer, onOpenJsonEditor }: TodoListProps) => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   const handleDragStart = (index: number) => {
@@ -50,6 +52,7 @@ export const TodoList = ({ todos, currentDate, onToggle, onDelete, onEdit, onEdi
           index={index}
           isDragging={draggedIndex === index}
           currentDate={currentDate}
+          projectRepo={projectRepo}
           onToggle={onToggle}
           onDelete={onDelete}
           onEdit={onEdit}
