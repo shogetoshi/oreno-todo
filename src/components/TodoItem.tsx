@@ -114,8 +114,8 @@ export const TodoItem = ({ todo, index, isDragging, currentDate, projectRepo, on
       onDragEnd={onDragEnd}
       onDoubleClick={() => onOpenJsonEditor(todoId)}
       style={{
-        borderLeft: `4px solid ${projectColor}`,
-        backgroundColor: colorToRgba(projectColor, 0.1), // 薄い背景色（10%透明度）
+        borderLeft: `20px solid ${projectColor}`,
+        backgroundColor: colorToRgba(projectColor, 0.5), // 背景色（50%透明度）
         opacity: isDragging ? 0.5 : 1
       }}
     >
