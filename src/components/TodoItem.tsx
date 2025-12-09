@@ -35,7 +35,6 @@ export const TodoItem = ({ todo, index, isDragging, currentDate, onToggle, onDel
   const todoText = todo.getText();
   const completed = todo.isCompleted();
   const isTimerRunning = todo.isTimerRunning();
-  // TODO: 実装
   const executionTimeForDate = todo.getExecutionTimeForDate(currentDate);
   const totalExecutionTime = todo.getTotalExecutionTimeInMinutes();
 
