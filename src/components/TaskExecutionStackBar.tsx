@@ -23,7 +23,6 @@ export const TaskExecutionStackBar = ({ items, date, timecardData, projectRepo }
   const workingTimeMinutes = TimecardRepository.calculateWorkingTimeForDate(timecardData, date);
 
   // 稼働時間がnullの場合（異常パターン）は赤い棒を表示しない
-  // TODO: shouldShowWorkingTimeLineを使用して条件分岐
   const shouldShowWorkingTimeLine = workingTimeMinutes !== null;
 
   // 稼働時間の位置をパーセンテージで計算
