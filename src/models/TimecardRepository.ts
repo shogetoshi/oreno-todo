@@ -203,8 +203,23 @@ export class TimecardRepository {
    * @returns true: 正常、false: 異常
    */
   static validateTimecardEntries(entries: TimecardEntry[]): boolean {
-    // TODO: 実装
-    throw new Error('Not implemented');
+    if (entries.length === 0) {
+      return false;
+    }
+
+    let expectingStart = true;
+
+    for (const entry of entries) {
+      if (expectingStart && entry.type !== 'start') {
+        return false; // startを期待しているのにendが来た
+      }
+      if (!expectingStart && entry.type !== 'end') {
+        return false; // endを期待しているのにstartが来た
+      }
+      expectingStart = !expectingStart;
+    }
+
+    return true;
   }
 
   /**
@@ -219,15 +234,12 @@ export class TimecardRepository {
    * @returns 稼働時間（分）、または異常時は null
    */
   static calculateWorkingTimeForDate(data: TimecardData, date: string): number | null {
-    // TODO: validateTimecardEntriesを呼び出して検証
-    // TODO: 最後がstartの場合は現在時刻までを計算
-
     // 指定日付のエントリを取得
     const entries = data[date] || [];
 
-    // エントリが存在しない場合は0を返す
-    if (entries.length === 0) {
-      return 0;
+    // エントリの検証
+    if (!this.validateTimecardEntries(entries)) {
+      return null;
     }
 
     let totalMinutes = 0;
@@ -247,6 +259,15 @@ export class TimecardRepository {
         totalMinutes += diffMinutes;
         currentStartEntry = null;
       }
+    }
+
+    // 最後がstartで終わっている場合、現在時刻までを計算
+    if (currentStartEntry !== null) {
+      const startTime = new Date(currentStartEntry.time);
+      const now = new Date();
+      const diffMs = now.getTime() - startTime.getTime();
+      const diffMinutes = Math.floor(diffMs / (1000 * 60));
+      totalMinutes += diffMinutes;
     }
 
     return totalMinutes;
