@@ -256,10 +256,12 @@ export class CalendarEvent implements ListItem {
 
   /**
    * GoogleカレンダーイベントからCalendarEventインスタンスを作成する
+   * @param event Googleカレンダーイベント
+   * @param taskcode タスクコード（省略時は空文字列）
    */
-  static fromGoogleCalendarEvent(event: CalendarEventType): CalendarEvent {
+  static fromGoogleCalendarEvent(event: CalendarEventType, taskcode?: string): CalendarEvent {
     const id = CalendarEvent.extractIdFromGoogleEvent(event);
-    const taskcode = CalendarEvent.extractTaskcodeFromGoogleEvent(event);
+    const finalTaskcode = taskcode !== undefined ? taskcode : '';
     const text = CalendarEvent.extractTextFromGoogleEvent(event);
     const completedAt = CalendarEvent.extractCompletedAtFromGoogleEvent(event);
     const createdAt = CalendarEvent.extractCreatedAtFromGoogleEvent(event);
@@ -269,7 +271,7 @@ export class CalendarEvent implements ListItem {
 
     return new CalendarEvent(
       id,
-      taskcode,
+      finalTaskcode,
       text,
       completedAt,
       createdAt,

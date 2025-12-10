@@ -4,6 +4,7 @@ import { ListItem, ListItemType } from './ListItem';
 import { validateTodos } from '../utils/validation';
 import { getCurrentJSTTime, extractDateFromJST, compareDates } from '../utils/timeFormat';
 import { CalendarEvent as GoogleCalendarEvent } from '../types/calendar';
+import { ProjectDefinitionRepository } from './ProjectDefinition';
 
 /**
  * Model Layer: TodoRepository
@@ -222,19 +223,46 @@ export class TodoRepository {
   /**
    * カレンダーイベントからCalendarEventエンティティを生成する
    * @param event Googleカレンダーイベント
+   * @param projectRepo プロジェクト定義リポジトリ（省略可）
    * @returns 生成されたCalendarEvent
    */
-  static createCalendarEventFromGoogleEvent(event: GoogleCalendarEvent): CalendarEvent {
-    return CalendarEvent.fromGoogleCalendarEvent(event);
+  static createCalendarEventFromGoogleEvent(
+    event: GoogleCalendarEvent,
+    projectRepo?: ProjectDefinitionRepository
+  ): CalendarEvent {
+    let taskcode: string | undefined = undefined;
+
+    // projectRepoが提供されている場合、キーワードマッチングでtaskcodeを検索
+    if (projectRepo) {
+      const startTime = event.start.dateTime || event.start.date;
+      if (startTime) {
+        const date = extractDateFromJST(startTime);
+        const eventText = event.summary;
+        const foundTaskcode = ProjectDefinitionRepository.findTaskcodeByKeyword(
+          projectRepo,
+          date,
+          eventText
+        );
+        if (foundTaskcode) {
+          taskcode = foundTaskcode;
+        }
+      }
+    }
+
+    return CalendarEvent.fromGoogleCalendarEvent(event, taskcode);
   }
 
   /**
    * カレンダーイベント配列からCalendarEventリストを生成する
    * @param events Googleカレンダーイベント配列
+   * @param projectRepo プロジェクト定義リポジトリ（省略可）
    * @returns 生成されたCalendarEventリスト
    */
-  static createCalendarEventsFromGoogleEvents(events: GoogleCalendarEvent[]): CalendarEvent[] {
-    return events.map(event => this.createCalendarEventFromGoogleEvent(event));
+  static createCalendarEventsFromGoogleEvents(
+    events: GoogleCalendarEvent[],
+    projectRepo?: ProjectDefinitionRepository
+  ): CalendarEvent[] {
+    return events.map(event => this.createCalendarEventFromGoogleEvent(event, projectRepo));
   }
 
   /**
@@ -242,10 +270,15 @@ export class TodoRepository {
    * 同一IDのアイテムが既に存在する場合は、新しい情報で上書きする（重複防止）
    * @param items 既存のListItemリスト（TodoまたはCalendarEvent）
    * @param events Googleカレンダーイベント配列
+   * @param projectRepo プロジェクト定義リポジトリ（省略可）
    * @returns 新しいListItemリスト
    */
-  static addCalendarEventsToItems(items: ListItem[], events: GoogleCalendarEvent[]): ListItem[] {
-    const newEvents = this.createCalendarEventsFromGoogleEvents(events);
+  static addCalendarEventsToItems(
+    items: ListItem[],
+    events: GoogleCalendarEvent[],
+    projectRepo?: ProjectDefinitionRepository
+  ): ListItem[] {
+    const newEvents = this.createCalendarEventsFromGoogleEvents(events, projectRepo);
 
     // 新しいイベントのIDセットを作成
     const newEventIds = new Set(newEvents.map(event => event.getId()));

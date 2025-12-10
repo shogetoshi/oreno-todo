@@ -4,6 +4,15 @@
  */
 
 /**
+ * タスクコード定義の型
+ */
+export interface TaskcodeDefinition {
+  taskcode: string;
+  keywords?: string[];
+  quickTasks?: string[];
+}
+
+/**
  * プロジェクト定義を表すクラス
  * 月別にプロジェクトとそれに紐づくtaskcodeを管理する
  */
@@ -11,7 +20,7 @@ export class ProjectDefinition {
   constructor(
     public readonly projectcode: string,
     public readonly color: string,
-    public readonly taskcodes: string[]
+    public readonly taskcodes: TaskcodeDefinition[]
   ) {}
 
   /**
@@ -24,17 +33,20 @@ export class ProjectDefinition {
     const projectcode = json.projectcode;
     const color = json.color;
 
-    // taskcodes配列から各taskcode.taskcodeを抽出
-    const taskcodes: string[] = [];
+    // taskcodes配列から各taskcode情報を抽出（keywords, quickTasksも含む）
+    const taskcodes: TaskcodeDefinition[] = [];
     if (Array.isArray(json.taskcodes)) {
       for (const item of json.taskcodes) {
         if (item && typeof item === 'object' && item.taskcode) {
-          taskcodes.push(item.taskcode);
+          taskcodes.push({
+            taskcode: item.taskcode,
+            keywords: item.keywords,
+            quickTasks: item.quickTasks
+          });
         }
       }
     }
 
-    // 未使用フィールド(assign, keywords, quickTasks, projectnameなど)は無視
     return new ProjectDefinition(projectcode, color, taskcodes);
   }
 
@@ -46,7 +58,11 @@ export class ProjectDefinition {
     return {
       projectcode: this.projectcode,
       color: this.color,
-      taskcodes: this.taskcodes.map(taskcode => ({ taskcode }))
+      taskcodes: this.taskcodes.map(def => ({
+        taskcode: def.taskcode,
+        keywords: def.keywords,
+        quickTasks: def.quickTasks
+      }))
     };
   }
 }
@@ -128,13 +144,55 @@ export class ProjectDefinitionRepository {
 
     // 各ProjectDefinitionのtaskcodesにtaskcodeが含まれているか確認
     for (const projectDef of projectDefs) {
-      if (projectDef.taskcodes.includes(taskcode)) {
+      const hasTaskcode = projectDef.taskcodes.some(def => def.taskcode === taskcode);
+      if (hasTaskcode) {
         // マッチしたプロジェクトのcolorを返す
         return projectDef.color;
       }
     }
 
     // 見つからない場合はnull
+    return null;
+  }
+
+  /**
+   * イベントテキストからキーワードにマッチするtaskcodeを検索する
+   * @param repo ProjectDefinitionRepositoryインスタンス
+   * @param date 日付（YYYY-MM-DD形式）
+   * @param eventText イベントのテキスト（タイトル）
+   * @returns マッチしたtaskcode、見つからない場合はnull
+   */
+  static findTaskcodeByKeyword(
+    repo: ProjectDefinitionRepository,
+    date: string,
+    eventText: string
+  ): string | null {
+    // dateから月（YYYY-MM）を抽出
+    const month = date.substring(0, 7);
+
+    // repo.definitions.get(month)で該当月のプロジェクト定義を取得
+    const projectDefs = repo.definitions.get(month);
+    if (!projectDefs) {
+      return null;
+    }
+
+    // 各ProjectDefinitionのtaskcodesを順に確認
+    for (const projectDef of projectDefs) {
+      for (const taskcodeDef of projectDef.taskcodes) {
+        // keywords配列が存在する場合のみチェック
+        if (taskcodeDef.keywords && Array.isArray(taskcodeDef.keywords)) {
+          // keywordsの各要素がeventTextに含まれるかチェック
+          for (const keyword of taskcodeDef.keywords) {
+            if (eventText.includes(keyword)) {
+              // 最初にマッチしたtaskcodeを返す
+              return taskcodeDef.taskcode;
+            }
+          }
+        }
+      }
+    }
+
+    // マッチしない場合はnull
     return null;
   }
 

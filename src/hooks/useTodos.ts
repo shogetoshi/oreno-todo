@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ListItem } from '../models/ListItem';
 import { TodoRepository } from '../models/TodoRepository';
+import { useProjectDefinitions } from './useProjectDefinitions';
 
 /**
  * Controller Layer: useTodos Hook
@@ -10,6 +11,7 @@ import { TodoRepository } from '../models/TodoRepository';
 export const useTodos = () => {
   const [todos, setTodos] = useState<ListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { projectRepo } = useProjectDefinitions();
 
   // 初期化時にTODO/CalendarEventを読み込む
   useEffect(() => {
@@ -134,12 +136,14 @@ export const useTodos = () => {
   const importCalendarEvents = useCallback(async (date?: string) => {
     const result = await window.electronAPI.fetchCalendarEvents(date);
     if (result.success && result.events) {
-      setTodosWithPersist((prev) => TodoRepository.addCalendarEventsToItems(prev, result.events!));
+      setTodosWithPersist((prev) =>
+        TodoRepository.addCalendarEventsToItems(prev, result.events!, projectRepo)
+      );
     } else {
       console.error('Failed to fetch calendar events:', result.error);
       throw new Error(result.error || 'カレンダーイベントの取得に失敗しました');
     }
-  }, [setTodosWithPersist]);
+  }, [setTodosWithPersist, projectRepo]);
 
   return {
     todos,
