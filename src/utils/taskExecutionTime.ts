@@ -1,6 +1,7 @@
 import { ListItem } from '../models/ListItem';
 import { extractDateFromJST, parseJSTString } from './timeFormat';
 import { ProjectDefinitionRepository } from '../models/ProjectDefinition';
+import { getColorNameRgb } from './colorNameMapping';
 
 /**
  * 特定の日付におけるListItem（TodoまたはCalendarEvent）の実行時間を分単位で計算する
@@ -90,20 +91,36 @@ export function assignColorToItem(
  * @returns RGBA形式の色文字列
  */
 export function colorToRgba(color: string, alpha: number): string {
-  // 一時的なcanvas要素を使って色を解析
-  const canvas = document.createElement('canvas');
-  canvas.width = 1;
-  canvas.height = 1;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) {
-    return `rgba(128, 128, 128, ${alpha})`; // フォールバック
+  const normalizedColor = color.toLowerCase().trim();
+
+  // 16進数カラーコード (#RRGGBB または #RGB) をパース
+  if (normalizedColor.startsWith('#')) {
+    const hex = normalizedColor.slice(1);
+
+    // #RGB形式を#RRGGBB形式に展開
+    const fullHex = hex.length === 3
+      ? hex.split('').map(c => c + c).join('')
+      : hex;
+
+    if (fullHex.length === 6) {
+      const r = parseInt(fullHex.slice(0, 2), 16);
+      const g = parseInt(fullHex.slice(2, 4), 16);
+      const b = parseInt(fullHex.slice(4, 6), 16);
+
+      if (!isNaN(r) && !isNaN(g) && !isNaN(b)) {
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      }
+    }
   }
 
-  ctx.fillStyle = color;
-  ctx.fillRect(0, 0, 1, 1);
-  const imageData = ctx.getImageData(0, 0, 1, 1).data;
+  // CSS色名をRGB値に変換
+  const rgb = getColorNameRgb(normalizedColor);
+  if (rgb) {
+    return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
+  }
 
-  return `rgba(${imageData[0]}, ${imageData[1]}, ${imageData[2]}, ${alpha})`;
+  // フォールバック: 灰色
+  return `rgba(128, 128, 128, ${alpha})`;
 }
 
 /**
