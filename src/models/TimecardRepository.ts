@@ -187,18 +187,59 @@ export class TimecardRepository {
   }
 
   /**
+   * タイムカードエントリが正常なstart-endペアになっているかを検証する
+   *
+   * 正常なパターン:
+   * - start, end, start, end, ... （完全なペア）
+   * - start, end, start, end, ..., start （最後がstartで終わる）
+   *
+   * 異常なパターン:
+   * - start, start, ... （startが連続）
+   * - end, ... （endから始まる）
+   * - start, end, end, ... （endが連続）
+   * - 空配列 （エントリなし）
+   *
+   * @param entries タイムカードエントリ配列
+   * @returns true: 正常、false: 異常
+   */
+  static validateTimecardEntries(entries: TimecardEntry[]): boolean {
+    if (entries.length === 0) {
+      return false;
+    }
+
+    let expectingStart = true;
+
+    for (const entry of entries) {
+      if (expectingStart && entry.type !== 'start') {
+        return false; // startを期待しているのにendが来た
+      }
+      if (!expectingStart && entry.type !== 'end') {
+        return false; // endを期待しているのにstartが来た
+      }
+      expectingStart = !expectingStart;
+    }
+
+    return true;
+  }
+
+  /**
    * 指定日付の稼働時間を分単位で計算する
+   *
+   * - 正常なstart-endペアの場合: 各ペアの時間差を合計
+   * - 最後がstartで終わる場合: 最後のstartから現在時刻までを含めて計算
+   * - 異常なパターンの場合: null を返す
+   *
    * @param data タイムカードデータ
    * @param date 日付（YYYY-MM-DD形式）
-   * @returns 稼働時間（分）
+   * @returns 稼働時間（分）、または異常時は null
    */
-  static calculateWorkingTimeForDate(data: TimecardData, date: string): number {
+  static calculateWorkingTimeForDate(data: TimecardData, date: string): number | null {
     // 指定日付のエントリを取得
     const entries = data[date] || [];
 
-    // エントリが存在しない場合は0を返す
-    if (entries.length === 0) {
-      return 0;
+    // エントリの検証
+    if (!this.validateTimecardEntries(entries)) {
+      return null;
     }
 
     let totalMinutes = 0;
@@ -218,6 +259,15 @@ export class TimecardRepository {
         totalMinutes += diffMinutes;
         currentStartEntry = null;
       }
+    }
+
+    // 最後がstartで終わっている場合、現在時刻までを計算
+    if (currentStartEntry !== null) {
+      const startTime = new Date(currentStartEntry.time);
+      const now = new Date();
+      const diffMs = now.getTime() - startTime.getTime();
+      const diffMinutes = Math.floor(diffMs / (1000 * 60));
+      totalMinutes += diffMinutes;
     }
 
     return totalMinutes;

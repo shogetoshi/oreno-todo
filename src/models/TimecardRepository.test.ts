@@ -158,10 +158,10 @@ describe('TimecardRepository', () => {
   });
 
   describe('calculateWorkingTimeForDate', () => {
-    it('稼働がない場合は0を返す', () => {
+    it('稼働がない場合はnullを返す', () => {
       const data: TimecardData = {};
       const workingTime = TimecardRepository.calculateWorkingTimeForDate(data, '2024-10-18');
-      expect(workingTime).toBe(0);
+      expect(workingTime).toBe(null);
     });
 
     it('1つのstart-endペアで正しく計算できる', () => {
@@ -192,26 +192,137 @@ describe('TimecardRepository', () => {
       expect(workingTime).toBe(480);
     });
 
-    it('ペアになっていないstartは無視する', () => {
+    it('ペアになっていないstartがある場合、現在時刻までを計算する（旧テスト、拡張版に移動）', () => {
+      // このテストは新しい仕様では「最後がstartで終わる場合、現在時刻までを計算する」に該当
+      // システム時刻をモック: 2024-10-18 10:59:00
+      vi.setSystemTime(new Date('2024-10-18 10:59:00'));
+
       const data: TimecardData = {
         '2024-10-18': [
           new TimecardEntry('start', '2024-10-18 09:00:00'),
-          new TimecardEntry('end', '2024-10-18 12:00:00'),
-          new TimecardEntry('start', '2024-10-18 13:00:00'),
-          // 最後のstartにはendがない
+          new TimecardEntry('end', '2024-10-18 10:00:00'),
+          new TimecardEntry('start', '2024-10-18 10:30:00'),
+          // 最後のstartから現在時刻(10:59:00)まで = 29分
         ],
       };
       const workingTime = TimecardRepository.calculateWorkingTimeForDate(data, '2024-10-18');
-      // 9:00-12:00 = 3時間 = 180分のみカウント
-      expect(workingTime).toBe(180);
+      // 9:00-10:00 = 60分
+      // 10:30-10:59 = 29分
+      // 合計 = 89分
+      expect(workingTime).toBe(89);
+
+      // モックをリセット
+      vi.useRealTimers();
     });
 
-    it('エントリが存在しない日付では0を返す', () => {
+    it('エントリが存在しない日付ではnullを返す', () => {
       const data: TimecardData = {
         '2024-10-18': [new TimecardEntry('start', '2024-10-18 09:00:00')],
       };
       const workingTime = TimecardRepository.calculateWorkingTimeForDate(data, '2024-10-19');
-      expect(workingTime).toBe(0);
+      expect(workingTime).toBe(null);
+    });
+  });
+
+  describe('validateTimecardEntries', () => {
+    it('正常なstart-endペアの場合はtrueを返す', () => {
+      const entries = [
+        new TimecardEntry('start', '2024-10-18 09:00:00'),
+        new TimecardEntry('end', '2024-10-18 12:00:00'),
+        new TimecardEntry('start', '2024-10-18 13:00:00'),
+        new TimecardEntry('end', '2024-10-18 18:00:00'),
+      ];
+      expect(TimecardRepository.validateTimecardEntries(entries)).toBe(true);
+    });
+
+    it('最後がstartで終わる場合はtrueを返す', () => {
+      const entries = [
+        new TimecardEntry('start', '2024-10-18 09:00:00'),
+        new TimecardEntry('end', '2024-10-18 12:00:00'),
+        new TimecardEntry('start', '2024-10-18 13:00:00'),
+      ];
+      expect(TimecardRepository.validateTimecardEntries(entries)).toBe(true);
+    });
+
+    it('空配列の場合はfalseを返す', () => {
+      expect(TimecardRepository.validateTimecardEntries([])).toBe(false);
+    });
+
+    it('startが連続する場合はfalseを返す', () => {
+      const entries = [
+        new TimecardEntry('start', '2024-10-18 09:00:00'),
+        new TimecardEntry('start', '2024-10-18 10:00:00'),
+      ];
+      expect(TimecardRepository.validateTimecardEntries(entries)).toBe(false);
+    });
+
+    it('endから始まる場合はfalseを返す', () => {
+      const entries = [
+        new TimecardEntry('end', '2024-10-18 12:00:00'),
+        new TimecardEntry('start', '2024-10-18 13:00:00'),
+      ];
+      expect(TimecardRepository.validateTimecardEntries(entries)).toBe(false);
+    });
+
+    it('endが連続する場合はfalseを返す', () => {
+      const entries = [
+        new TimecardEntry('start', '2024-10-18 09:00:00'),
+        new TimecardEntry('end', '2024-10-18 12:00:00'),
+        new TimecardEntry('end', '2024-10-18 13:00:00'),
+      ];
+      expect(TimecardRepository.validateTimecardEntries(entries)).toBe(false);
+    });
+  });
+
+  describe('calculateWorkingTimeForDate - 拡張版', () => {
+    it('最後がstartで終わる場合、現在時刻までを計算する', () => {
+      // システム時刻をモック: 2024-10-18 10:59:00
+      vi.setSystemTime(new Date('2024-10-18 10:59:00'));
+
+      const data: TimecardData = {
+        '2024-10-18': [
+          new TimecardEntry('start', '2024-10-18 09:00:00'),
+          new TimecardEntry('end', '2024-10-18 10:00:00'),
+          new TimecardEntry('start', '2024-10-18 10:30:00'),
+          // 最後のstartから現在時刻(10:59:00)まで = 29分
+        ],
+      };
+      const workingTime = TimecardRepository.calculateWorkingTimeForDate(data, '2024-10-18');
+      // 9:00-10:00 = 60分
+      // 10:30-10:59 = 29分
+      // 合計 = 89分
+      expect(workingTime).toBe(89);
+
+      // モックをリセット
+      vi.useRealTimers();
+    });
+
+    it('異常なパターン(startが連続)の場合、nullを返す', () => {
+      const data: TimecardData = {
+        '2024-10-18': [
+          new TimecardEntry('start', '2024-10-18 09:00:00'),
+          new TimecardEntry('start', '2024-10-18 10:00:00'),
+        ],
+      };
+      const workingTime = TimecardRepository.calculateWorkingTimeForDate(data, '2024-10-18');
+      expect(workingTime).toBe(null);
+    });
+
+    it('異常なパターン(endから始まる)の場合、nullを返す', () => {
+      const data: TimecardData = {
+        '2024-10-18': [
+          new TimecardEntry('end', '2024-10-18 12:00:00'),
+          new TimecardEntry('start', '2024-10-18 13:00:00'),
+        ],
+      };
+      const workingTime = TimecardRepository.calculateWorkingTimeForDate(data, '2024-10-18');
+      expect(workingTime).toBe(null);
+    });
+
+    it('エントリが存在しない場合、nullを返す', () => {
+      const data: TimecardData = {};
+      const workingTime = TimecardRepository.calculateWorkingTimeForDate(data, '2024-10-18');
+      expect(workingTime).toBe(null);
     });
   });
 });

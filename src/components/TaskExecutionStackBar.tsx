@@ -22,8 +22,11 @@ export const TaskExecutionStackBar = ({ items, date, timecardData, projectRepo }
   // タイムカードから稼働時間を計算
   const workingTimeMinutes = TimecardRepository.calculateWorkingTimeForDate(timecardData, date);
 
+  // 稼働時間がnullの場合（異常パターン）は赤い棒を表示しない
+  const shouldShowWorkingTimeLine = workingTimeMinutes !== null;
+
   // 稼働時間の位置をパーセンテージで計算
-  const workingTimePositionPercent = displayConfig.displayMaxMinutes > 0
+  const workingTimePositionPercent = shouldShowWorkingTimeLine && displayConfig.displayMaxMinutes > 0
     ? (workingTimeMinutes / displayConfig.displayMaxMinutes) * 100
     : 0;
 
@@ -76,14 +79,16 @@ export const TaskExecutionStackBar = ({ items, date, timecardData, projectRepo }
             );
           })}
 
-          {/* 稼働時間を示す縦棒 */}
-          <div
-            className="stackbar-working-time-marker"
-            style={{ left: `${workingTimePositionPercent}%` }}
-            title={`稼働時間: ${(workingTimeMinutes / 60).toFixed(1)}h`}
-          >
-            <div className="stackbar-working-time-line"></div>
-          </div>
+          {/* 稼働時間を示す縦棒（異常パターンの場合は非表示） */}
+          {shouldShowWorkingTimeLine && (
+            <div
+              className="stackbar-working-time-marker"
+              style={{ left: `${workingTimePositionPercent}%` }}
+              title={`稼働時間: ${(workingTimeMinutes! / 60).toFixed(1)}h`}
+            >
+              <div className="stackbar-working-time-line"></div>
+            </div>
+          )}
         </div>
       </div>
     </div>
