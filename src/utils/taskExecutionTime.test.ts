@@ -7,7 +7,8 @@ import {
   calculateExecutionTimesForDate,
   assignColorToTodo,
   assignColorToItem,
-  calculateStackBarDisplay
+  calculateStackBarDisplay,
+  colorToRgba
 } from './taskExecutionTime';
 
 describe('taskExecutionTime utilities', () => {
@@ -617,6 +618,52 @@ describe('taskExecutionTime utilities', () => {
       expect(result.segments[1].itemId).toBe('event-1');
       expect(result.segments[1].itemText).toBe('Meeting');
       expect(result.segments[1].minutes).toBe(120);
+    });
+  });
+
+  describe('colorToRgba', () => {
+    it('16進数カラーコード（#RRGGBB形式）をRGBA形式に変換する', () => {
+      expect(colorToRgba('#ff0000', 1)).toBe('rgba(255, 0, 0, 1)');
+      expect(colorToRgba('#00ff00', 0.5)).toBe('rgba(0, 255, 0, 0.5)');
+      expect(colorToRgba('#0000ff', 0.8)).toBe('rgba(0, 0, 255, 0.8)');
+    });
+
+    it('16進数カラーコード（#RGB形式）をRGBA形式に変換する', () => {
+      expect(colorToRgba('#f00', 1)).toBe('rgba(255, 0, 0, 1)');
+      expect(colorToRgba('#0f0', 0.5)).toBe('rgba(0, 255, 0, 0.5)');
+      expect(colorToRgba('#00f', 0.8)).toBe('rgba(0, 0, 255, 0.8)');
+    });
+
+    it('CSS色名をRGBA形式に変換する', () => {
+      expect(colorToRgba('red', 1)).toBe('rgba(255, 0, 0, 1)');
+      expect(colorToRgba('green', 0.5)).toBe('rgba(0, 128, 0, 0.5)');
+      expect(colorToRgba('blue', 0.8)).toBe('rgba(0, 0, 255, 0.8)');
+      expect(colorToRgba('white', 1)).toBe('rgba(255, 255, 255, 1)');
+      expect(colorToRgba('black', 1)).toBe('rgba(0, 0, 0, 1)');
+    });
+
+    it('大文字小文字を区別しない', () => {
+      expect(colorToRgba('RED', 1)).toBe('rgba(255, 0, 0, 1)');
+      expect(colorToRgba('Red', 1)).toBe('rgba(255, 0, 0, 1)');
+      expect(colorToRgba('#FF0000', 1)).toBe('rgba(255, 0, 0, 1)');
+      expect(colorToRgba('#Ff0000', 1)).toBe('rgba(255, 0, 0, 1)');
+    });
+
+    it('前後の空白を無視する', () => {
+      expect(colorToRgba(' red ', 1)).toBe('rgba(255, 0, 0, 1)');
+      expect(colorToRgba('  #ff0000  ', 1)).toBe('rgba(255, 0, 0, 1)');
+    });
+
+    it('不正な色の場合は灰色にフォールバックする', () => {
+      expect(colorToRgba('notacolor', 1)).toBe('rgba(128, 128, 128, 1)');
+      expect(colorToRgba('#gggggg', 1)).toBe('rgba(128, 128, 128, 1)');
+      expect(colorToRgba('', 1)).toBe('rgba(128, 128, 128, 1)');
+    });
+
+    it('147色の色名すべてが変換できる', () => {
+      expect(colorToRgba('aliceblue', 1)).toBe('rgba(240, 248, 255, 1)');
+      expect(colorToRgba('antiquewhite', 1)).toBe('rgba(250, 235, 215, 1)');
+      expect(colorToRgba('yellowgreen', 1)).toBe('rgba(154, 205, 50, 1)');
     });
   });
 });
