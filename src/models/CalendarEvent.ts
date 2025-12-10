@@ -290,13 +290,6 @@ export class CalendarEvent implements ListItem {
   }
 
   /**
-   * Googleカレンダーイベントからタスクコードを抽出する
-   */
-  private static extractTaskcodeFromGoogleEvent(_event: CalendarEventType): string {
-    return '';
-  }
-
-  /**
    * Googleカレンダーイベントからテキスト（イベントタイトル）を抽出する
    */
   private static extractTextFromGoogleEvent(event: CalendarEventType): string {
