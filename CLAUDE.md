@@ -267,8 +267,13 @@ export GOOGLE_CLIENT_SECRET="your-client-secret"
 
 1. 初回使用時、ブラウザが自動的に開きGoogleの認証画面が表示されます
 2. Googleアカウントでログインし、カレンダーへのアクセスを許可します
-3. 認証成功後、トークンは`~/.google-calendar-token.json`に保存されます
+3. 認証成功後、トークンはOSのセキュアストレージ（キーチェイン）に暗号化して保存されます
+   - macOS: Keychain Access
+   - Windows: DPAPI (Data Protection API)
+   - Linux: Secret Service API (gnome-libsecret, kwallet等)
 4. 次回以降は保存されたトークンが自動的に使用されます
+
+**注意**: 既存の`~/.google-calendar-token.json`ファイルは自動的にキーチェインに移行され、削除されます。
 
 ### アーキテクチャ
 
