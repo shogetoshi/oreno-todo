@@ -18,6 +18,7 @@
  */
 
 import { google, calendar_v3 } from 'googleapis';
+import { safeStorage, app } from 'electron';
 import http from 'http';
 import { URL } from 'url';
 import { promises as fsPromises } from 'fs';
@@ -27,7 +28,8 @@ import { exec } from 'child_process';
 
 // 設定
 const SCOPES = ['https://www.googleapis.com/auth/calendar.readonly'];
-const TOKEN_PATH = path.join(os.homedir(), '.google-calendar-token.json');
+const TOKEN_PATH = path.join(os.homedir(), '.google-calendar-token.json'); // 既存トークンファイル（移行用）
+const ENCRYPTED_TOKEN_PATH = path.join(app.getPath('userData'), 'google-calendar-token.enc');
 const CREDENTIALS_PATH = path.join(os.homedir(), '.google-calendar-credentials.json');
 // HTTPサーバーが3000を使用しているため、別のポートを使用
 const REDIRECT_PORT = 3456;
@@ -90,9 +92,25 @@ async function loadCredentials(): Promise<Credentials> {
 }
 
 /**
- * 保存されたトークンを読み込む
+ * 既存の平文トークンファイルをキーチェインに移行
+ */
+async function migrateOldTokenIfExists(): Promise<void> {
+  // TODO: 実装予定
+  // 1. 既存のJSONファイルが存在するか確認
+  // 2. 新しい形式で保存
+  // 3. 既存ファイルを削除
+}
+
+/**
+ * 保存されたトークンを読み込む（キーチェインから）
  */
 async function loadToken(): Promise<Token | null> {
+  // TODO: 実装予定
+  // 1. 暗号化が利用可能かチェック
+  // 2. 暗号化されたファイルを読み込み
+  // 3. 復号化
+  // 4. JSONをパース
+  // エラー時は既存ファイルからの移行を試みる
   try {
     const content = await fsPromises.readFile(TOKEN_PATH, 'utf-8');
     return JSON.parse(content);
@@ -102,9 +120,14 @@ async function loadToken(): Promise<Token | null> {
 }
 
 /**
- * トークンを保存する
+ * トークンを保存する（キーチェインに暗号化して保存）
  */
 async function saveToken(token: Token): Promise<void> {
+  // TODO: 実装予定
+  // 1. 暗号化が利用可能かチェック
+  // 2. トークンをJSON文字列に変換
+  // 3. 暗号化
+  // 4. 暗号化されたBufferをファイルに保存
   await fsPromises.writeFile(TOKEN_PATH, JSON.stringify(token, null, 2));
   console.log(`Google Calendar: トークンを保存しました: ${TOKEN_PATH}`);
 }
