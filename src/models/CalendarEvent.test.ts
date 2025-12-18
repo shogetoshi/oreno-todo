@@ -239,6 +239,70 @@ describe('CalendarEvent', () => {
 
       expect(event1.getId()).toBe(event2.getId());
     });
+
+    it('taskcode引数を指定すると、そのtaskcodeが設定される', () => {
+      const googleEvent: GoogleCalendarEvent = {
+        kind: 'calendar#event',
+        etag: '"3123456789012345"',
+        id: '12345abcde67890fghij12345',
+        status: 'confirmed',
+        htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
+        created: '2023-10-20T09:00:00.000Z',
+        updated: '2023-10-20T09:30:00.000Z',
+        summary: 'ProjectA ミーティング',
+        creator: {
+          email: 'user@example.com'
+        },
+        organizer: {
+          email: 'user@example.com'
+        },
+        start: {
+          dateTime: '2023-11-01T10:00:00+09:00'
+        },
+        end: {
+          dateTime: '2023-11-01T11:00:00+09:00'
+        },
+        iCalUID: '12345abcde67890fghij12345@google.com',
+        sequence: 0,
+        eventType: 'default'
+      };
+
+      const event = CalendarEvent.fromGoogleCalendarEvent(googleEvent, 'TASK-001');
+
+      expect(event.getTaskcode()).toBe('TASK-001');
+    });
+
+    it('taskcode引数を指定しない場合は空文字列が設定される', () => {
+      const googleEvent: GoogleCalendarEvent = {
+        kind: 'calendar#event',
+        etag: '"3123456789012345"',
+        id: '12345abcde67890fghij12345',
+        status: 'confirmed',
+        htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
+        created: '2023-10-20T09:00:00.000Z',
+        updated: '2023-10-20T09:30:00.000Z',
+        summary: 'ミーティング',
+        creator: {
+          email: 'user@example.com'
+        },
+        organizer: {
+          email: 'user@example.com'
+        },
+        start: {
+          dateTime: '2023-11-01T10:00:00+09:00'
+        },
+        end: {
+          dateTime: '2023-11-01T11:00:00+09:00'
+        },
+        iCalUID: '12345abcde67890fghij12345@google.com',
+        sequence: 0,
+        eventType: 'default'
+      };
+
+      const event = CalendarEvent.fromGoogleCalendarEvent(googleEvent);
+
+      expect(event.getTaskcode()).toBe('');
+    });
   });
 
   describe('toggleCompleted', () => {

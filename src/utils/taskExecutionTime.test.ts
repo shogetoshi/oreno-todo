@@ -222,7 +222,9 @@ describe('taskExecutionTime utilities', () => {
 
   describe('assignColorToItem', () => {
     it('プロジェクト定義から色を取得する', () => {
-      const projectDef = new ProjectDefinition('ProjectA', 'red', ['TASK-001']);
+      const projectDef = new ProjectDefinition('ProjectA', 'red', [
+        { taskcode: 'TASK-001' }
+      ]);
       const definitions = new Map<string, ProjectDefinition[]>();
       definitions.set('2025-11', [projectDef]);
       const repo = new ProjectDefinitionRepository(definitions);
@@ -259,7 +261,9 @@ describe('taskExecutionTime utilities', () => {
     });
 
     it('月が異なる場合は灰色を返す', () => {
-      const projectDef = new ProjectDefinition('ProjectA', 'blue', ['TASK-001']);
+      const projectDef = new ProjectDefinition('ProjectA', 'blue', [
+        { taskcode: 'TASK-001' }
+      ]);
       const definitions = new Map<string, ProjectDefinition[]>();
       definitions.set('2025-11', [projectDef]);
       const repo = new ProjectDefinitionRepository(definitions);
@@ -481,7 +485,9 @@ describe('taskExecutionTime utilities', () => {
     });
 
     it('プロジェクト定義がある場合、セグメントにプロジェクト色が割り当てられる', () => {
-      const projectDef = new ProjectDefinition('ProjectA', 'green', ['TASK001']);
+      const projectDef = new ProjectDefinition('ProjectA', 'green', [
+        { taskcode: 'TASK001' }
+      ]);
       const definitions = new Map<string, ProjectDefinition[]>();
       definitions.set('2025-11', [projectDef]);
       const repo = new ProjectDefinitionRepository(definitions);
