@@ -18,6 +18,7 @@
  */
 
 import { google, calendar_v3 } from 'googleapis';
+import { safeStorage, app } from 'electron';
 import http from 'http';
 import { URL } from 'url';
 import { promises as fsPromises } from 'fs';
@@ -27,7 +28,8 @@ import { exec } from 'child_process';
 
 // 設定
 const SCOPES = ['https://www.googleapis.com/auth/calendar.readonly'];
-const TOKEN_PATH = path.join(os.homedir(), '.google-calendar-token.json');
+const TOKEN_PATH = path.join(os.homedir(), '.google-calendar-token.json'); // 既存トークンファイル（移行用）
+const ENCRYPTED_TOKEN_PATH = path.join(app.getPath('userData'), 'google-calendar-token.enc');
 const CREDENTIALS_PATH = path.join(os.homedir(), '.google-calendar-credentials.json');
 // HTTPサーバーが3000を使用しているため、別のポートを使用
 const REDIRECT_PORT = 3456;
@@ -90,23 +92,99 @@ async function loadCredentials(): Promise<Credentials> {
 }
 
 /**
- * 保存されたトークンを読み込む
+ * 既存の平文トークンファイルをキーチェインに移行
+ */
+async function migrateOldTokenIfExists(): Promise<void> {
+  try {
+    // 1. 既存のJSONファイルが存在するか確認
+    const oldTokenContent = await fsPromises.readFile(TOKEN_PATH, 'utf-8');
+    const oldToken = JSON.parse(oldTokenContent);
+
+    console.log('Google Calendar: 既存のトークンファイルを検出しました。キーチェインに移行します...');
+
+    // 2. 新しい形式で保存
+    await saveToken(oldToken);
+
+    // 3. 既存ファイルを削除
+    await fsPromises.unlink(TOKEN_PATH);
+
+    console.log('Google Calendar: トークンの移行が完了しました。既存ファイルを削除しました。');
+  } catch (error) {
+    // ファイルが存在しない場合は何もしない
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      console.warn('Google Calendar: トークンの移行中にエラーが発生しましたが、処理を継続します', error);
+    }
+  }
+}
+
+/**
+ * 保存されたトークンを読み込む（キーチェインから）
  */
 async function loadToken(): Promise<Token | null> {
   try {
-    const content = await fsPromises.readFile(TOKEN_PATH, 'utf-8');
-    return JSON.parse(content);
-  } catch {
+    // 1. 暗号化が利用可能かチェック
+    if (!safeStorage.isEncryptionAvailable()) {
+      console.warn('Google Calendar: 暗号化ストレージが利用できません');
+      return null;
+    }
+
+    // 2. 暗号化されたファイルを読み込み
+    const encrypted = await fsPromises.readFile(ENCRYPTED_TOKEN_PATH);
+
+    // 3. 復号化
+    const tokenJson = safeStorage.decryptString(encrypted);
+
+    // 4. JSONをパース
+    return JSON.parse(tokenJson);
+  } catch (error) {
+    // 暗号化ファイルが存在しない場合、既存ファイルからの移行を試みる
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      await migrateOldTokenIfExists();
+
+      // 移行後、再度読み込みを試みる
+      try {
+        const encrypted = await fsPromises.readFile(ENCRYPTED_TOKEN_PATH);
+        const tokenJson = safeStorage.decryptString(encrypted);
+        return JSON.parse(tokenJson);
+      } catch {
+        // 移行後も読み込めない場合はnullを返す
+        return null;
+      }
+    }
+
+    console.log('Google Calendar: 保存されたトークンが見つかりませんでした');
     return null;
   }
 }
 
 /**
- * トークンを保存する
+ * トークンを保存する（キーチェインに暗号化して保存）
  */
 async function saveToken(token: Token): Promise<void> {
-  await fsPromises.writeFile(TOKEN_PATH, JSON.stringify(token, null, 2));
-  console.log(`Google Calendar: トークンを保存しました: ${TOKEN_PATH}`);
+  // 1. 暗号化が利用可能かチェック
+  if (!safeStorage.isEncryptionAvailable()) {
+    const platform = os.platform();
+    let errorMessage = '暗号化ストレージが利用できません。OSのキーチェイン/クレデンシャルストアを確認してください。';
+
+    if (platform === 'linux') {
+      errorMessage += '\n\nLinuxでは以下のパッケージが必要です:\n' +
+        '  - gnome-keyring (GNOME)\n' +
+        '  - kwallet (KDE)\n';
+    }
+
+    throw new Error(errorMessage);
+  }
+
+  // 2. トークンをJSON文字列に変換
+  const tokenJson = JSON.stringify(token);
+
+  // 3. 暗号化
+  const encrypted = safeStorage.encryptString(tokenJson);
+
+  // 4. 暗号化されたBufferをファイルに保存
+  await fsPromises.writeFile(ENCRYPTED_TOKEN_PATH, encrypted);
+
+  console.log(`Google Calendar: トークンを暗号化して保存しました: ${ENCRYPTED_TOKEN_PATH}`);
 }
 
 /**
