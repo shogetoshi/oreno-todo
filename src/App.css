@@ -392,6 +392,25 @@ body {
   align-items: center;
 }
 
+.quick-task-button {
+  padding: 12px 20px;
+  font-size: 1rem;
+  background-color: #FFD700;
+  color: #333;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.quick-task-button:hover {
+  background-color: #FFC700;
+}
+
+.quick-task-button:active {
+  background-color: #FFB700;
+}
+
 .check-in-button,
 .check-out-button {
   padding: 12px 20px;

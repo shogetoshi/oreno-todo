@@ -16,7 +16,7 @@ import './App.css';
  * JSON編集関連のローカル状態のみを管理
  */
 function App() {
-  const { todos, isLoading, addTodo, toggleTodo, deleteTodo, editTodo, editTaskcode, reorderTodos, replaceFromJson, editSingleItemFromJson, replaceItemsForDate, startTimer, stopTimer, importCalendarEvents } = useTodos();
+  const { todos, isLoading, addTodo, addQuickTask, toggleTodo, deleteTodo, editTodo, editTaskcode, reorderTodos, replaceFromJson, editSingleItemFromJson, replaceItemsForDate, startTimer, stopTimer, importCalendarEvents } = useTodos();
   const { timecardData, isLoading: isTimecardLoading, checkIn, checkOut, replaceFromJson: replaceTimecardFromJson, replaceTimecardForDate } = useTimecard();
   const { projectRepo, isLoading: isProjectLoading, replaceFromJson: replaceProjectFromJson } = useProjectDefinitions();
   const [isJsonEditorOpen, setIsJsonEditorOpen] = useState(false);
@@ -161,6 +161,9 @@ function App() {
         <div className="app-header-controls">
           <TodoInput onAdd={addTodo} />
           <div className="control-buttons">
+            <button className="quick-task-button" onClick={addQuickTask} title="クイックタスク作成">
+              ⚡
+            </button>
             <button className="check-in-button" onClick={checkIn}>
               🟢
             </button>
