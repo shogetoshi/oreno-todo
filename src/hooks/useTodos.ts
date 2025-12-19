@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { ListItem } from '../models/ListItem';
 import { TodoRepository } from '../models/TodoRepository';
 import { useProjectDefinitions } from './useProjectDefinitions';
+import { getCurrentJSTTime } from '../utils/timeFormat';
 
 /**
  * Controller Layer: useTodos Hook
@@ -145,10 +146,21 @@ export const useTodos = () => {
     }
   }, [setTodosWithPersist, projectRepo]);
 
+  // クイックタスクを作成して即座に開始する（リストの先頭に追加）
+  const addQuickTask = useCallback(() => {
+    setTodosWithPersist((prev) => {
+      const currentTime = getCurrentJSTTime();
+      const newTodo = TodoRepository.createTodo('', currentTime);
+      const todoWithTimer = newTodo.startTimer();
+      return [todoWithTimer, ...prev];
+    });
+  }, [setTodosWithPersist]);
+
   return {
     todos,
     isLoading,
     addTodo,
+    addQuickTask,
     toggleTodo,
     deleteTodo,
     editTodo,
