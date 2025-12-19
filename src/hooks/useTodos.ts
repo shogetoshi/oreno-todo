@@ -146,13 +146,13 @@ export const useTodos = () => {
     }
   }, [setTodosWithPersist, projectRepo]);
 
-  // クイックタスクを作成して即座に開始する
+  // クイックタスクを作成して即座に開始する（リストの先頭に追加）
   const addQuickTask = useCallback(() => {
     setTodosWithPersist((prev) => {
       const currentTime = getCurrentJSTTime();
       const newTodo = TodoRepository.createTodo('', currentTime);
       const todoWithTimer = newTodo.startTimer();
-      return [...prev, todoWithTimer];
+      return [todoWithTimer, ...prev];
     });
   }, [setTodosWithPersist]);
 
