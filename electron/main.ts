@@ -276,12 +276,8 @@ function startHttpServer() {
       // 4. TimecardRepository.getEntriesForDateAsJSON() で指定日付のエントリ取得
       const entries = TimecardRepository.getEntriesForDateAsJSON(timecardData, date);
 
-      // 5. レスポンスJSONに type: "timecard", date, entries を含めて返却
-      res.json({
-        type: 'timecard',
-        date,
-        entries
-      });
+      // 5. エントリ配列を直接返却
+      res.json(entries);
     } catch (error) {
       console.error('Failed to get timecard entries:', error);
       res.status(500).json({
