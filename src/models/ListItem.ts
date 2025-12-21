@@ -54,14 +54,14 @@ export interface ListItem {
   isTimerRunning(): boolean;
 
   /**
-   * 合計実行時間を分単位で取得する
+   * 合計実行時間を秒単位で取得する
    */
-  getTotalExecutionTimeInMinutes(): number;
+  getTotalExecutionTimeInSeconds(): number;
 
   /**
-   * 指定日付における実行時間を分単位で取得する
+   * 指定日付における実行時間を秒単位で取得する
    * @param date 日付（YYYY-MM-DD形式）
-   * @returns 指定日付における実行時間（分）
+   * @returns 指定日付における実行時間（秒）
    */
   getExecutionTimeForDate(date: string): number;
 

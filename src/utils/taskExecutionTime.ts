@@ -4,10 +4,10 @@ import { ProjectDefinitionRepository } from '../models/ProjectDefinition';
 import { getColorNameRgb } from './colorNameMapping';
 
 /**
- * 特定の日付におけるListItem（TodoまたはCalendarEvent）の実行時間を分単位で計算する
+ * 特定の日付におけるListItem（TodoまたはCalendarEvent）の実行時間を秒単位で計算する
  * @param item 対象のListItem
  * @param date 日付（YYYY-MM-DD形式）
- * @returns 実行時間（分）
+ * @returns 実行時間（秒）
  */
 export function calculateExecutionTimeForDate(item: ListItem, date: string): number {
   const timeRanges = item.getTimeRanges();
@@ -15,7 +15,7 @@ export function calculateExecutionTimeForDate(item: ListItem, date: string): num
     return 0;
   }
 
-  let totalMinutes = 0;
+  let totalSeconds = 0;
 
   for (const range of timeRanges) {
     const startTime = parseJSTString(range.start);
@@ -29,21 +29,21 @@ export function calculateExecutionTimeForDate(item: ListItem, date: string): num
     // 終了時刻を取得（endがnullの場合は現在時刻）
     const endTime = range.end ? parseJSTString(range.end) : new Date();
 
-    // 時間差を分に変換
+    // 時間差を秒に変換
     const durationMs = endTime.getTime() - startTime.getTime();
-    const durationMinutes = Math.floor(durationMs / (1000 * 60));
+    const durationSeconds = Math.floor(durationMs / 1000);
 
-    totalMinutes += durationMinutes;
+    totalSeconds += durationSeconds;
   }
 
-  return totalMinutes;
+  return totalSeconds;
 }
 
 /**
  * 全てのListItemの特定日付における実行時間を計算する
  * @param items ListItemリスト（TodoまたはCalendarEvent）
  * @param date 日付（YYYY-MM-DD形式）
- * @returns ListItemごとの実行時間マップ（ItemID -> 分）
+ * @returns ListItemごとの実行時間マップ（ItemID -> 秒）
  */
 export function calculateExecutionTimesForDate(
   items: ListItem[],
@@ -52,9 +52,9 @@ export function calculateExecutionTimesForDate(
   const executionTimes = new Map<string, number>();
 
   for (const item of items) {
-    const minutes = calculateExecutionTimeForDate(item, date);
-    if (minutes > 0) {
-      executionTimes.set(item.getId(), minutes);
+    const seconds = calculateExecutionTimeForDate(item, date);
+    if (seconds > 0) {
+      executionTimes.set(item.getId(), seconds);
     }
   }
 
@@ -151,7 +151,7 @@ export function assignColorToTodo(itemId: string): string {
 export interface TaskExecutionSegment {
   itemId: string;
   itemText: string;
-  minutes: number;
+  seconds: number;
   color: string;
 }
 
@@ -160,8 +160,8 @@ export interface TaskExecutionSegment {
  */
 export interface StackBarDisplayConfig {
   segments: TaskExecutionSegment[];
-  totalMinutes: number;
-  displayMaxMinutes: number;
+  totalSeconds: number;
+  displayMaxSeconds: number;
   hourMarkers: number[];
 }
 
@@ -178,36 +178,36 @@ export function calculateStackBarDisplay(
   projectRepo: ProjectDefinitionRepository
 ): StackBarDisplayConfig {
   const segments: TaskExecutionSegment[] = [];
-  let totalMinutes = 0;
+  let totalSeconds = 0;
 
   // 各ListItemの実行時間を計算してセグメント情報を作成
   for (const item of items) {
-    const minutes = calculateExecutionTimeForDate(item, date);
-    if (minutes > 0) {
+    const seconds = calculateExecutionTimeForDate(item, date);
+    if (seconds > 0) {
       segments.push({
         itemId: item.getId(),
         itemText: item.getText(),
-        minutes,
+        seconds,
         color: assignColorToItem(item, date, projectRepo)
       });
-      totalMinutes += minutes;
+      totalSeconds += seconds;
     }
   }
 
-  // 12時間（720分）を基準値とする
-  const BASE_MINUTES = 12 * 60;
+  // 12時間（43200秒）を基準値とする
+  const BASE_SECONDS = 12 * 60 * 60;
 
   // 表示する最大時間（12時間以上の場合は実際の時間、未満の場合は12時間）
-  const displayMaxMinutes = Math.max(totalMinutes, BASE_MINUTES);
+  const displayMaxSeconds = Math.max(totalSeconds, BASE_SECONDS);
 
   // 1時間ごとの目盛を生成
-  const totalHours = Math.ceil(displayMaxMinutes / 60);
+  const totalHours = Math.ceil(displayMaxSeconds / 3600);
   const hourMarkers = Array.from({ length: totalHours + 1 }, (_, i) => i);
 
   return {
     segments,
-    totalMinutes,
-    displayMaxMinutes,
+    totalSeconds,
+    displayMaxSeconds,
     hourMarkers
   };
 }

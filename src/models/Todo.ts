@@ -157,11 +157,11 @@ export class Todo implements ListItem {
   }
 
   /**
-   * 合計実行時間を分単位で取得する
-   * timeRanges配列内の全ての時間範囲を秒単位で計算し、分に変換して返す
+   * 合計実行時間を秒単位で取得する
+   * timeRanges配列内の全ての時間範囲を秒単位で計算して返す
    * endがnullの場合（実行中）は現在時刻までを含めて計算する
    */
-  getTotalExecutionTimeInMinutes(): number {
+  getTotalExecutionTimeInSeconds(): number {
     if (this.timeRanges.length === 0) {
       return 0;
     }
@@ -174,21 +174,20 @@ export class Todo implements ListItem {
       return total + durationSeconds;
     }, 0);
 
-    // 秒を分に変換（小数第1位まで）
-    return Math.round(totalSeconds / 60);
+    return totalSeconds;
   }
 
   /**
-   * 指定日付における実行時間を分単位で取得する
+   * 指定日付における実行時間を秒単位で取得する
    * @param date 日付（YYYY-MM-DD形式）
-   * @returns 指定日付における実行時間（分）
+   * @returns 指定日付における実行時間（秒）
    */
   getExecutionTimeForDate(date: string): number {
     if (this.timeRanges.length === 0) {
       return 0;
     }
 
-    let totalMinutes = 0;
+    let totalSeconds = 0;
 
     for (const range of this.timeRanges) {
       const startDate = extractDateFromJST(range.start);
@@ -202,14 +201,14 @@ export class Todo implements ListItem {
       const startTime = parseJSTString(range.start);
       const endTime = range.end ? parseJSTString(range.end) : parseJSTString(getCurrentJSTTime());
 
-      // 時間差を分に変換
+      // 時間差を秒に変換
       const durationMs = endTime.getTime() - startTime.getTime();
-      const durationMinutes = Math.floor(durationMs / (1000 * 60));
+      const durationSeconds = Math.floor(durationMs / 1000);
 
-      totalMinutes += durationMinutes;
+      totalSeconds += durationSeconds;
     }
 
-    return totalMinutes;
+    return totalSeconds;
   }
 
   /**
