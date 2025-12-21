@@ -272,4 +272,15 @@ export class TimecardRepository {
 
     return totalSeconds;
   }
+
+  /**
+   * 指定日付のタイムカードエントリをJSON形式で取得する
+   * @param data タイムカードデータ
+   * @param date 日付（YYYY-MM-DD形式）
+   * @returns 指定日付のエントリのJSON配列
+   */
+  static getEntriesForDateAsJSON(data: TimecardData, date: string): TimecardEntryJSON[] {
+    const entries = data[date] || [];
+    return entries.map((entry) => entry.toJSON());
+  }
 }

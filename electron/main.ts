@@ -3,6 +3,7 @@ import * as path from 'path';
 import { promises as fsPromises } from 'fs';
 import express from 'express';
 import { fetchCalendarEvents, getTodayDateString } from './googleCalendar';
+import { TimecardRepository } from '../src/models/TimecardRepository';
 
 const isDev = !app.isPackaged;
 const dataPath = path.join(app.getPath('userData'), 'todos.json');
@@ -239,6 +240,51 @@ function startHttpServer() {
       window.webContents.send('check-out-request');
     });
     res.json({ success: true });
+  });
+
+  // 今日のタイムカード取得API
+  httpApp.get('/api/timecard/today', async (req, res) => {
+    try {
+      // 1. クエリパラメータからdateを取得（省略時は getTodayDateString() を使用）
+      const date = (req.query.date as string) || getTodayDateString();
+
+      // 日付フォーマットの簡易検証（YYYY-MM-DD形式）
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid date format. Expected YYYY-MM-DD'
+        });
+      }
+
+      // 2. タイムカードデータを読み込む
+      let timecardDataJSON;
+      try {
+        const data = await fsPromises.readFile(timecardPath, 'utf-8');
+        timecardDataJSON = JSON.parse(data);
+      } catch (error) {
+        // ファイルが存在しない場合は空オブジェクト
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+          timecardDataJSON = {};
+        } else {
+          throw error;
+        }
+      }
+
+      // 3. TimecardRepository.fromJSON() でデータ復元
+      const timecardData = TimecardRepository.fromJSON(timecardDataJSON);
+
+      // 4. TimecardRepository.getEntriesForDateAsJSON() で指定日付のエントリ取得
+      const entries = TimecardRepository.getEntriesForDateAsJSON(timecardData, date);
+
+      // 5. エントリ配列を直接返却
+      res.json(entries);
+    } catch (error) {
+      console.error('Failed to get timecard entries:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to get timecard entries'
+      });
+    }
   });
 
   const PORT = 3000;
