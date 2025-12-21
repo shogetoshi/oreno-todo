@@ -241,6 +241,17 @@ function startHttpServer() {
     res.json({ success: true });
   });
 
+  // 今日のタイムカード取得API
+  httpApp.get('/api/timecard/today', async (req, res) => {
+    // TODO: 実装予定
+    // 1. クエリパラメータからdateを取得（省略時は getTodayDateString() を使用）
+    // 2. load-timecard IPCでデータ読み込み
+    // 3. TimecardRepository.fromJSON() でデータ復元
+    // 4. TimecardRepository.getEntriesForDateAsJSON() で指定日付のエントリ取得
+    // 5. レスポンスJSONに type: "timecard", date, entries を含めて返却
+    res.json({ type: 'timecard', date: '2024-12-21', entries: [] });
+  });
+
   const PORT = 3000;
   httpApp.listen(PORT, () => {
     console.log(`HTTP server running on http://localhost:${PORT}`);

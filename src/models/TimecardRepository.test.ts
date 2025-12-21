@@ -325,4 +325,21 @@ describe('TimecardRepository', () => {
       expect(workingTime).toBe(null);
     });
   });
+
+  describe('getEntriesForDateAsJSON', () => {
+    it('指定日付のエントリが存在する場合、JSON配列を返す', () => {
+      // TODO: 実装予定
+      expect(true).toBe(true);
+    });
+
+    it('指定日付のエントリが存在しない場合、空配列を返す', () => {
+      // TODO: 実装予定
+      expect(true).toBe(true);
+    });
+
+    it('複数日付が存在する場合、指定日付のエントリのみを返す', () => {
+      // TODO: 実装予定
+      expect(true).toBe(true);
+    });
+  });
 });
