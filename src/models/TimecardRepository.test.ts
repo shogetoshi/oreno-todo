@@ -172,8 +172,8 @@ describe('TimecardRepository', () => {
         ],
       };
       const workingTime = TimecardRepository.calculateWorkingTimeForDate(data, '2024-10-18');
-      // 9:00-18:00 = 9時間 = 540分
-      expect(workingTime).toBe(540);
+      // 9:00-18:00 = 9時間 = 32400秒
+      expect(workingTime).toBe(32400);
     });
 
     it('複数のstart-endペアで合計を計算できる', () => {
@@ -186,10 +186,10 @@ describe('TimecardRepository', () => {
         ],
       };
       const workingTime = TimecardRepository.calculateWorkingTimeForDate(data, '2024-10-18');
-      // 9:00-12:00 = 3時間 = 180分
-      // 13:00-18:00 = 5時間 = 300分
-      // 合計 = 480分
-      expect(workingTime).toBe(480);
+      // 9:00-12:00 = 3時間 = 10800秒
+      // 13:00-18:00 = 5時間 = 18000秒
+      // 合計 = 28800秒
+      expect(workingTime).toBe(28800);
     });
 
     it('ペアになっていないstartがある場合、現在時刻までを計算する（旧テスト、拡張版に移動）', () => {
@@ -202,14 +202,14 @@ describe('TimecardRepository', () => {
           new TimecardEntry('start', '2024-10-18 09:00:00'),
           new TimecardEntry('end', '2024-10-18 10:00:00'),
           new TimecardEntry('start', '2024-10-18 10:30:00'),
-          // 最後のstartから現在時刻(10:59:00)まで = 29分
+          // 最後のstartから現在時刻(10:59:00)まで = 1740秒
         ],
       };
       const workingTime = TimecardRepository.calculateWorkingTimeForDate(data, '2024-10-18');
-      // 9:00-10:00 = 60分
-      // 10:30-10:59 = 29分
-      // 合計 = 89分
-      expect(workingTime).toBe(89);
+      // 9:00-10:00 = 3600秒
+      // 10:30-10:59 = 1740秒
+      // 合計 = 5340秒
+      expect(workingTime).toBe(5340);
 
       // モックをリセット
       vi.useRealTimers();
@@ -284,14 +284,14 @@ describe('TimecardRepository', () => {
           new TimecardEntry('start', '2024-10-18 09:00:00'),
           new TimecardEntry('end', '2024-10-18 10:00:00'),
           new TimecardEntry('start', '2024-10-18 10:30:00'),
-          // 最後のstartから現在時刻(10:59:00)まで = 29分
+          // 最後のstartから現在時刻(10:59:00)まで = 1740秒
         ],
       };
       const workingTime = TimecardRepository.calculateWorkingTimeForDate(data, '2024-10-18');
-      // 9:00-10:00 = 60分
-      // 10:30-10:59 = 29分
-      // 合計 = 89分
-      expect(workingTime).toBe(89);
+      // 9:00-10:00 = 3600秒
+      // 10:30-10:59 = 1740秒
+      // 合計 = 5340秒
+      expect(workingTime).toBe(5340);
 
       // モックをリセット
       vi.useRealTimers();

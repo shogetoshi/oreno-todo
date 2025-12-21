@@ -365,7 +365,7 @@ describe('CalendarEvent', () => {
         []
       );
 
-      expect(event.getTotalExecutionTimeInMinutes()).toBe(60);
+      expect(event.getTotalExecutionTimeInSeconds()).toBe(3600);
     });
 
     it('startTimeまたはendTimeがnullの場合は0を返す', () => {
@@ -381,7 +381,7 @@ describe('CalendarEvent', () => {
         []
       );
 
-      expect(event.getTotalExecutionTimeInMinutes()).toBe(0);
+      expect(event.getTotalExecutionTimeInSeconds()).toBe(0);
     });
   });
 
@@ -804,13 +804,13 @@ describe('CalendarEvent', () => {
         [
           {
             start: '2025-11-28 10:00:00',
-            end: '2025-11-28 11:30:00' // 90分
+            end: '2025-11-28 11:30:00' // 5400秒
           }
         ]
       );
 
       const result = event.getExecutionTimeForDate('2025-11-28');
-      expect(result).toBe(90);
+      expect(result).toBe(5400);
     });
 
     it('複数のtimeRangesがある場合は合計時間を返す', () => {
@@ -826,17 +826,17 @@ describe('CalendarEvent', () => {
         [
           {
             start: '2025-11-28 10:00:00',
-            end: '2025-11-28 11:00:00' // 60分
+            end: '2025-11-28 11:00:00' // 3600秒
           },
           {
             start: '2025-11-28 14:00:00',
-            end: '2025-11-28 15:30:00' // 90分
+            end: '2025-11-28 15:30:00' // 5400秒
           }
         ]
       );
 
       const result = event.getExecutionTimeForDate('2025-11-28');
-      expect(result).toBe(150);
+      expect(result).toBe(9000);
     });
 
     it('異なる日付のtimeRangesは除外する', () => {
@@ -852,20 +852,20 @@ describe('CalendarEvent', () => {
         [
           {
             start: '2025-11-28 10:00:00',
-            end: '2025-11-28 11:00:00' // 60分(2025-11-28)
+            end: '2025-11-28 11:00:00' // 3600秒(2025-11-28)
           },
           {
             start: '2025-11-29 14:00:00',
-            end: '2025-11-29 15:00:00' // 60分(2025-11-29)
+            end: '2025-11-29 15:00:00' // 3600秒(2025-11-29)
           }
         ]
       );
 
       const result = event.getExecutionTimeForDate('2025-11-28');
-      expect(result).toBe(60);
+      expect(result).toBe(3600);
 
       const result2 = event.getExecutionTimeForDate('2025-11-29');
-      expect(result2).toBe(60);
+      expect(result2).toBe(3600);
     });
 
     it('endがnullの場合は現在時刻までの時間を計算する', () => {
@@ -887,9 +887,9 @@ describe('CalendarEvent', () => {
         ]
       );
 
-      // 10:00:00 から 12:34:56 まで = 154分
+      // 10:00:00 から 12:34:56 まで = 9296秒
       const result = event.getExecutionTimeForDate('2025-01-15');
-      expect(result).toBe(154);
+      expect(result).toBe(9296);
     });
   });
 });

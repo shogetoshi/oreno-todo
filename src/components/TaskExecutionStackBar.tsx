@@ -19,15 +19,15 @@ export const TaskExecutionStackBar = ({ items, date, timecardData, projectRepo }
   // すべての計算をModel層に委譲
   const displayConfig = calculateStackBarDisplay(items, date, projectRepo);
 
-  // タイムカードから稼働時間を計算
-  const workingTimeMinutes = TimecardRepository.calculateWorkingTimeForDate(timecardData, date);
+  // タイムカードから稼働時間を計算（秒単位）
+  const workingTimeSeconds = TimecardRepository.calculateWorkingTimeForDate(timecardData, date);
 
   // 稼働時間がnullの場合（異常パターン）は赤い棒を表示しない
-  const shouldShowWorkingTimeLine = workingTimeMinutes !== null;
+  const shouldShowWorkingTimeLine = workingTimeSeconds !== null;
 
   // 稼働時間の位置をパーセンテージで計算
-  const workingTimePositionPercent = shouldShowWorkingTimeLine && displayConfig.displayMaxMinutes > 0
-    ? (workingTimeMinutes / displayConfig.displayMaxMinutes) * 100
+  const workingTimePositionPercent = shouldShowWorkingTimeLine && displayConfig.displayMaxSeconds > 0
+    ? (workingTimeSeconds / displayConfig.displayMaxSeconds) * 100
     : 0;
 
   return (
@@ -40,12 +40,12 @@ export const TaskExecutionStackBar = ({ items, date, timecardData, projectRepo }
             <div className="stackbar-empty"></div>
           ) : (
             // 各ListItemの実行時間を積み上げて表示
-            displayConfig.segments.map(({ itemId, itemText, minutes, color }) => {
+            displayConfig.segments.map(({ itemId, itemText, seconds, color }) => {
               // 全体の時間に対する割合を計算
-              const widthPercent = (minutes / displayConfig.displayMaxMinutes) * 100;
+              const widthPercent = (seconds / displayConfig.displayMaxSeconds) * 100;
 
-              // 時間を時間単位に変換（小数第1位まで）
-              const hours = (minutes / 60).toFixed(1);
+              // 秒を時間単位に変換（小数第1位まで）
+              const hours = (seconds / 3600).toFixed(1);
 
               return (
                 <div
@@ -65,7 +65,8 @@ export const TaskExecutionStackBar = ({ items, date, timecardData, projectRepo }
         {/* 時間目盛 */}
         <div className="stackbar-scale">
           {displayConfig.hourMarkers.map((hour) => {
-            const positionPercent = (hour * 60 / displayConfig.displayMaxMinutes) * 100;
+            // 1時間 = 3600秒
+            const positionPercent = (hour * 3600 / displayConfig.displayMaxSeconds) * 100;
 
             return (
               <div
@@ -84,7 +85,7 @@ export const TaskExecutionStackBar = ({ items, date, timecardData, projectRepo }
             <div
               className="stackbar-working-time-marker"
               style={{ left: `${workingTimePositionPercent}%` }}
-              title={`稼働時間: ${(workingTimeMinutes! / 60).toFixed(1)}h`}
+              title={`稼働時間: ${(workingTimeSeconds! / 3600).toFixed(1)}h`}
             >
               <div className="stackbar-working-time-line"></div>
             </div>

@@ -391,66 +391,66 @@ describe('Todo', () => {
     });
   });
 
-  describe('getTotalExecutionTimeInMinutes', () => {
+  describe('getTotalExecutionTimeInSeconds', () => {
     it('timeRangesが空の場合0を返す', () => {
       const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', []);
-      expect(todo.getTotalExecutionTimeInMinutes()).toBe(0);
+      expect(todo.getTotalExecutionTimeInSeconds()).toBe(0);
     });
 
     it('1時間の実行時間を正しく計算できる', () => {
       const timeRanges = [
-          { start: '2025-01-15 10:00:00', end: '2025-01-15 11:00:00' } // 60分
+          { start: '2025-01-15 10:00:00', end: '2025-01-15 11:00:00' } // 3600秒
         ];
 
       const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', timeRanges);
-      expect(todo.getTotalExecutionTimeInMinutes()).toBe(60);
+      expect(todo.getTotalExecutionTimeInSeconds()).toBe(3600);
     });
 
     it('30分の実行時間を正しく計算できる', () => {
       const timeRanges = [
-          { start: '2025-01-15 10:00:00', end: '2025-01-15 10:30:00' } // 30分
+          { start: '2025-01-15 10:00:00', end: '2025-01-15 10:30:00' } // 1800秒
         ];
 
       const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', timeRanges);
-      expect(todo.getTotalExecutionTimeInMinutes()).toBe(30);
+      expect(todo.getTotalExecutionTimeInSeconds()).toBe(1800);
     });
 
     it('複数のtimeRangesの合計を計算できる', () => {
       const timeRanges = [
-          { start: '2025-01-15 10:00:00', end: '2025-01-15 10:30:00' }, // 30分
-          { start: '2025-01-15 11:00:00', end: '2025-01-15 11:45:00' }  // 45分
+          { start: '2025-01-15 10:00:00', end: '2025-01-15 10:30:00' }, // 1800秒
+          { start: '2025-01-15 11:00:00', end: '2025-01-15 11:45:00' }  // 2700秒
         ];
 
       const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', timeRanges);
-      expect(todo.getTotalExecutionTimeInMinutes()).toBe(75); // 30 + 45 = 75
+      expect(todo.getTotalExecutionTimeInSeconds()).toBe(4500); // 1800 + 2700 = 4500
     });
 
     it('実行中のタイマー（endがnull）を現在時刻まで計算できる', () => {
       // 現在時刻: 2025-01-15 12:34:56 (JST)
       const timeRanges = [
-          { start: '2025-01-15 12:00:00', end: null } // 34分56秒 ≈ 35分
+          { start: '2025-01-15 12:00:00', end: null } // 34分56秒 = 2096秒
         ];
 
       const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', timeRanges);
-      expect(todo.getTotalExecutionTimeInMinutes()).toBe(35); // 四捨五入で35分
+      expect(todo.getTotalExecutionTimeInSeconds()).toBe(2096);
     });
 
-    it('59秒は1分として計算される', () => {
+    it('59秒は59秒として計算される', () => {
       const timeRanges = [
           { start: '2025-01-15 12:34:00', end: '2025-01-15 12:34:59' } // 59秒
         ];
 
       const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', timeRanges);
-      expect(todo.getTotalExecutionTimeInMinutes()).toBe(1); // 59/60 = 0.98... -> 四捨五入で1分
+      expect(todo.getTotalExecutionTimeInSeconds()).toBe(59);
     });
 
-    it('61秒は1分として計算される', () => {
+    it('61秒は61秒として計算される', () => {
       const timeRanges = [
           { start: '2025-01-15 12:34:00', end: '2025-01-15 12:35:01' } // 61秒
         ];
 
       const todo = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', timeRanges);
-      expect(todo.getTotalExecutionTimeInMinutes()).toBe(1); // 61/60 = 1.01... -> 四捨五入で1分
+      expect(todo.getTotalExecutionTimeInSeconds()).toBe(61);
     });
   });
 
@@ -653,13 +653,13 @@ describe('Todo', () => {
         [
           {
             start: '2025-11-28 10:00:00',
-            end: '2025-11-28 11:30:00' // 90分
+            end: '2025-11-28 11:30:00' // 5400秒
           }
         ]
       );
 
       const result = todo.getExecutionTimeForDate('2025-11-28');
-      expect(result).toBe(90);
+      expect(result).toBe(5400);
     });
 
     it('複数のtimeRangesがある場合は合計時間を返す', () => {
@@ -673,17 +673,17 @@ describe('Todo', () => {
         [
           {
             start: '2025-11-28 10:00:00',
-            end: '2025-11-28 11:00:00' // 60分
+            end: '2025-11-28 11:00:00' // 3600秒
           },
           {
             start: '2025-11-28 14:00:00',
-            end: '2025-11-28 15:30:00' // 90分
+            end: '2025-11-28 15:30:00' // 5400秒
           }
         ]
       );
 
       const result = todo.getExecutionTimeForDate('2025-11-28');
-      expect(result).toBe(150);
+      expect(result).toBe(9000);
     });
 
     it('異なる日付のtimeRangesは除外する', () => {
@@ -697,20 +697,20 @@ describe('Todo', () => {
         [
           {
             start: '2025-11-28 10:00:00',
-            end: '2025-11-28 11:00:00' // 60分(2025-11-28)
+            end: '2025-11-28 11:00:00' // 3600秒(2025-11-28)
           },
           {
             start: '2025-11-29 14:00:00',
-            end: '2025-11-29 15:00:00' // 60分(2025-11-29)
+            end: '2025-11-29 15:00:00' // 3600秒(2025-11-29)
           }
         ]
       );
 
       const result = todo.getExecutionTimeForDate('2025-11-28');
-      expect(result).toBe(60);
+      expect(result).toBe(3600);
 
       const result2 = todo.getExecutionTimeForDate('2025-11-29');
-      expect(result2).toBe(60);
+      expect(result2).toBe(3600);
     });
 
     it('endがnullの場合は現在時刻までの時間を計算する', () => {
@@ -730,9 +730,9 @@ describe('Todo', () => {
         ]
       );
 
-      // 10:00:00 から 12:34:56 まで = 154分
+      // 10:00:00 から 12:34:56 まで = 9296秒
       const result = todo.getExecutionTimeForDate('2025-01-15');
-      expect(result).toBe(154);
+      expect(result).toBe(9296);
     });
   });
 });

@@ -39,13 +39,13 @@ describe('taskExecutionTime utilities', () => {
         [
           {
             start: '2025-11-28 10:00:00',
-            end: '2025-11-28 11:30:00' // 90分
+            end: '2025-11-28 11:30:00' // 5400秒
           }
         ]
       );
 
       const result = calculateExecutionTimeForDate(todo, '2025-11-28');
-      expect(result).toBe(90);
+      expect(result).toBe(5400);
     });
 
     it('複数のtimeRangesがある場合は合計時間を返す', () => {
@@ -59,17 +59,17 @@ describe('taskExecutionTime utilities', () => {
         [
           {
             start: '2025-11-28 10:00:00',
-            end: '2025-11-28 11:00:00' // 60分
+            end: '2025-11-28 11:00:00' // 3600秒
           },
           {
             start: '2025-11-28 14:00:00',
-            end: '2025-11-28 15:30:00' // 90分
+            end: '2025-11-28 15:30:00' // 5400秒
           }
         ]
       );
 
       const result = calculateExecutionTimeForDate(todo, '2025-11-28');
-      expect(result).toBe(150);
+      expect(result).toBe(9000);
     });
 
     it('異なる日付のtimeRangesは除外する', () => {
@@ -83,20 +83,20 @@ describe('taskExecutionTime utilities', () => {
         [
           {
             start: '2025-11-28 10:00:00',
-            end: '2025-11-28 11:00:00' // 60分（2025-11-28）
+            end: '2025-11-28 11:00:00' // 3600秒（2025-11-28）
           },
           {
             start: '2025-11-29 14:00:00',
-            end: '2025-11-29 15:00:00' // 60分（2025-11-29）
+            end: '2025-11-29 15:00:00' // 3600秒（2025-11-29）
           }
         ]
       );
 
       const result = calculateExecutionTimeForDate(todo, '2025-11-28');
-      expect(result).toBe(60);
+      expect(result).toBe(3600);
 
       const result2 = calculateExecutionTimeForDate(todo, '2025-11-29');
-      expect(result2).toBe(60);
+      expect(result2).toBe(3600);
     });
 
     it('endがnullの場合は現在時刻までの時間を計算する', () => {
@@ -136,7 +136,7 @@ describe('taskExecutionTime utilities', () => {
           [
             {
               start: '2025-11-28 10:00:00',
-              end: '2025-11-28 11:00:00' // 60分
+              end: '2025-11-28 11:00:00' // 3600秒
             }
           ]
         ),
@@ -150,7 +150,7 @@ describe('taskExecutionTime utilities', () => {
           [
             {
               start: '2025-11-28 14:00:00',
-              end: '2025-11-28 15:30:00' // 90分
+              end: '2025-11-28 15:30:00' // 5400秒
             }
           ]
         )
@@ -159,8 +159,8 @@ describe('taskExecutionTime utilities', () => {
       const result = calculateExecutionTimesForDate(todos, '2025-11-28');
 
       expect(result.size).toBe(2);
-      expect(result.get('test-id-1')).toBe(60);
-      expect(result.get('test-id-2')).toBe(90);
+      expect(result.get('test-id-1')).toBe(3600);
+      expect(result.get('test-id-2')).toBe(5400);
     });
 
     it('実行時間が0のTodoは結果に含まれない', () => {
@@ -175,7 +175,7 @@ describe('taskExecutionTime utilities', () => {
           [
             {
               start: '2025-11-28 10:00:00',
-              end: '2025-11-28 11:00:00' // 60分
+              end: '2025-11-28 11:00:00' // 3600秒
             }
           ]
         ),
@@ -193,7 +193,7 @@ describe('taskExecutionTime utilities', () => {
       const result = calculateExecutionTimesForDate(todos, '2025-11-28');
 
       expect(result.size).toBe(1);
-      expect(result.get('test-id-1')).toBe(60);
+      expect(result.get('test-id-1')).toBe(3600);
       expect(result.has('test-id-2')).toBe(false);
     });
   });
@@ -296,7 +296,7 @@ describe('taskExecutionTime utilities', () => {
           [
             {
               start: '2025-11-28 10:00:00',
-              end: '2025-11-28 11:00:00' // 60分
+              end: '2025-11-28 11:00:00' // 3600秒
             }
           ]
         )
@@ -305,12 +305,12 @@ describe('taskExecutionTime utilities', () => {
       const emptyRepo = ProjectDefinitionRepository.createEmpty();
       const result = calculateStackBarDisplay(todos, '2025-11-28', emptyRepo);
 
-      expect(result.totalMinutes).toBe(60);
-      expect(result.displayMaxMinutes).toBe(720); // 12時間 = 720分
+      expect(result.totalSeconds).toBe(3600);
+      expect(result.displayMaxSeconds).toBe(43200); // 12時間 = 43200秒
       expect(result.segments.length).toBe(1);
       expect(result.segments[0].itemId).toBe('test-id-1');
       expect(result.segments[0].itemText).toBe('Task 1');
-      expect(result.segments[0].minutes).toBe(60);
+      expect(result.segments[0].seconds).toBe(3600);
     });
 
     it('12時間を超える場合は実際の時間を使用する', () => {
@@ -325,7 +325,7 @@ describe('taskExecutionTime utilities', () => {
           [
             {
               start: '2025-11-28 10:00:00',
-              end: '2025-11-28 23:00:00' // 13時間 = 780分
+              end: '2025-11-28 23:00:00' // 13時間 = 46800秒
             }
           ]
         )
@@ -334,8 +334,8 @@ describe('taskExecutionTime utilities', () => {
       const emptyRepo = ProjectDefinitionRepository.createEmpty();
       const result = calculateStackBarDisplay(todos, '2025-11-28', emptyRepo);
 
-      expect(result.totalMinutes).toBe(780);
-      expect(result.displayMaxMinutes).toBe(780); // 実際の時間を使用
+      expect(result.totalSeconds).toBe(46800);
+      expect(result.displayMaxSeconds).toBe(46800); // 実際の時間を使用
       expect(result.segments.length).toBe(1);
     });
 
@@ -355,8 +355,8 @@ describe('taskExecutionTime utilities', () => {
       const emptyRepo = ProjectDefinitionRepository.createEmpty();
       const result = calculateStackBarDisplay(todos, '2025-11-28', emptyRepo);
 
-      expect(result.totalMinutes).toBe(0);
-      expect(result.displayMaxMinutes).toBe(720); // 12時間基準
+      expect(result.totalSeconds).toBe(0);
+      expect(result.displayMaxSeconds).toBe(43200); // 12時間基準
       expect(result.segments.length).toBe(0);
     });
 
@@ -372,7 +372,7 @@ describe('taskExecutionTime utilities', () => {
           [
             {
               start: '2025-11-28 10:00:00',
-              end: '2025-11-28 11:00:00' // 60分
+              end: '2025-11-28 11:00:00' // 3600秒
             }
           ]
         ),
@@ -386,7 +386,7 @@ describe('taskExecutionTime utilities', () => {
           [
             {
               start: '2025-11-28 14:00:00',
-              end: '2025-11-28 15:30:00' // 90分
+              end: '2025-11-28 15:30:00' // 5400秒
             }
           ]
         )
@@ -395,13 +395,13 @@ describe('taskExecutionTime utilities', () => {
       const emptyRepo = ProjectDefinitionRepository.createEmpty();
       const result = calculateStackBarDisplay(todos, '2025-11-28', emptyRepo);
 
-      expect(result.totalMinutes).toBe(150);
-      expect(result.displayMaxMinutes).toBe(720); // 12時間基準
+      expect(result.totalSeconds).toBe(9000);
+      expect(result.displayMaxSeconds).toBe(43200); // 12時間基準
       expect(result.segments.length).toBe(2);
       expect(result.segments[0].itemId).toBe('test-id-1');
-      expect(result.segments[0].minutes).toBe(60);
+      expect(result.segments[0].seconds).toBe(3600);
       expect(result.segments[1].itemId).toBe('test-id-2');
-      expect(result.segments[1].minutes).toBe(90);
+      expect(result.segments[1].seconds).toBe(5400);
     });
 
     it('hourMarkersが正しく生成される', () => {
@@ -416,7 +416,7 @@ describe('taskExecutionTime utilities', () => {
           [
             {
               start: '2025-11-28 10:00:00',
-              end: '2025-11-28 11:00:00' // 60分
+              end: '2025-11-28 11:00:00' // 3600秒
             }
           ]
         )
@@ -425,7 +425,7 @@ describe('taskExecutionTime utilities', () => {
       const emptyRepo = ProjectDefinitionRepository.createEmpty();
       const result = calculateStackBarDisplay(todos, '2025-11-28', emptyRepo);
 
-      // 12時間基準 = 720分 = 12時間
+      // 12時間基準 = 43200秒 = 12時間
       // hourMarkersは 0, 1, 2, ..., 12 の13要素
       expect(result.hourMarkers.length).toBe(13);
       expect(result.hourMarkers[0]).toBe(0);
@@ -444,7 +444,7 @@ describe('taskExecutionTime utilities', () => {
           [
             {
               start: '2025-11-28 10:00:00',
-              end: '2025-11-28 23:00:00' // 13時間 = 780分
+              end: '2025-11-28 23:00:00' // 13時間 = 46800秒
             }
           ]
         )
@@ -453,7 +453,7 @@ describe('taskExecutionTime utilities', () => {
       const emptyRepo = ProjectDefinitionRepository.createEmpty();
       const result = calculateStackBarDisplay(todos, '2025-11-28', emptyRepo);
 
-      // 13時間 = 780分
+      // 13時間 = 46800秒
       // hourMarkersは 0, 1, 2, ..., 13 の14要素
       expect(result.hourMarkers.length).toBe(14);
       expect(result.hourMarkers[0]).toBe(0);
@@ -472,7 +472,7 @@ describe('taskExecutionTime utilities', () => {
           [
             {
               start: '2025-11-28 10:00:00',
-              end: '2025-11-28 11:00:00' // 60分
+              end: '2025-11-28 11:00:00' // 3600秒
             }
           ]
         )
@@ -503,7 +503,7 @@ describe('taskExecutionTime utilities', () => {
           [
             {
               start: '2025-11-28 10:00:00',
-              end: '2025-11-28 11:00:00' // 60分
+              end: '2025-11-28 11:00:00' // 3600秒
             }
           ]
         )
@@ -529,13 +529,13 @@ describe('taskExecutionTime utilities', () => {
         [
           {
             start: '2025-11-28 14:00:00',
-            end: '2025-11-28 16:00:00' // 120分
+            end: '2025-11-28 16:00:00' // 7200秒
           }
         ]
       );
 
       const result = calculateExecutionTimeForDate(calendarEvent, '2025-11-28');
-      expect(result).toBe(120);
+      expect(result).toBe(7200);
     });
 
     it('TodoとCalendarEventが混在する場合の合計時間を計算する', () => {
@@ -549,7 +549,7 @@ describe('taskExecutionTime utilities', () => {
         [
           {
             start: '2025-11-28 10:00:00',
-            end: '2025-11-28 11:00:00' // 60分
+            end: '2025-11-28 11:00:00' // 3600秒
           }
         ]
       );
@@ -566,7 +566,7 @@ describe('taskExecutionTime utilities', () => {
         [
           {
             start: '2025-11-28 14:00:00',
-            end: '2025-11-28 15:00:00' // 60分
+            end: '2025-11-28 15:00:00' // 3600秒
           }
         ]
       );
@@ -575,8 +575,8 @@ describe('taskExecutionTime utilities', () => {
       const result = calculateExecutionTimesForDate(items, '2025-11-28');
 
       expect(result.size).toBe(2);
-      expect(result.get('todo-1')).toBe(60);
-      expect(result.get('event-1')).toBe(60);
+      expect(result.get('todo-1')).toBe(3600);
+      expect(result.get('event-1')).toBe(3600);
     });
 
     it('積み上げ棒グラフにCalendarEventが含まれる', () => {
@@ -590,7 +590,7 @@ describe('taskExecutionTime utilities', () => {
         [
           {
             start: '2025-11-28 10:00:00',
-            end: '2025-11-28 11:00:00' // 60分
+            end: '2025-11-28 11:00:00' // 3600秒
           }
         ]
       );
@@ -607,7 +607,7 @@ describe('taskExecutionTime utilities', () => {
         [
           {
             start: '2025-11-28 14:00:00',
-            end: '2025-11-28 16:00:00' // 120分
+            end: '2025-11-28 16:00:00' // 7200秒
           }
         ]
       );
@@ -617,13 +617,13 @@ describe('taskExecutionTime utilities', () => {
       const result = calculateStackBarDisplay(items, '2025-11-28', emptyRepo);
 
       expect(result.segments).toHaveLength(2);
-      expect(result.totalMinutes).toBe(180); // 60 + 120
+      expect(result.totalSeconds).toBe(10800); // 3600 + 7200
       expect(result.segments[0].itemId).toBe('todo-1');
       expect(result.segments[0].itemText).toBe('Todo task');
-      expect(result.segments[0].minutes).toBe(60);
+      expect(result.segments[0].seconds).toBe(3600);
       expect(result.segments[1].itemId).toBe('event-1');
       expect(result.segments[1].itemText).toBe('Meeting');
-      expect(result.segments[1].minutes).toBe(120);
+      expect(result.segments[1].seconds).toBe(7200);
     });
   });
 

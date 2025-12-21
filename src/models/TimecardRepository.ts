@@ -223,7 +223,7 @@ export class TimecardRepository {
   }
 
   /**
-   * 指定日付の稼働時間を分単位で計算する
+   * 指定日付の稼働時間を秒単位で計算する
    *
    * - 正常なstart-endペアの場合: 各ペアの時間差を合計
    * - 最後がstartで終わる場合: 最後のstartから現在時刻までを含めて計算
@@ -231,7 +231,7 @@ export class TimecardRepository {
    *
    * @param data タイムカードデータ
    * @param date 日付（YYYY-MM-DD形式）
-   * @returns 稼働時間（分）、または異常時は null
+   * @returns 稼働時間（秒）、または異常時は null
    */
   static calculateWorkingTimeForDate(data: TimecardData, date: string): number | null {
     // 指定日付のエントリを取得
@@ -242,7 +242,7 @@ export class TimecardRepository {
       return null;
     }
 
-    let totalMinutes = 0;
+    let totalSeconds = 0;
     let currentStartEntry: TimecardEntry | null = null;
 
     // エントリを順番に走査し、startとendのペアを見つける
@@ -255,8 +255,8 @@ export class TimecardRepository {
         const startTime = new Date(currentStartEntry.time);
         const endTime = new Date(entry.time);
         const diffMs = endTime.getTime() - startTime.getTime();
-        const diffMinutes = Math.floor(diffMs / (1000 * 60));
-        totalMinutes += diffMinutes;
+        const diffSeconds = Math.floor(diffMs / 1000);
+        totalSeconds += diffSeconds;
         currentStartEntry = null;
       }
     }
@@ -266,10 +266,10 @@ export class TimecardRepository {
       const startTime = new Date(currentStartEntry.time);
       const now = new Date();
       const diffMs = now.getTime() - startTime.getTime();
-      const diffMinutes = Math.floor(diffMs / (1000 * 60));
-      totalMinutes += diffMinutes;
+      const diffSeconds = Math.floor(diffMs / 1000);
+      totalSeconds += diffSeconds;
     }
 
-    return totalMinutes;
+    return totalSeconds;
   }
 }

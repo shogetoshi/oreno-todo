@@ -38,8 +38,9 @@ export const TodoItem = ({ todo, index, isDragging, currentDate, projectRepo, on
   const todoText = todo.getText();
   const completed = todo.isCompleted();
   const isTimerRunning = todo.isTimerRunning();
-  const executionTimeForDate = todo.getExecutionTimeForDate(currentDate);
-  const totalExecutionTime = todo.getTotalExecutionTimeInMinutes();
+  // 秒を分に変換して表示
+  const executionTimeForDateMinutes = Math.floor(todo.getExecutionTimeForDate(currentDate) / 60);
+  const totalExecutionTimeMinutes = Math.floor(todo.getTotalExecutionTimeInSeconds() / 60);
 
   // プロジェクト定義からtaskcodeに対応する色を取得（該当なしの場合は灰色）
   const projectColor = assignColorToItem(todo, currentDate, projectRepo);
@@ -157,7 +158,7 @@ export const TodoItem = ({ todo, index, isDragging, currentDate, projectRepo, on
           </span>
         )}
         <span className="execution-time">
-          {executionTimeForDate}/{totalExecutionTime}
+          {executionTimeForDateMinutes}/{totalExecutionTimeMinutes}
         </span>
       </div>
       <div className="todo-actions">

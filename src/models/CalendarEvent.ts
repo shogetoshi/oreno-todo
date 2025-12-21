@@ -194,10 +194,10 @@ export class CalendarEvent implements ListItem {
   }
 
   /**
-   * 合計実行時間を分単位で取得する
+   * 合計実行時間を秒単位で取得する
    * CalendarEventではstartTimeとendTimeから処理時間を算出する
    */
-  getTotalExecutionTimeInMinutes(): number {
+  getTotalExecutionTimeInSeconds(): number {
     if (!this.startTime || !this.endTime) {
       return 0;
     }
@@ -207,23 +207,23 @@ export class CalendarEvent implements ListItem {
       const endTimeMs = parseJSTString(this.endTime).getTime();
       const durationMs = endTimeMs - startTimeMs;
       const durationSeconds = Math.floor(durationMs / 1000);
-      return Math.round(durationSeconds / 60);
+      return durationSeconds;
     } catch (error) {
       return 0;
     }
   }
 
   /**
-   * 指定日付における実行時間を分単位で取得する
+   * 指定日付における実行時間を秒単位で取得する
    * @param date 日付（YYYY-MM-DD形式）
-   * @returns 指定日付における実行時間（分）
+   * @returns 指定日付における実行時間（秒）
    */
   getExecutionTimeForDate(date: string): number {
     if (this.timeRanges.length === 0) {
       return 0;
     }
 
-    let totalMinutes = 0;
+    let totalSeconds = 0;
 
     for (const range of this.timeRanges) {
       const startDate = extractDateFromJST(range.start);
@@ -237,14 +237,14 @@ export class CalendarEvent implements ListItem {
       const startTime = parseJSTString(range.start);
       const endTime = range.end ? parseJSTString(range.end) : parseJSTString(getCurrentJSTTime());
 
-      // 時間差を分に変換
+      // 時間差を秒に変換
       const durationMs = endTime.getTime() - startTime.getTime();
-      const durationMinutes = Math.floor(durationMs / (1000 * 60));
+      const durationSeconds = Math.floor(durationMs / 1000);
 
-      totalMinutes += durationMinutes;
+      totalSeconds += durationSeconds;
     }
 
-    return totalMinutes;
+    return totalSeconds;
   }
 
   /**
