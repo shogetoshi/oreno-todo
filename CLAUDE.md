@@ -237,6 +237,28 @@ shamefully-hoist=true
 }
 ```
 
+#### `GET /api/timecard/today`
+指定日付のタイムカードエントリを取得します。
+
+**クエリパラメータ**:
+- `date` (optional): YYYY-MM-DD形式の日付。省略時は今日の日付（JST）
+
+**レスポンス**:
+```json
+{
+  "type": "timecard",
+  "date": "2024-12-21",
+  "entries": [
+    { "type": "start", "time": "2024-12-21 09:00:00" },
+    { "type": "end", "time": "2024-12-21 12:00:00" }
+  ]
+}
+```
+
+**エラーレスポンス**:
+- 400 Bad Request: 不正な日付フォーマット
+- 500 Internal Server Error: タイムカードデータの読み込みに失敗
+
 ## Google Calendar連携
 
 アプリケーションはGoogleカレンダーから予定を取得して、CalendarEventとして追加する機能を持っています。

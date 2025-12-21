@@ -280,7 +280,6 @@ export class TimecardRepository {
    * @returns 指定日付のエントリのJSON配列
    */
   static getEntriesForDateAsJSON(data: TimecardData, date: string): TimecardEntryJSON[] {
-    // TODO: 実装予定
     const entries = data[date] || [];
     return entries.map((entry) => entry.toJSON());
   }

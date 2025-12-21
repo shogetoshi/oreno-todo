@@ -328,18 +328,45 @@ describe('TimecardRepository', () => {
 
   describe('getEntriesForDateAsJSON', () => {
     it('指定日付のエントリが存在する場合、JSON配列を返す', () => {
-      // TODO: 実装予定
-      expect(true).toBe(true);
+      const data: TimecardData = {
+        '2024-10-18': [
+          new TimecardEntry('start', '2024-10-18 09:00:00'),
+          new TimecardEntry('end', '2024-10-18 18:00:00'),
+        ],
+      };
+      const result = TimecardRepository.getEntriesForDateAsJSON(data, '2024-10-18');
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({ type: 'start', time: '2024-10-18 09:00:00' });
+      expect(result[1]).toEqual({ type: 'end', time: '2024-10-18 18:00:00' });
     });
 
     it('指定日付のエントリが存在しない場合、空配列を返す', () => {
-      // TODO: 実装予定
-      expect(true).toBe(true);
+      const data: TimecardData = {
+        '2024-10-18': [
+          new TimecardEntry('start', '2024-10-18 09:00:00'),
+        ],
+      };
+      const result = TimecardRepository.getEntriesForDateAsJSON(data, '2024-10-19');
+      expect(result).toEqual([]);
     });
 
     it('複数日付が存在する場合、指定日付のエントリのみを返す', () => {
-      // TODO: 実装予定
-      expect(true).toBe(true);
+      const data: TimecardData = {
+        '2024-10-18': [
+          new TimecardEntry('start', '2024-10-18 09:00:00'),
+          new TimecardEntry('end', '2024-10-18 18:00:00'),
+        ],
+        '2024-10-19': [
+          new TimecardEntry('start', '2024-10-19 10:00:00'),
+        ],
+        '2024-10-20': [
+          new TimecardEntry('start', '2024-10-20 08:00:00'),
+          new TimecardEntry('end', '2024-10-20 17:00:00'),
+        ],
+      };
+      const result = TimecardRepository.getEntriesForDateAsJSON(data, '2024-10-19');
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({ type: 'start', time: '2024-10-19 10:00:00' });
     });
   });
 });
