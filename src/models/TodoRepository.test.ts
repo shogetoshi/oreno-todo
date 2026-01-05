@@ -552,6 +552,103 @@ describe('TodoRepository', () => {
     });
   });
 
+  describe('startItemTimerExclusive', () => {
+    it('他に実行中のアイテムがない場合、正常にタイマーが開始される', () => {
+      const todo1 = TodoRepository.createTodo('TASK-001', 'Task 1');
+      const todo2 = TodoRepository.createTodo('TASK-002', 'Task 2');
+      const todos = [todo1, todo2];
+
+      const newTodos = TodoRepository.startItemTimerExclusive(todos, todo1.getId());
+
+      expect(newTodos[0].isTimerRunning()).toBe(true);
+      expect(newTodos[1].isTimerRunning()).toBe(false);
+    });
+
+    it('他に実行中のアイテムがある場合、そのアイテムのタイマーが停止され、指定アイテムのタイマーが開始される', () => {
+      const todo1 = TodoRepository.createTodo('TASK-001', 'Task 1').startTimer();
+      const todo2 = TodoRepository.createTodo('TASK-002', 'Task 2');
+      const todos = [todo1, todo2];
+
+      const newTodos = TodoRepository.startItemTimerExclusive(todos, todo2.getId());
+
+      expect(newTodos[0].isTimerRunning()).toBe(false); // 停止された
+      expect(newTodos[1].isTimerRunning()).toBe(true);  // 開始された
+    });
+
+    it('複数の実行中アイテムがある場合、すべてのアイテムのタイマーが停止される', () => {
+      const todo1 = TodoRepository.createTodo('TASK-001', 'Task 1').startTimer();
+      const todo2 = TodoRepository.createTodo('TASK-002', 'Task 2').startTimer();
+      const todo3 = TodoRepository.createTodo('TASK-003', 'Task 3');
+      const todos = [todo1, todo2, todo3];
+
+      const newTodos = TodoRepository.startItemTimerExclusive(todos, todo3.getId());
+
+      expect(newTodos[0].isTimerRunning()).toBe(false); // 停止された
+      expect(newTodos[1].isTimerRunning()).toBe(false); // 停止された
+      expect(newTodos[2].isTimerRunning()).toBe(true);  // 開始された
+    });
+
+    it('既に実行中のアイテムを再度開始しても正常に動作する', () => {
+      const todo1 = TodoRepository.createTodo('TASK-001', 'Task 1').startTimer();
+      const todos = [todo1];
+
+      const newTodos = TodoRepository.startItemTimerExclusive(todos, todo1.getId());
+
+      expect(newTodos[0].isTimerRunning()).toBe(true);
+    });
+
+    it('元の配列は変更されない（イミュータブル）', () => {
+      const todo1 = TodoRepository.createTodo('TASK-001', 'Task 1').startTimer();
+      const todo2 = TodoRepository.createTodo('TASK-002', 'Task 2');
+      const todos = [todo1, todo2];
+
+      const newTodos = TodoRepository.startItemTimerExclusive(todos, todo2.getId());
+
+      expect(todos[0].isTimerRunning()).toBe(true);
+      expect(todos[1].isTimerRunning()).toBe(false);
+      expect(newTodos[0].isTimerRunning()).toBe(false);
+      expect(newTodos[1].isTimerRunning()).toBe(true);
+    });
+
+    it('存在しないIDを指定しても他のタイマーは停止される', () => {
+      const todo1 = TodoRepository.createTodo('TASK-001', 'Task 1').startTimer();
+      const todos = [todo1];
+
+      const newTodos = TodoRepository.startItemTimerExclusive(todos, 'non-existent-id');
+
+      // 実行中タイマーは停止される
+      expect(newTodos[0].isTimerRunning()).toBe(false);
+    });
+
+    it('空の配列に対して実行してもエラーにならない', () => {
+      const todos: Todo[] = [];
+      const newTodos = TodoRepository.startItemTimerExclusive(todos, 'any-id');
+
+      expect(newTodos).toEqual([]);
+    });
+
+    it('CalendarEventとTodoが混在していても正しく動作する', () => {
+      const todo = TodoRepository.createTodo('TASK-001', 'Task 1').startTimer();
+      const calendarEvent = new CalendarEvent(
+        'event-1',
+        'TASK-002',
+        'Meeting',
+        null,
+        '2025-01-15 10:00:00',
+        '2025-01-15 10:00:00',
+        '2025-01-20 14:00:00',
+        '2025-01-20 15:00:00',
+        []
+      );
+      const items = [todo, calendarEvent];
+
+      const newItems = TodoRepository.startItemTimerExclusive(items, calendarEvent.getId());
+
+      expect(newItems[0].isTimerRunning()).toBe(false); // Todoのタイマーが停止
+      expect(newItems[1].isTimerRunning()).toBe(false); // CalendarEventはタイマーを持たない
+    });
+  });
+
   describe('fromJsonArray', () => {
     it('JSONデータ配列からTodoリストを生成できる', () => {
       const jsonArray = [
