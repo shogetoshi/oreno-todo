@@ -52,7 +52,7 @@ export const useTodos = () => {
 
   // 新しいTODOを追加
   const addTodo = useCallback((taskcode: string, text: string) => {
-    setTodosWithPersist((prev) => [...prev, TodoRepository.createTodo(taskcode, text)]);
+    setTodosWithPersist((prev) => [TodoRepository.createTodo(taskcode, text), ...prev]);
   }, [setTodosWithPersist]);
 
   // HTTPサーバー経由のTODO追加リクエストを受信
