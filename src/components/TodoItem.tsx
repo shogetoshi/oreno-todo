@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { ListItem } from '../models/ListItem';
 import { ProjectDefinitionRepository } from '../models/ProjectDefinition';
 import { assignColorToItem, colorToRgba } from '../utils/taskExecutionTime';
+import { ConfirmDialog } from './ConfirmDialog';
 
 /**
  * View Layer: TodoItem Component
@@ -32,6 +33,7 @@ export const TodoItem = ({ todo, index, isDragging, currentDate, projectRepo, on
   const [isEditingTaskcode, setIsEditingTaskcode] = useState(false);
   const [editText, setEditText] = useState(todo.getText());
   const [editTaskcode, setEditTaskcode] = useState(todo.getTaskcode());
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const todoId = todo.getId();
   const todoTaskcode = todo.getTaskcode();
@@ -105,6 +107,22 @@ export const TodoItem = ({ todo, index, isDragging, currentDate, projectRepo, on
     }
   };
 
+  // 削除ボタンクリック時の処理
+  const handleDeleteClick = () => {
+    setIsDeleteDialogOpen(true);
+  };
+
+  // 削除確認時の処理
+  const handleConfirmDelete = () => {
+    onDelete(todoId);
+    setIsDeleteDialogOpen(false);
+  };
+
+  // 削除キャンセル時の処理
+  const handleCancelDelete = () => {
+    setIsDeleteDialogOpen(false);
+  };
+
   return (
     <li
       className={`todo-item ${completed ? 'completed' : ''}`}
@@ -171,10 +189,19 @@ export const TodoItem = ({ todo, index, isDragging, currentDate, projectRepo, on
         <button onClick={() => onToggle(todoId)} className="complete-button">
           ✅
         </button>
-        <button onClick={() => onDelete(todoId)} className="delete-button">
+        <button onClick={handleDeleteClick} className="delete-button">
           🗑️
         </button>
       </div>
+      <ConfirmDialog
+        isOpen={isDeleteDialogOpen}
+        title="削除の確認"
+        message={`「${todoText}」を削除してもよろしいですか?`}
+        confirmButtonText="削除"
+        cancelButtonText="キャンセル"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+      />
     </li>
   );
 };

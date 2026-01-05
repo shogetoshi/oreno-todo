@@ -686,3 +686,29 @@ body {
 .date-group .todo-list {
   margin-top: 12px;
 }
+
+/* 確認ダイアログボタン（危険操作を示す赤色） */
+.confirm-dialog-button {
+  background-color: #dc3545;
+  color: white;
+  padding: 10px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.confirm-dialog-button:hover {
+  background-color: #c82333;
+}
+
+/* 確認ダイアログメッセージ */
+.confirm-dialog-message {
+  padding: 20px;
+  text-align: center;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #333;
+}
