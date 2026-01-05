@@ -34,7 +34,7 @@ export class TodoRepository {
    */
   static addTodo(todos: Todo[], taskcode: string, text: string): Todo[] {
     const newTodo = this.createTodo(taskcode, text);
-    return [...todos, newTodo];
+    return [newTodo, ...todos];
   }
 
   /**
