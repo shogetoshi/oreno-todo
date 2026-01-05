@@ -151,9 +151,6 @@ export class TodoRepository {
    * @returns 新しいListItemリスト
    */
   static startItemTimerExclusive(items: ListItem[], id: string): ListItem[] {
-    // TODO: 実装予定
-    // 1. stopAllRunningItemsで全ての実行中アイテムを停止
-    // 2. startItemTimerで指定IDのアイテムのタイマーを開始
     const itemsWithStoppedTimers = this.stopAllRunningItems(items);
     return this.startItemTimer(itemsWithStoppedTimers, id);
   }
