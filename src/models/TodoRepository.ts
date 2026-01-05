@@ -145,6 +145,20 @@ export class TodoRepository {
   }
 
   /**
+   * 指定IDのListItemのタイマーを排他的に開始する（他の実行中タイマーを停止）
+   * @param items 既存のListItemリスト
+   * @param id ListItemのID
+   * @returns 新しいListItemリスト
+   */
+  static startItemTimerExclusive(items: ListItem[], id: string): ListItem[] {
+    // TODO: 実装予定
+    // 1. stopAllRunningItemsで全ての実行中アイテムを停止
+    // 2. startItemTimerで指定IDのアイテムのタイマーを開始
+    const itemsWithStoppedTimers = this.stopAllRunningItems(items);
+    return this.startItemTimer(itemsWithStoppedTimers, id);
+  }
+
+  /**
    * JSON配列からListItemリスト（TodoまたはCalendarEvent）を生成する
    * typeフィールドでTodoとCalendarEventを判別する
    * @param jsonArray JSON配列

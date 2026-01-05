@@ -111,9 +111,9 @@ export const useTodos = () => {
     });
   }, [setTodosWithPersist]);
 
-  // タイマーを開始
+  // タイマーを開始（他の実行中タイマーは自動停止）
   const startTimer = useCallback((id: string) => {
-    setTodosWithPersist((prev) => TodoRepository.startItemTimer(prev, id));
+    setTodosWithPersist((prev) => TodoRepository.startItemTimerExclusive(prev, id));
   }, [setTodosWithPersist]);
 
   // タイマーを停止
