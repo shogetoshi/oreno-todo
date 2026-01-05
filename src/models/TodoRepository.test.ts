@@ -84,8 +84,8 @@ describe('TodoRepository', () => {
       const newTodos = TodoRepository.addTodo(todos, 'TASK-002', 'New task');
 
       expect(newTodos).toHaveLength(2);
-      expect(newTodos[0].getTaskcode()).toBe('TASK-001');
-      expect(newTodos[1].getTaskcode()).toBe('TASK-002');
+      expect(newTodos[0].getTaskcode()).toBe('TASK-002');
+      expect(newTodos[1].getTaskcode()).toBe('TASK-001');
     });
 
     it('元の配列は変更されない（イミュータブル）', () => {
@@ -96,7 +96,7 @@ describe('TodoRepository', () => {
       expect(newTodos).toHaveLength(2);
     });
 
-    it('追加されたTodoは配列の末尾に配置される', () => {
+    it('追加されたTodoは配列の先頭に配置される', () => {
       const todos = [
         TodoRepository.createTodo('TASK-001', 'Task 1'),
         TodoRepository.createTodo('TASK-002', 'Task 2')
@@ -104,8 +104,8 @@ describe('TodoRepository', () => {
 
       const newTodos = TodoRepository.addTodo(todos, 'TASK-003', 'Task 3');
 
-      expect(newTodos[2].getTaskcode()).toBe('TASK-003');
-      expect(newTodos[2].getText()).toBe('Task 3');
+      expect(newTodos[0].getTaskcode()).toBe('TASK-003');
+      expect(newTodos[0].getText()).toBe('Task 3');
     });
   });
 
