@@ -1,8 +1,51 @@
 import { useState } from 'react';
 import type { ListItem } from '../models/ListItem';
+import { ListItemType } from '../models/ListItem';
 import { ProjectDefinitionRepository } from '../models/ProjectDefinition';
 import { assignColorToItem, colorToRgba } from '../utils/taskExecutionTime';
 import { ConfirmDialog } from './ConfirmDialog';
+
+/**
+ * アイテムの状態に応じた視覚スタイルを計算する
+ * @param todo ListItem（TodoまたはCalendarEvent）
+ * @param projectColor プロジェクト色
+ * @param isDragging ドラッグ中かどうか
+ * @returns CSSスタイルオブジェクト
+ */
+function getItemVisualStyle(
+  todo: ListItem,
+  projectColor: string,
+  isDragging: boolean
+): React.CSSProperties {
+  const isRunning = todo.isTimerRunning();
+  const isCompleted = todo.isCompleted();
+
+  // タイマー実行中の強調スタイル
+  if (isRunning) {
+    return {
+      borderLeft: `30px solid ${projectColor}`,
+      backgroundColor: colorToRgba(projectColor, 0.7),
+      opacity: isDragging ? 0.5 : 1,
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+    };
+  }
+
+  // 完了済みの控えめなスタイル
+  if (isCompleted) {
+    return {
+      borderLeft: `15px solid ${projectColor}`,
+      backgroundColor: colorToRgba(projectColor, 0.3),
+      opacity: isDragging ? 0.5 : 0.6,
+    };
+  }
+
+  // デフォルトスタイル
+  return {
+    borderLeft: `20px solid ${projectColor}`,
+    backgroundColor: colorToRgba(projectColor, 0.5),
+    opacity: isDragging ? 0.5 : 1,
+  };
+}
 
 /**
  * View Layer: TodoItem Component
@@ -123,20 +166,24 @@ export const TodoItem = ({ todo, index, isDragging, currentDate, projectRepo, on
     setIsDeleteDialogOpen(false);
   };
 
+  // アイテムの状態に応じたクラス名を動的生成
+  const itemClassName = [
+    'todo-item',
+    completed && 'completed',
+    isTimerRunning && 'timer-running',
+    todo.getType() === ListItemType.CALENDAR_EVENT && 'calendar-event',
+  ].filter(Boolean).join(' ');
+
   return (
     <li
-      className={`todo-item ${completed ? 'completed' : ''}`}
+      className={itemClassName}
       draggable={true}
       onDragStart={() => onDragStart(index)}
       onDragOver={onDragOver}
       onDrop={() => onDrop(index)}
       onDragEnd={onDragEnd}
       onDoubleClick={() => onOpenJsonEditor(todoId)}
-      style={{
-        borderLeft: `20px solid ${projectColor}`,
-        backgroundColor: colorToRgba(projectColor, 0.5), // 背景色（50%透明度）
-        opacity: isDragging ? 0.5 : 1
-      }}
+      style={getItemVisualStyle(todo, projectColor, isDragging)}
     >
       <div className="todo-content">
         {isEditingTaskcode ? (
