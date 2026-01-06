@@ -165,6 +165,26 @@ describe('TodoRepository', () => {
 
       expect(newTodos).toEqual([]);
     });
+
+    it('計測中のTodoを完了にすると、タイマーが停止する', () => {
+      const todo = TodoRepository.createTodo('TASK-001', 'Task 1').startTimer();
+      const todos = [todo];
+
+      const newTodos = TodoRepository.toggleItem(todos, todo.getId());
+
+      expect(newTodos[0].isCompleted()).toBe(true);
+      expect(newTodos[0].isTimerRunning()).toBe(false);
+    });
+
+    it('完了済みTodoを未完了に戻してもタイマーは開始しない', () => {
+      const todo = TodoRepository.createTodo('TASK-001', 'Task 1').startTimer().stopTimer().toggleCompleted();
+      const todos = [todo];
+
+      const newTodos = TodoRepository.toggleItem(todos, todo.getId());
+
+      expect(newTodos[0].isCompleted()).toBe(false);
+      expect(newTodos[0].isTimerRunning()).toBe(false);
+    });
   });
 
   describe('deleteTodo', () => {

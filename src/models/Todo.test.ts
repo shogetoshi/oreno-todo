@@ -208,6 +208,55 @@ describe('Todo', () => {
       expect(toggled1.isCompleted()).toBe(true);
       expect(toggled2.isCompleted()).toBe(false);
     });
+
+    it('計測中のTodoを完了にすると、タイマーが停止する', () => {
+      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', [
+        { start: '2025-01-15 10:00:00', end: null }
+      ]);
+      const updated = original.toggleCompleted();
+
+      expect(updated.isCompleted()).toBe(true);
+      expect(updated.isTimerRunning()).toBe(false);
+    });
+
+    it('計測中のTodoを完了にすると、timeRangesの最後のレコードにendが設定される', () => {
+      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', [
+        { start: '2025-01-15 10:00:00', end: null }
+      ]);
+      const updated = original.toggleCompleted();
+
+      const json = updated.toJSON();
+      expect(json.timeRanges).toHaveLength(1);
+      expect(json.timeRanges[0].end).toBe('2025-01-15 12:34:56');
+    });
+
+    it('計測していないTodoを完了にしても正常に動作する', () => {
+      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', []);
+      const updated = original.toggleCompleted();
+
+      expect(updated.isCompleted()).toBe(true);
+      expect(updated.isTimerRunning()).toBe(false);
+    });
+
+    it('完了済みTodoを未完了に戻してもタイマーは開始しない', () => {
+      const original = new Todo('id-123', 'TASK-001', 'Sample task', '2025-01-15 11:00:00', '2025-01-15 10:00:00', '2025-01-15 11:00:00', [
+        { start: '2025-01-15 10:00:00', end: '2025-01-15 11:00:00' }
+      ]);
+      const updated = original.toggleCompleted();
+
+      expect(updated.isCompleted()).toBe(false);
+      expect(updated.isTimerRunning()).toBe(false);
+    });
+
+    it('タイマーが停止済みの状態で完了にしても正常に動作する', () => {
+      const original = new Todo('id-123', 'TASK-001', 'Sample task', null, '2025-01-15 10:00:00', '2025-01-15 10:00:00', [
+        { start: '2025-01-15 10:00:00', end: '2025-01-15 11:00:00' }
+      ]);
+      const updated = original.toggleCompleted();
+
+      expect(updated.isCompleted()).toBe(true);
+      expect(updated.isTimerRunning()).toBe(false);
+    });
   });
 
   describe('setCompleted', () => {
