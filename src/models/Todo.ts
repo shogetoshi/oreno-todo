@@ -91,8 +91,14 @@ export class Todo implements ListItem {
 
   /**
    * 完了状態を切り替えた新しいTodoインスタンスを返す
+   * 未完了→完了への切り替え時、タイマーが実行中の場合は自動的に停止する
    */
   toggleCompleted(): Todo {
+    // 未完了→完了への切り替えの場合、タイマーを停止してから完了状態を設定
+    if (!this.isCompleted() && this.isTimerRunning()) {
+      return this.stopTimer().setCompleted(true);
+    }
+    // 完了→未完了への切り替え、またはタイマーが動いていない場合は通常通り
     return this.setCompleted(!this.isCompleted());
   }
 
