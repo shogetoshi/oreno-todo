@@ -6,6 +6,52 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Electron + React + TypeScriptで構築されたデスクトップTODO管理アプリケーション。JSONファイルによるローカルデータ永続化を実装。
 
+## プラグインシステム
+
+アプリケーションは、計測開始時などのイベントに対して任意の処理を実行できるプラグインシステムを提供しています。
+
+### プラグイン配置場所
+
+- macOS: `~/Library/Application Support/oreno-todo/plugins/`
+- Windows: `%APPDATA%/oreno-todo/plugins/`
+- Linux: `~/.config/oreno-todo/plugins/`
+
+ディレクトリ内の`.js`ファイルが自動的に読み込まれます。
+
+### プラグイン実行タイミング
+
+- **アプリ起動時**: `electron/main.ts`の`app.whenReady()`でプラグインを読み込む
+- **計測開始時**: `src/hooks/useTodos.ts`の`startTimer`関数内でプラグインに通知
+
+### プラグインの実装
+
+プラグインはCommonJS形式のJavaScriptモジュールとして実装します。
+
+```javascript
+module.exports = {
+  name: 'my-plugin',
+  onTimerStart: async (context) => {
+    // context.data にListItemのJSONデータが格納されている
+    console.log('Timer started for:', context.data.text);
+  }
+};
+```
+
+詳細は`sample-plugins/README.md`を参照してください。
+
+### アーキテクチャ上の位置付け
+
+プラグインシステムはController層（`useTodos`）からMain Process（`pluginManager`）への通知として実装されています。
+プラグインはMain Processで実行され、Node.jsのフルアクセスを持ちます（ファイルI/O、HTTPリクエスト等）。
+
+### 新しいイベントの追加方法
+
+1. `electron/pluginManager.ts`に新しい`notifyXxx`メソッドを追加
+2. `electron/main.ts`に対応するIPCハンドラーを追加
+3. `electron/preload.ts`でAPIを公開
+4. `src/types/electron.d.ts`に型定義を追加
+5. Controller層（`useTodos`等）で適切なタイミングで通知を実行
+
 ## 開発コマンド
 
 ### 開発環境の起動

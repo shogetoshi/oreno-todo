@@ -112,9 +112,20 @@ export const useTodos = () => {
   }, [setTodosWithPersist]);
 
   // タイマーを開始（他の実行中タイマーは自動停止）
-  const startTimer = useCallback((id: string) => {
+  const startTimer = useCallback(async (id: string) => {
+    // プラグインに通知するために、開始前のListItemデータを取得
+    const targetItem = todos.find(item => item.getId() === id);
+
+    // タイマー開始処理を実行（楽観的更新）
     setTodosWithPersist((prev) => TodoRepository.startItemTimerExclusive(prev, id));
-  }, [setTodosWithPersist]);
+
+    // プラグインにタイマー開始を通知（非同期、エラーは無視）
+    if (targetItem) {
+      window.electronAPI.notifyTimerStart(targetItem.toJSON()).catch(error => {
+        console.error('Failed to notify plugins:', error);
+      });
+    }
+  }, [setTodosWithPersist, todos]);
 
   // タイマーを停止
   const stopTimer = useCallback((id: string) => {
