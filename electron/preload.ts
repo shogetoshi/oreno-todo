@@ -21,6 +21,8 @@ const electronAPI: ElectronAPI = {
   fetchCalendarEvents: (date) => ipcRenderer.invoke('fetch-calendar-events', date),
   loadProjectDefinitions: () => ipcRenderer.invoke('load-project-definitions'),
   saveProjectDefinitions: (data) => ipcRenderer.invoke('save-project-definitions', data),
+  // プラグイン通知用API
+  notifyTimerStart: (itemData) => ipcRenderer.invoke('notify-timer-start', itemData),
 };
 
 contextBridge.exposeInMainWorld('electronAPI', electronAPI);

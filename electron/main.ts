@@ -4,11 +4,15 @@ import { promises as fsPromises } from 'fs';
 import express from 'express';
 import { fetchCalendarEvents, getTodayDateString } from './googleCalendar';
 import { TimecardRepository } from '../src/models/TimecardRepository';
+import { PluginManager } from './pluginManager';
 
 const isDev = !app.isPackaged;
 const dataPath = path.join(app.getPath('userData'), 'todos.json');
 const timecardPath = path.join(app.getPath('userData'), 'timecard.json');
 const projectDefinitionsPath = path.join(app.getPath('userData'), 'project-definitions.json');
+
+// プラグインマネージャー
+let pluginManager: PluginManager;
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -133,6 +137,14 @@ ipcMain.handle('save-timecard', async (_, data) => {
 ipcMain.handle('fetch-calendar-events', async (_, date?: string) => {
   const targetDate = date || getTodayDateString();
   return await fetchCalendarEvents(targetDate);
+});
+
+// プラグインにタイマー開始を通知
+ipcMain.handle('notify-timer-start', async (_, itemData) => {
+  if (pluginManager) {
+    await pluginManager.notifyTimerStart(itemData);
+  }
+  return { success: true };
 });
 
 // プロジェクト定義の読み込み
@@ -293,7 +305,11 @@ function startHttpServer() {
   });
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  // プラグインマネージャーを初期化
+  pluginManager = new PluginManager();
+  await pluginManager.loadPlugins();
+
   createWindow();
   startHttpServer();
 

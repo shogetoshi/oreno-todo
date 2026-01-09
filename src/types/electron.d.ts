@@ -22,6 +22,8 @@ export interface ElectronAPI {
   fetchCalendarEvents: (date?: string) => Promise<FetchCalendarEventsResult>;
   loadProjectDefinitions: () => Promise<any>;
   saveProjectDefinitions: (data: any) => Promise<{ success: boolean; error?: string }>;
+  // プラグイン通知用API
+  notifyTimerStart: (itemData: any) => Promise<{ success: boolean }>;
 }
 
 declare global {
