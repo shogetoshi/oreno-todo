@@ -454,10 +454,11 @@ describe('CalendarEvent', () => {
       const event = CalendarEvent.fromJSON(original);
       const json = event.toJSON();
 
-      // timeRangesフィールドが追加されることを期待
+      // timeRangesフィールドとmeetingUrlフィールドが追加されることを期待
       expect(json).toEqual({
         ...original,
-        timeRanges: []
+        timeRanges: [],
+        meetingUrl: null
       });
     });
   });
@@ -778,6 +779,7 @@ describe('CalendarEvent', () => {
         updatedAt: '2025-01-15 12:34:56',
         startTime: '2025-01-16 14:00:00',
         endTime: '2025-01-16 15:00:00',
+        meetingUrl: null,
         timeRanges: [
           { start: '2025-01-16 14:00:00', end: '2025-01-16 15:00:00' }
         ]
