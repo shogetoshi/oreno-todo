@@ -192,11 +192,16 @@ export const useTodos = () => {
 
   // カレンダーイベントを開始（URL開く + 他タスク停止 + 完了状態にする）
   const startCalendarEvent = useCallback(async (id: string) => {
-    // TODO: 実装予定
     // 1. MTG URLを開く
+    await openMeetingUrl(id);
+
     // 2. 他の実行中タスクを全て停止
     // 3. カレンダーイベントを完了状態にする
-  }, []);
+    setTodosWithPersist((prev) => {
+      const itemsWithStoppedTimers = TodoRepository.stopAllRunningItems(prev);
+      return TodoRepository.completeItem(itemsWithStoppedTimers, id);
+    });
+  }, [openMeetingUrl, setTodosWithPersist]);
 
   return {
     todos,
@@ -214,7 +219,6 @@ export const useTodos = () => {
     startTimer,
     stopTimer,
     importCalendarEvents,
-    openMeetingUrl,
     startCalendarEvent,
   };
 };

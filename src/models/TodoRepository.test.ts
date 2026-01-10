@@ -1351,6 +1351,132 @@ describe('TodoRepository', () => {
     });
   });
 
+  describe('completeItem', () => {
+    it('未完了のListItemを完了状態にできる', () => {
+      const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
+      const items = [todo];
+
+      const newItems = TodoRepository.completeItem(items, todo.getId());
+
+      expect(newItems[0].isCompleted()).toBe(true);
+      expect(newItems[0].getCompletedAt()).not.toBeNull();
+    });
+
+    it('既に完了しているListItemは変更しない', () => {
+      const todo = TodoRepository.createTodo('TASK-001', 'Task 1').toggleCompleted();
+      const items = [todo];
+      const completedAt = todo.getCompletedAt();
+
+      const newItems = TodoRepository.completeItem(items, todo.getId());
+
+      expect(newItems[0].isCompleted()).toBe(true);
+      expect(newItems[0].getCompletedAt()).toBe(completedAt); // 完了時刻は変わらない
+    });
+
+    it('複数アイテムのうち指定したもののみが完了する', () => {
+      const todo1 = TodoRepository.createTodo('TASK-001', 'Task 1');
+      const todo2 = TodoRepository.createTodo('TASK-002', 'Task 2');
+      const items = [todo1, todo2];
+
+      const newItems = TodoRepository.completeItem(items, todo1.getId());
+
+      expect(newItems[0].isCompleted()).toBe(true);
+      expect(newItems[1].isCompleted()).toBe(false);
+    });
+
+    it('CalendarEventを完了状態にできる', () => {
+      const calendarEvent = new CalendarEvent(
+        'event-1',
+        'TASK-001',
+        'Meeting',
+        null,
+        '2025-01-15 10:00:00',
+        '2025-01-15 10:00:00',
+        '2025-01-20 14:00:00',
+        '2025-01-20 15:00:00',
+        null,
+        []
+      );
+      const items = [calendarEvent];
+
+      const newItems = TodoRepository.completeItem(items, calendarEvent.getId());
+
+      expect(newItems[0].isCompleted()).toBe(true);
+      expect(newItems[0].getCompletedAt()).not.toBeNull();
+    });
+
+    it('CalendarEventを完了すると、startTimeとendTimeからTimeRangeが生成される', () => {
+      const calendarEvent = new CalendarEvent(
+        'event-1',
+        'TASK-001',
+        'Meeting',
+        null,
+        '2025-01-15 10:00:00',
+        '2025-01-15 10:00:00',
+        '2025-01-20 14:00:00',
+        '2025-01-20 15:00:00',
+        null,
+        []
+      );
+      const items = [calendarEvent];
+
+      const newItems = TodoRepository.completeItem(items, calendarEvent.getId());
+
+      const timeRanges = newItems[0].getTimeRanges();
+      expect(timeRanges).toHaveLength(1);
+      expect(timeRanges[0].start).toBe('2025-01-20 14:00:00');
+      expect(timeRanges[0].end).toBe('2025-01-20 15:00:00');
+    });
+
+    it('既に完了しているCalendarEventは変更しない', () => {
+      const calendarEvent = new CalendarEvent(
+        'event-1',
+        'TASK-001',
+        'Meeting',
+        '2025-01-20 15:00:00',
+        '2025-01-15 10:00:00',
+        '2025-01-15 10:00:00',
+        '2025-01-20 14:00:00',
+        '2025-01-20 15:00:00',
+        null,
+        [{ start: '2025-01-20 14:00:00', end: '2025-01-20 15:00:00' }]
+      );
+      const items = [calendarEvent];
+
+      const newItems = TodoRepository.completeItem(items, calendarEvent.getId());
+
+      expect(newItems[0].getCompletedAt()).toBe('2025-01-20 15:00:00');
+      expect(newItems[0].getTimeRanges()).toHaveLength(1);
+    });
+
+    it('元の配列は変更されない（イミュータブル）', () => {
+      const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
+      const items = [todo];
+
+      const newItems = TodoRepository.completeItem(items, todo.getId());
+
+      expect(items[0].isCompleted()).toBe(false);
+      expect(newItems[0].isCompleted()).toBe(true);
+    });
+
+    it('存在しないIDを指定しても配列は変更されない', () => {
+      const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
+      const items = [todo];
+
+      const newItems = TodoRepository.completeItem(items, 'non-existent-id');
+
+      expect(newItems).toEqual(items);
+      expect(newItems[0].isCompleted()).toBe(false);
+    });
+
+    it('空の配列に対して実行してもエラーにならない', () => {
+      const items: any[] = [];
+      const newItems = TodoRepository.completeItem(items, 'any-id');
+
+      expect(newItems).toEqual([]);
+    });
+  });
+
   describe('filterItemsByDate', () => {
     it('指定日に表示すべきアイテムのみをフィルタリングする', () => {
       // 2025-01-15に作成された未完了Todo
