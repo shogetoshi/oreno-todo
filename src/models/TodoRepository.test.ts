@@ -658,6 +658,7 @@ describe('TodoRepository', () => {
         '2025-01-15 10:00:00',
         '2025-01-20 14:00:00',
         '2025-01-20 15:00:00',
+        null,
         []
       );
       const items = [todo, calendarEvent];
@@ -1028,6 +1029,7 @@ describe('TodoRepository', () => {
           '2025-01-15 10:00:00',
           '2025-01-20 14:00:00',
           '2025-01-20 15:00:00',
+          null,
           []
         );
 
@@ -1044,6 +1046,7 @@ describe('TodoRepository', () => {
           '2025-01-15 10:00:00',
           '2025-01-20 14:00:00',
           '2025-01-20 15:00:00',
+          null,
           []
         );
 
@@ -1059,6 +1062,7 @@ describe('TodoRepository', () => {
           null,
           '2025-01-15 10:00:00',
           '2025-01-15 10:00:00',
+          null,
           null,
           null,
           []
@@ -1101,6 +1105,7 @@ describe('TodoRepository', () => {
         '2025-01-15 10:00:00',
         '2025-01-20 14:00:00',
         '2025-01-20 15:00:00',
+        null,
         []
       );
       const items = [calendarEvent];
@@ -1269,6 +1274,7 @@ describe('TodoRepository', () => {
         '2025-01-15 10:00:00',
         '2025-01-20 14:00:00',
         '2025-01-20 15:00:00',
+        null,
         []
       );
       const items = [calendarEvent, todo];
@@ -1333,6 +1339,7 @@ describe('TodoRepository', () => {
         '2025-01-15 10:00:00',
         '2025-01-20 14:00:00',
         '2025-01-20 15:00:00',
+        null,
         []
       );
       const items = [todo, calendarEvent];
