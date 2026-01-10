@@ -23,7 +23,7 @@ interface DateGroupedTodoListProps {
   onReorder: (fromIndex: number, toIndex: number) => void;
   onStartTimer: (id: string) => void;
   onStopTimer: (id: string) => void;
-  onOpenMeetingUrl: (id: string) => void;
+  onStartCalendarEvent: (id: string) => void;
   onOpenJsonEditor: (id: string) => void;
   onImportCalendarEvents: (date: string) => Promise<void>;
   onOpenJsonEditorForDate: (date: string, items: ListItem[]) => void;
@@ -41,7 +41,7 @@ export const DateGroupedTodoList = ({
   onReorder,
   onStartTimer,
   onStopTimer,
-  onOpenMeetingUrl,
+  onStartCalendarEvent,
   onOpenJsonEditor,
   onImportCalendarEvents,
   onOpenJsonEditorForDate,
@@ -156,7 +156,7 @@ export const DateGroupedTodoList = ({
                     onEditTaskcode={onEditTaskcode}
                     onStartTimer={onStartTimer}
                     onStopTimer={onStopTimer}
-                    onOpenMeetingUrl={onOpenMeetingUrl}
+                    onStartCalendarEvent={onStartCalendarEvent}
                     onOpenJsonEditor={onOpenJsonEditor}
                     onDragStart={handleDragStart}
                     onDragOver={handleDragOver}

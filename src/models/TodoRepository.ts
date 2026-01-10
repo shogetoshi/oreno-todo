@@ -145,6 +145,21 @@ export class TodoRepository {
   }
 
   /**
+   * 指定IDのListItemを完了状態にする（既に完了している場合は何もしない）
+   * @param items ListItemリスト
+   * @param id ListItemのID
+   * @returns 新しいListItemリスト
+   */
+  static completeItem(items: ListItem[], id: string): ListItem[] {
+    return items.map((item) => {
+      if (item.getId() === id && !item.isCompleted()) {
+        return item.toggleCompleted();
+      }
+      return item;
+    });
+  }
+
+  /**
    * 指定IDのListItemのタイマーを排他的に開始する（他の実行中タイマーを停止）
    * @param items 既存のListItemリスト
    * @param id ListItemのID
