@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import * as path from 'path';
 import { promises as fsPromises } from 'fs';
 import express from 'express';
@@ -145,6 +145,21 @@ ipcMain.handle('notify-timer-start', async (_, itemData) => {
     await pluginManager.notifyTimerStart(itemData);
   }
   return { success: true };
+});
+
+// URL起動
+ipcMain.handle('open-url', async (_, url: string) => {
+  try {
+    // セキュリティチェック: http/httpsのみ許可
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      return { success: false, error: 'Invalid URL scheme. Only http:// and https:// are allowed.' };
+    }
+
+    await shell.openExternal(url);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to open URL' };
+  }
 });
 
 // プロジェクト定義の読み込み

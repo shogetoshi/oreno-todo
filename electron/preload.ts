@@ -23,6 +23,8 @@ const electronAPI: ElectronAPI = {
   saveProjectDefinitions: (data) => ipcRenderer.invoke('save-project-definitions', data),
   // プラグイン通知用API
   notifyTimerStart: (itemData) => ipcRenderer.invoke('notify-timer-start', itemData),
+  // URL起動用API
+  openUrl: (url) => ipcRenderer.invoke('open-url', url),
 };
 
 contextBridge.exposeInMainWorld('electronAPI', electronAPI);

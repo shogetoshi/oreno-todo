@@ -24,6 +24,8 @@ export interface ElectronAPI {
   saveProjectDefinitions: (data: any) => Promise<{ success: boolean; error?: string }>;
   // プラグイン通知用API
   notifyTimerStart: (itemData: any) => Promise<{ success: boolean }>;
+  // URL起動用API
+  openUrl: (url: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 declare global {

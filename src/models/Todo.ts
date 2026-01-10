@@ -225,6 +225,13 @@ export class Todo implements ListItem {
   }
 
   /**
+   * MTG URLを取得する（TodoはMTG URLを持たない）
+   */
+  getMeetingUrl(): string | null {
+    return null;
+  }
+
+  /**
    * JSONからTodoインスタンスを作成する
    */
   static fromJSON(json: any): Todo {
