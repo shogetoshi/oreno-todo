@@ -71,6 +71,11 @@ export interface ListItem {
   getTimeRanges(): { start: string; end: string | null }[];
 
   /**
+   * MTG URLを取得する（CalendarEventの場合のみ値を持つ）
+   */
+  getMeetingUrl(): string | null;
+
+  /**
    * JSON形式に変換する
    */
   toJSON(): any;

@@ -24,6 +24,7 @@ export class CalendarEvent implements ListItem {
     public readonly updatedAt: string,
     public readonly startTime: string | null,  // イベント開始時刻
     public readonly endTime: string | null,    // イベント終了時刻
+    public readonly meetingUrl: string | null, // MTG URL
     public readonly timeRanges: TimeRange[]    // 実行時間の記録
   ) {}
 
@@ -83,6 +84,13 @@ export class CalendarEvent implements ListItem {
     return this.endTime;
   }
 
+  /**
+   * MTG URLを取得する
+   */
+  getMeetingUrl(): string | null {
+    return this.meetingUrl;
+  }
+
 
   /**
    * タスクコードを更新した新しいCalendarEventインスタンスを返す
@@ -98,6 +106,7 @@ export class CalendarEvent implements ListItem {
       now,
       this.startTime,
       this.endTime,
+      this.meetingUrl,
       this.timeRanges
     );
   }
@@ -116,6 +125,7 @@ export class CalendarEvent implements ListItem {
       now,
       this.startTime,
       this.endTime,
+      this.meetingUrl,
       this.timeRanges
     );
   }
@@ -151,6 +161,7 @@ export class CalendarEvent implements ListItem {
         now,
         this.startTime,
         this.endTime,
+        this.meetingUrl,
         newTimeRanges
       );
     } else {
@@ -164,6 +175,7 @@ export class CalendarEvent implements ListItem {
         now,
         this.startTime,
         this.endTime,
+        this.meetingUrl,
         []
       );
     }
@@ -268,6 +280,7 @@ export class CalendarEvent implements ListItem {
     const updatedAt = CalendarEvent.extractUpdatedAtFromGoogleEvent(event);
     const startTime = CalendarEvent.extractStartTimeFromGoogleEvent(event);
     const endTime = CalendarEvent.extractEndTimeFromGoogleEvent(event);
+    const meetingUrl = CalendarEvent.extractMeetingUrlFromGoogleEvent(event);
 
     return new CalendarEvent(
       id,
@@ -278,6 +291,7 @@ export class CalendarEvent implements ListItem {
       updatedAt,
       startTime,
       endTime,
+      meetingUrl,
       []  // 新規作成時は空配列
     );
   }
@@ -340,6 +354,15 @@ export class CalendarEvent implements ListItem {
   }
 
   /**
+   * GoogleカレンダーイベントからMTG URLを抽出する
+   * TODO: 実際のイベントデータから抽出する（現在は仮実装）
+   */
+  private static extractMeetingUrlFromGoogleEvent(_event: CalendarEventType): string | null {
+    // 仮実装: 固定文字列を返す
+    return "https://meet.google.com/xxx-xxxx-xxx";
+  }
+
+  /**
    * 文字列から簡易的なハッシュ値を計算する
    * @param str ハッシュ化する文字列
    * @param reverse trueの場合、逆順で処理
@@ -390,6 +413,7 @@ export class CalendarEvent implements ListItem {
 
     const startTime = json.startTime || null;
     const endTime = json.endTime || null;
+    const meetingUrl = json.meetingUrl || null;
     const timeRanges: TimeRange[] = json.timeRanges || [];
 
     return new CalendarEvent(
@@ -401,6 +425,7 @@ export class CalendarEvent implements ListItem {
       updatedAt,
       startTime,
       endTime,
+      meetingUrl,
       timeRanges
     );
   }
@@ -419,6 +444,7 @@ export class CalendarEvent implements ListItem {
       updatedAt: this.updatedAt,
       startTime: this.startTime,
       endTime: this.endTime,
+      meetingUrl: this.meetingUrl,
       timeRanges: this.timeRanges
     };
   }

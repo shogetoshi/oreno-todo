@@ -167,6 +167,29 @@ export const useTodos = () => {
     });
   }, [setTodosWithPersist]);
 
+  // MTG URLを開く
+  const openMeetingUrl = useCallback(async (id: string) => {
+    const item = todos.find(item => item.getId() === id);
+    if (!item) {
+      console.error('Item not found:', id);
+      return;
+    }
+
+    const url = item.getMeetingUrl();
+    if (!url || url.trim() === '') {
+      return;
+    }
+
+    try {
+      const result = await window.electronAPI.openUrl(url);
+      if (!result.success) {
+        console.error('Failed to open URL:', result.error);
+      }
+    } catch (error) {
+      console.error('Failed to open URL:', error);
+    }
+  }, [todos]);
+
   return {
     todos,
     isLoading,
@@ -183,5 +206,6 @@ export const useTodos = () => {
     startTimer,
     stopTimer,
     importCalendarEvents,
+    openMeetingUrl,
   };
 };
