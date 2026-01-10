@@ -16,7 +16,7 @@ import './App.css';
  * JSON編集関連のローカル状態のみを管理
  */
 function App() {
-  const { todos, isLoading, addTodo, addQuickTask, toggleTodo, deleteTodo, editTodo, editTaskcode, reorderTodos, replaceFromJson, editSingleItemFromJson, replaceItemsForDate, startTimer, stopTimer, importCalendarEvents, openMeetingUrl } = useTodos();
+  const { todos, isLoading, addTodo, addQuickTask, toggleTodo, deleteTodo, editTodo, editTaskcode, reorderTodos, replaceFromJson, editSingleItemFromJson, replaceItemsForDate, startTimer, stopTimer, importCalendarEvents, openMeetingUrl, startCalendarEvent } = useTodos();
   const { timecardData, isLoading: isTimecardLoading, checkIn, checkOut, replaceFromJson: replaceTimecardFromJson, replaceTimecardForDate } = useTimecard();
   const { projectRepo, isLoading: isProjectLoading, replaceFromJson: replaceProjectFromJson } = useProjectDefinitions();
   const [isJsonEditorOpen, setIsJsonEditorOpen] = useState(false);
@@ -194,6 +194,7 @@ function App() {
           onStartTimer={startTimer}
           onStopTimer={stopTimer}
           onOpenMeetingUrl={openMeetingUrl}
+          onStartCalendarEvent={startCalendarEvent}
           onOpenJsonEditor={handleOpenSingleItemJsonEditor}
           onImportCalendarEvents={importCalendarEvents}
           onOpenJsonEditorForDate={handleOpenJsonEditorForDate}

@@ -190,6 +190,14 @@ export const useTodos = () => {
     }
   }, [todos]);
 
+  // カレンダーイベントを開始（URL開く + 他タスク停止 + 完了状態にする）
+  const startCalendarEvent = useCallback(async (id: string) => {
+    // TODO: 実装予定
+    // 1. MTG URLを開く
+    // 2. 他の実行中タスクを全て停止
+    // 3. カレンダーイベントを完了状態にする
+  }, []);
+
   return {
     todos,
     isLoading,
@@ -207,5 +215,6 @@ export const useTodos = () => {
     stopTimer,
     importCalendarEvents,
     openMeetingUrl,
+    startCalendarEvent,
   };
 };

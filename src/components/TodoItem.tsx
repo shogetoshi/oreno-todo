@@ -65,6 +65,7 @@ interface TodoItemProps {
   onStartTimer: (id: string) => void;
   onStopTimer: (id: string) => void;
   onOpenMeetingUrl: (id: string) => void;
+  onStartCalendarEvent: (id: string) => void;
   onOpenJsonEditor: (id: string) => void;
   onDragStart: (index: number) => void;
   onDragOver: (e: React.DragEvent) => void;
@@ -72,7 +73,7 @@ interface TodoItemProps {
   onDragEnd: () => void;
 }
 
-export const TodoItem = ({ todo, index, isDragging, currentDate, projectRepo, onToggle, onDelete, onEdit, onEditTaskcode, onStartTimer, onStopTimer, onOpenMeetingUrl, onOpenJsonEditor, onDragStart, onDragOver, onDrop, onDragEnd }: TodoItemProps) => {
+export const TodoItem = ({ todo, index, isDragging, currentDate, projectRepo, onToggle, onDelete, onEdit, onEditTaskcode, onStartTimer, onStopTimer, onOpenMeetingUrl, onStartCalendarEvent, onOpenJsonEditor, onDragStart, onDragOver, onDrop, onDragEnd }: TodoItemProps) => {
   const [isEditingText, setIsEditingText] = useState(false);
   const [isEditingTaskcode, setIsEditingTaskcode] = useState(false);
   const [editText, setEditText] = useState(todo.getText());
@@ -94,7 +95,7 @@ export const TodoItem = ({ todo, index, isDragging, currentDate, projectRepo, on
   // タイマーボタンのクリックハンドラ
   const handleTimerClick = () => {
     if (todo.getType() === ListItemType.CALENDAR_EVENT) {
-      onOpenMeetingUrl(todoId);
+      onStartCalendarEvent(todoId);
     } else {
       if (isTimerRunning) {
         onStopTimer(todoId);

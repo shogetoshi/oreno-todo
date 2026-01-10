@@ -19,10 +19,11 @@ interface TodoListProps {
   onStartTimer: (id: string) => void;
   onStopTimer: (id: string) => void;
   onOpenMeetingUrl: (id: string) => void;
+  onStartCalendarEvent: (id: string) => void;
   onOpenJsonEditor: (id: string) => void;
 }
 
-export const TodoList = ({ todos, currentDate, projectRepo, onToggle, onDelete, onEdit, onEditTaskcode, onReorder, onStartTimer, onStopTimer, onOpenMeetingUrl, onOpenJsonEditor }: TodoListProps) => {
+export const TodoList = ({ todos, currentDate, projectRepo, onToggle, onDelete, onEdit, onEditTaskcode, onReorder, onStartTimer, onStopTimer, onOpenMeetingUrl, onStartCalendarEvent, onOpenJsonEditor }: TodoListProps) => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   const handleDragStart = (index: number) => {
@@ -61,6 +62,7 @@ export const TodoList = ({ todos, currentDate, projectRepo, onToggle, onDelete, 
           onStartTimer={onStartTimer}
           onStopTimer={onStopTimer}
           onOpenMeetingUrl={onOpenMeetingUrl}
+          onStartCalendarEvent={onStartCalendarEvent}
           onOpenJsonEditor={onOpenJsonEditor}
           onDragStart={handleDragStart}
           onDragOver={handleDragOver}
