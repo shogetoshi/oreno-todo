@@ -25,6 +25,12 @@ const electronAPI: ElectronAPI = {
   notifyTimerStart: (itemData) => ipcRenderer.invoke('notify-timer-start', itemData),
   // URL起動用API
   openUrl: (url) => ipcRenderer.invoke('open-url', url),
+  // ログメッセージ受信用
+  onLogMessage: (callback) => {
+    ipcRenderer.on('log-message', (_event, level, source, message) =>
+      callback(level, source, message)
+    );
+  },
 };
 
 contextBridge.exposeInMainWorld('electronAPI', electronAPI);
