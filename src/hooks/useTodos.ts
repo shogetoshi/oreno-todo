@@ -3,6 +3,7 @@ import { ListItem } from '../models/ListItem';
 import { TodoRepository } from '../models/TodoRepository';
 import { useProjectDefinitions } from './useProjectDefinitions';
 import { getCurrentJSTTime } from '../utils/timeFormat';
+import type { LogLevel } from '../models/LogEntry';
 
 /**
  * Controller Layer: useTodos Hook
@@ -112,18 +113,27 @@ export const useTodos = () => {
   }, [setTodosWithPersist]);
 
   // タイマーを開始（他の実行中タイマーは自動停止）
-  const startTimer = useCallback(async (id: string) => {
+  const startTimer = useCallback(async (id: string, addLog?: (level: LogLevel, source: string, message: string) => void) => {
     // プラグインに通知するために、開始前のListItemデータを取得
     const targetItem = todos.find(item => item.getId() === id);
 
     // タイマー開始処理を実行（楽観的更新）
     setTodosWithPersist((prev) => TodoRepository.startItemTimerExclusive(prev, id));
 
-    // プラグインにタイマー開始を通知（非同期、エラーは無視）
+    // プラグインにタイマー開始を通知（非同期）
     if (targetItem) {
-      window.electronAPI.notifyTimerStart(targetItem.toJSON()).catch(error => {
+      try {
+        const result = await window.electronAPI.notifyTimerStart(targetItem.toJSON());
+        if (!result.success && addLog) {
+          addLog('error', 'plugin-system', 'プラグインへの通知に失敗しました');
+        }
+      } catch (error) {
+        if (addLog) {
+          const errorMessage = error instanceof Error ? error.message : '不明なエラー';
+          addLog('error', 'plugin-system', `プラグインエラー: ${errorMessage}`);
+        }
         console.error('Failed to notify plugins:', error);
-      });
+      }
     }
   }, [setTodosWithPersist, todos]);
 
