@@ -53,6 +53,9 @@ export class PluginManager {
    */
   async loadPlugins(): Promise<void> {
     try {
+      // 既存のプラグインをクリア（再読み込み時の重複を防ぐ）
+      this.plugins = [];
+
       // ディレクトリが存在しない場合は作成
       await fsPromises.mkdir(this.pluginDir, { recursive: true });
 

@@ -35,6 +35,13 @@ function createWindow() {
     },
   });
 
+  // Renderer Processが完全にロードされた後にプラグインを読み込む
+  mainWindow.webContents.on('did-finish-load', async () => {
+    if (pluginManager) {
+      await pluginManager.loadPlugins();
+    }
+  });
+
   if (isDev) {
     mainWindow.loadURL('http://localhost:5173');
     mainWindow.webContents.openDevTools();
@@ -331,11 +338,11 @@ function startHttpServer() {
 }
 
 app.whenReady().then(async () => {
-  createWindow();
-
   // プラグインマネージャーを初期化（ログコールバック付き）
+  // ※ loadPlugins()はcreateWindow()内のdid-finish-loadイベントで実行される
   pluginManager = new PluginManager(sendLogToRenderer);
-  await pluginManager.loadPlugins();
+
+  createWindow();
 
   startHttpServer();
 
