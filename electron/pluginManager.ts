@@ -83,6 +83,9 @@ export class PluginManager {
           // エラーが起きても他のプラグインの読み込みは継続
         }
       }
+
+      // プラグイン読み込み完了を報告（0個の場合も含めて必ず表示）
+      this.log('info', 'plugin-system', `Successfully loaded ${this.plugins.length} plugin(s)`);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.log('error', 'plugin-system', `Failed to load plugins: ${errorMessage}`);
