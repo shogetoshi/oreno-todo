@@ -26,6 +26,8 @@ export interface ElectronAPI {
   notifyTimerStart: (itemData: any) => Promise<{ success: boolean }>;
   // URL起動用API
   openUrl: (url: string) => Promise<{ success: boolean; error?: string }>;
+  // ログメッセージ受信用
+  onLogMessage?: (callback: (level: string, source: string, message: string) => void) => void;
 }
 
 declare global {
