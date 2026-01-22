@@ -26,7 +26,6 @@ describe('LogRepository', () => {
   });
 
   it('should clear all logs', () => {
-    const logs = [LogEntry.create('info', 'app', 'Test')];
     const cleared = LogRepository.clearLogs();
 
     expect(cleared.length).toBe(0);

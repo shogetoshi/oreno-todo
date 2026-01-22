@@ -34,8 +34,11 @@ export const useLogs = () => {
   // Main Processからのログメッセージを受信
   useEffect(() => {
     if (window.electronAPI.onLogMessage) {
-      window.electronAPI.onLogMessage((level: LogLevel, source: string, message: string) => {
-        addLog(level, source, message);
+      window.electronAPI.onLogMessage((level: string, source: string, message: string) => {
+        // 型ガードでLogLevelに変換
+        if (level === 'info' || level === 'warning' || level === 'error') {
+          addLog(level as LogLevel, source, message);
+        }
       });
     }
   }, [addLog]);
