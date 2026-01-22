@@ -13,9 +13,19 @@ const projectDefinitionsPath = path.join(app.getPath('userData'), 'project-defin
 
 // プラグインマネージャー
 let pluginManager: PluginManager;
+let mainWindow: BrowserWindow | null = null;
+
+/**
+ * ログメッセージをRenderer Processに送信
+ */
+function sendLogToRenderer(level: string, source: string, message: string) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('log-message', level, source, message);
+  }
+}
 
 function createWindow() {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 900,
     height: 700,
     webPreferences: {
@@ -321,11 +331,12 @@ function startHttpServer() {
 }
 
 app.whenReady().then(async () => {
-  // プラグインマネージャーを初期化
-  pluginManager = new PluginManager();
+  createWindow();
+
+  // プラグインマネージャーを初期化（ログコールバック付き）
+  pluginManager = new PluginManager(sendLogToRenderer);
   await pluginManager.loadPlugins();
 
-  createWindow();
   startHttpServer();
 
   app.on('activate', () => {
