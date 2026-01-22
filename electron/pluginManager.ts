@@ -28,12 +28,24 @@ export interface Plugin {
 export class PluginManager {
   private plugins: Plugin[] = [];
   private pluginDir: string;
+  private onLogMessage?: (level: string, source: string, message: string) => void;
 
-  constructor() {
+  constructor(onLogMessage?: (level: string, source: string, message: string) => void) {
     // プラグインディレクトリのパス: ~/.oreno-todo/plugins/
     const userDataDir = app.getPath('userData');
     const orenoTodoDir = path.join(path.dirname(userDataDir), 'oreno-todo');
     this.pluginDir = path.join(orenoTodoDir, 'plugins');
+    this.onLogMessage = onLogMessage;
+  }
+
+  /**
+   * ログメッセージを記録
+   */
+  private log(level: string, source: string, message: string): void {
+    console.log(`[${level.toUpperCase()}] ${source}: ${message}`);
+    if (this.onLogMessage) {
+      this.onLogMessage(level, source, message);
+    }
   }
 
   /**
@@ -48,7 +60,7 @@ export class PluginManager {
       const files = await fsPromises.readdir(this.pluginDir);
       const jsFiles = files.filter(file => file.endsWith('.js'));
 
-      console.log(`Loading ${jsFiles.length} plugin(s) from ${this.pluginDir}`);
+      this.log('info', 'plugin-system', `Loading ${jsFiles.length} plugin(s)`);
 
       for (const file of jsFiles) {
         const pluginPath = path.join(this.pluginDir, file);
@@ -59,19 +71,21 @@ export class PluginManager {
 
           // 最低限のバリデーション
           if (!plugin.name) {
-            console.error(`Plugin ${file} does not have a name property. Skipping.`);
+            this.log('error', 'plugin-system', `Plugin ${file} does not have a name property`);
             continue;
           }
 
           this.plugins.push(plugin);
-          console.log(`Loaded plugin: ${plugin.name} (${file})`);
+          this.log('info', 'plugin-system', `Loaded plugin: ${plugin.name}`);
         } catch (error) {
-          console.error(`Failed to load plugin ${file}:`, error);
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          this.log('error', file, `Failed to load: ${errorMessage}`);
           // エラーが起きても他のプラグインの読み込みは継続
         }
       }
     } catch (error) {
-      console.error('Failed to load plugins:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.log('error', 'plugin-system', `Failed to load plugins: ${errorMessage}`);
       // プラグイン読み込み失敗はアプリ全体の動作を止めない
     }
   }
@@ -90,7 +104,8 @@ export class PluginManager {
         try {
           await Promise.resolve(plugin.onTimerStart(context));
         } catch (error) {
-          console.error(`Plugin ${plugin.name} failed on timer-start:`, error);
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          this.log('error', plugin.name, `Failed on timer-start: ${errorMessage}`);
           // エラーが起きても他のプラグインの実行は継続
         }
       }
@@ -111,7 +126,8 @@ export class PluginManager {
         try {
           await Promise.resolve(plugin.onTimerStop(context));
         } catch (error) {
-          console.error(`Plugin ${plugin.name} failed on timer-stop:`, error);
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          this.log('error', plugin.name, `Failed on timer-stop: ${errorMessage}`);
         }
       }
     }
