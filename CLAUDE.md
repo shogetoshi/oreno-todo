@@ -52,6 +52,63 @@ module.exports = {
 4. `src/types/electron.d.ts`に型定義を追加
 5. Controller層（`useTodos`等）で適切なタイミングで通知を実行
 
+## ログシステム
+
+アプリケーションは、プラグイン実行時のエラーやアプリケーション内部のログを表示する機能を提供しています。
+
+### ログ表示機能
+
+- **表示位置**: 上部のボタンの下、日付ごとの表示の上
+- **トグル機能**: 表示/非表示を切り替え可能
+- **表示内容**: プラグイン実行時のエラー、アプリケーションログ
+- **ログレベル**: info（情報）、warning（警告）、error（エラー）の3段階
+- **最大件数**: 最新100件まで保持（古いログは自動削除）
+
+### アーキテクチャ
+
+#### Model層
+- **LogEntry** (`src/models/LogEntry.ts`): ログエントリのドメインモデル
+  - ログレベル、タイムスタンプ、ソース、メッセージを管理
+- **LogRepository** (`src/models/LogRepository.ts`): ログ操作のビジネスロジック
+  - ログの追加、クリア、最大件数制限などの純粋関数
+
+#### Controller層
+- **useLogs** (`src/hooks/useLogs.ts`): ログ表示の状態管理
+  - ログの追加、クリア、表示/非表示トグル
+  - Main Processからのログメッセージ受信
+
+#### Electron Main Process層
+- **PluginManager** (`electron/pluginManager.ts`): プラグイン実行時のログ記録
+  - プラグイン読み込み、実行エラーをログコールバック経由で通知
+- **main.ts**: PluginManagerからのログをRenderer Processに送信
+
+#### View層
+- **LogDisplay** (`src/components/LogDisplay.tsx`): ログ表示UIコンポーネント
+  - トグルボタンで表示/非表示切り替え
+  - ログレベル別の色分け表示（info: 青、warning: オレンジ、error: 赤）
+  - クリアボタン
+
+### ログの追加方法
+
+**アプリケーション内部からログを追加**:
+```typescript
+import { useLogs } from './hooks/useLogs';
+
+const { addLog } = useLogs();
+
+// 情報ログ
+addLog('info', 'app', '処理が完了しました');
+
+// 警告ログ
+addLog('warning', 'api', 'API応答が遅延しています');
+
+// エラーログ
+addLog('error', 'database', 'データベース接続に失敗しました');
+```
+
+**プラグインからのログ**:
+プラグイン実行時のエラーは自動的にログに記録されます。`PluginManager`が例外をキャッチし、ログシステムに送信します。
+
 ## 開発コマンド
 
 ### 開発環境の起動
