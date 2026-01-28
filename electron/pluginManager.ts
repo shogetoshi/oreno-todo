@@ -59,7 +59,22 @@ export class PluginManager {
    * settings.jsonを読み込む
    */
   private async loadSettings(): Promise<void> {
-    // TODO: settings.jsonの読み込み処理を実装
+    try {
+      const settingsData = await fsPromises.readFile(this.settingsPath, 'utf-8');
+      this.settings = JSON.parse(settingsData);
+      this.log('info', 'plugin-system', `Settings loaded from ${this.settingsPath}`);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        // ファイルが存在しない場合はデフォルト設定を使用
+        this.settings = DEFAULT_SETTINGS;
+        this.log('info', 'plugin-system', 'settings.json not found, using default settings');
+      } else {
+        // パースエラーなど、その他のエラー
+        this.settings = DEFAULT_SETTINGS;
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        this.log('warning', 'plugin-system', `Failed to load settings.json: ${errorMessage}, using default settings`);
+      }
+    }
   }
 
   /**
