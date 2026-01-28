@@ -32,7 +32,8 @@ module.exports = {
   name: 'my-plugin',
   onTimerStart: async (context) => {
     // context.data にListItemのJSONデータが格納されている
-    console.log('Timer started for:', context.data.text);
+    // context.log でアプリのログ表示にメッセージを送信
+    context.log('info', `Timer started for: ${context.data.text}`);
   }
 };
 ```

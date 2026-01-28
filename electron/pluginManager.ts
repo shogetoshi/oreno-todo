@@ -8,6 +8,7 @@ import { app } from 'electron';
 export interface PluginContext {
   event: 'timer-start';
   data: any; // ListItemのJSON表現
+  log: (level: 'info' | 'warning' | 'error', message: string) => void;
 }
 
 /**
@@ -100,16 +101,15 @@ export class PluginManager {
    * タイマー開始イベントを全てのプラグインに通知
    */
   async notifyTimerStart(itemData: any): Promise<void> {
-    const context: PluginContext = {
-      event: 'timer-start',
-      data: itemData
-    };
-
     for (const plugin of this.plugins) {
       if (plugin.onTimerStart) {
+        const context: PluginContext = {
+          event: 'timer-start',
+          data: itemData,
+          log: (level, message) => this.log(level, plugin.name, message),
+        };
         try {
           await Promise.resolve(plugin.onTimerStart(context));
-          this.log('info', plugin.name, `timer-start: ${itemData.text || itemData.id}`);
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : String(error);
           this.log('error', plugin.name, `Failed on timer-start: ${errorMessage}`);
@@ -123,13 +123,13 @@ export class PluginManager {
    * タイマー停止イベントを全てのプラグインに通知（将来の拡張用）
    */
   async notifyTimerStop(itemData: any): Promise<void> {
-    const context: PluginContext = {
-      event: 'timer-start', // TODO: 'timer-stop'に修正
-      data: itemData
-    };
-
     for (const plugin of this.plugins) {
       if (plugin.onTimerStop) {
+        const context: PluginContext = {
+          event: 'timer-start', // TODO: 'timer-stop'に修正
+          data: itemData,
+          log: (level, message) => this.log(level, plugin.name, message),
+        };
         try {
           await Promise.resolve(plugin.onTimerStop(context));
         } catch (error) {
