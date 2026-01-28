@@ -36,9 +36,9 @@ module.exports = {
       const logPath = '/tmp/oreno-todo-log.txt';
       fs.appendFileSync(logPath, logLine, 'utf8');
 
-      console.log(`[log-timer-start] Logged: ${logLine.trim()}`);
+      context.log('info', `Logged: ${logLine.trim()}`);
     } catch (error) {
-      console.error('[log-timer-start] Error:', error);
+      context.log('error', `Error: ${error}`);
       // エラーをスローしても他のプラグインやメイン処理には影響しない
     }
   }

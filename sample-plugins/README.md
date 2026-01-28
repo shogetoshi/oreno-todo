@@ -56,6 +56,7 @@ Copy-Item sample-plugins\log-timer-start.js "$env:APPDATA\oreno-todo\plugins\"
 module.exports = {
   name: 'plugin-name',
   onTimerStart: async (context) => {
+    context.log('info', 'タイマーが開始されました');
     // タイマー開始時の処理
   }
 };
@@ -66,6 +67,7 @@ module.exports = {
 ```typescript
 interface PluginContext {
   event: 'timer-start';
+  log: (level: 'info' | 'warning' | 'error', message: string) => void;
   data: {
     id: string;
     type: 'todo' | 'calendar_event';

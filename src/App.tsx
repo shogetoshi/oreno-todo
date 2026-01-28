@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { useTodos } from './hooks/useTodos';
 import { useTimecard } from './hooks/useTimecard';
 import { useProjectDefinitions } from './hooks/useProjectDefinitions';
+import { useLogs } from './hooks/useLogs';
 import { TodoInput } from './components/TodoInput';
 import { DateGroupedTodoList } from './components/DateGroupedTodoList';
+import { LogDisplay } from './components/LogDisplay';
 import { TodoRepository } from './models/TodoRepository';
 import { TimecardRepository } from './models/TimecardRepository';
 import { ProjectDefinitionRepository } from './models/ProjectDefinition';
@@ -19,6 +21,7 @@ function App() {
   const { todos, isLoading, addTodo, addQuickTask, toggleTodo, deleteTodo, editTodo, editTaskcode, reorderTodos, replaceFromJson, editSingleItemFromJson, replaceItemsForDate, startTimer, stopTimer, importCalendarEvents, startCalendarEvent } = useTodos();
   const { timecardData, isLoading: isTimecardLoading, checkIn, checkOut, replaceFromJson: replaceTimecardFromJson, replaceTimecardForDate } = useTimecard();
   const { projectRepo, isLoading: isProjectLoading, replaceFromJson: replaceProjectFromJson } = useProjectDefinitions();
+  const { logs, isVisible, clearLogs, toggleVisibility } = useLogs();
   const [isJsonEditorOpen, setIsJsonEditorOpen] = useState(false);
   const [jsonText, setJsonText] = useState('');
   const [jsonError, setJsonError] = useState('');
@@ -181,6 +184,14 @@ function App() {
             </button>
           </div>
         </div>
+
+        {/* ログ表示を追加（上部ボタンの下、Todoリストの上） */}
+        <LogDisplay
+          logs={logs}
+          isVisible={isVisible}
+          onToggle={toggleVisibility}
+          onClear={clearLogs}
+        />
 
         <DateGroupedTodoList
           todos={todos}

@@ -13,9 +13,19 @@ const projectDefinitionsPath = path.join(app.getPath('userData'), 'project-defin
 
 // プラグインマネージャー
 let pluginManager: PluginManager;
+let mainWindow: BrowserWindow | null = null;
+
+/**
+ * ログメッセージをRenderer Processに送信
+ */
+function sendLogToRenderer(level: string, source: string, message: string) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('log-message', level, source, message);
+  }
+}
 
 function createWindow() {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 900,
     height: 700,
     webPreferences: {
@@ -23,6 +33,13 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
     },
+  });
+
+  // Renderer Processが完全にロードされた後にプラグインを読み込む
+  mainWindow.webContents.on('did-finish-load', async () => {
+    if (pluginManager) {
+      await pluginManager.loadPlugins();
+    }
   });
 
   if (isDev) {
@@ -321,11 +338,12 @@ function startHttpServer() {
 }
 
 app.whenReady().then(async () => {
-  // プラグインマネージャーを初期化
-  pluginManager = new PluginManager();
-  await pluginManager.loadPlugins();
+  // プラグインマネージャーを初期化（ログコールバック付き）
+  // ※ loadPlugins()はcreateWindow()内のdid-finish-loadイベントで実行される
+  pluginManager = new PluginManager(sendLogToRenderer);
 
   createWindow();
+
   startHttpServer();
 
   app.on('activate', () => {
