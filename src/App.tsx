@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useTodos } from './hooks/useTodos';
 import { useTimecard } from './hooks/useTimecard';
 import { useProjectDefinitions } from './hooks/useProjectDefinitions';
@@ -21,7 +21,7 @@ function App() {
   const { todos, isLoading, addTodo, addQuickTask, toggleTodo, deleteTodo, editTodo, editTaskcode, reorderTodos, replaceFromJson, editSingleItemFromJson, replaceItemsForDate, startTimer, stopTimer, importCalendarEvents, startCalendarEvent } = useTodos();
   const { timecardData, isLoading: isTimecardLoading, checkIn, checkOut, replaceFromJson: replaceTimecardFromJson, replaceTimecardForDate } = useTimecard();
   const { projectRepo, isLoading: isProjectLoading, replaceFromJson: replaceProjectFromJson } = useProjectDefinitions();
-  const { logs, isVisible, addLog, clearLogs, toggleVisibility } = useLogs();
+  const { logs, isVisible, clearLogs, toggleVisibility } = useLogs();
   const [isJsonEditorOpen, setIsJsonEditorOpen] = useState(false);
   const [jsonText, setJsonText] = useState('');
   const [jsonError, setJsonError] = useState('');
@@ -101,11 +101,6 @@ function App() {
     setIsProjectJsonEditor(false);
     setIsJsonEditorOpen(true);
   };
-
-  // startTimerをラップしてログ機能を追加
-  const handleStartTimer = useCallback((id: string) => {
-    startTimer(id, addLog);
-  }, [startTimer, addLog]);
 
   const handleCloseJsonEditor = () => {
     setIsJsonEditorOpen(false);
@@ -207,7 +202,7 @@ function App() {
           onEdit={editTodo}
           onEditTaskcode={editTaskcode}
           onReorder={reorderTodos}
-          onStartTimer={handleStartTimer}
+          onStartTimer={startTimer}
           onStopTimer={stopTimer}
           onStartCalendarEvent={startCalendarEvent}
           onOpenJsonEditor={handleOpenSingleItemJsonEditor}
