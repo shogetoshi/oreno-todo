@@ -109,6 +109,7 @@ export class PluginManager {
       if (plugin.onTimerStart) {
         try {
           await Promise.resolve(plugin.onTimerStart(context));
+          this.log('info', plugin.name, `timer-start: ${itemData.text || itemData.id}`);
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : String(error);
           this.log('error', plugin.name, `Failed on timer-start: ${errorMessage}`);
