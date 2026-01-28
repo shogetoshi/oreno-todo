@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { promises as fsPromises } from 'fs';
 import { app } from 'electron';
+import { AppSettings, DEFAULT_SETTINGS } from './types/settings';
 
 /**
  * プラグインのコンテキスト（プラグインに渡すデータ）
@@ -9,6 +10,7 @@ export interface PluginContext {
   event: 'timer-start';
   data: any; // ListItemのJSON表現
   log: (level: 'info' | 'warning' | 'error', message: string) => void;
+  settings: AppSettings; // アプリケーション設定
 }
 
 /**
@@ -29,6 +31,8 @@ export interface Plugin {
 export class PluginManager {
   private plugins: Plugin[] = [];
   private pluginDir: string;
+  private settingsPath: string;
+  private settings: AppSettings;
   private onLogMessage?: (level: string, source: string, message: string) => void;
 
   constructor(onLogMessage?: (level: string, source: string, message: string) => void) {
@@ -36,6 +40,8 @@ export class PluginManager {
     const userDataDir = app.getPath('userData');
     const orenoTodoDir = path.join(path.dirname(userDataDir), 'oreno-todo');
     this.pluginDir = path.join(orenoTodoDir, 'plugins');
+    this.settingsPath = path.join(orenoTodoDir, 'settings.json');
+    this.settings = DEFAULT_SETTINGS;
     this.onLogMessage = onLogMessage;
   }
 
@@ -50,10 +56,20 @@ export class PluginManager {
   }
 
   /**
+   * settings.jsonを読み込む
+   */
+  private async loadSettings(): Promise<void> {
+    // TODO: settings.jsonの読み込み処理を実装
+  }
+
+  /**
    * プラグインディレクトリから全ての.jsファイルを読み込む
    */
   async loadPlugins(): Promise<void> {
     try {
+      // settings.jsonを読み込む
+      await this.loadSettings();
+
       // 既存のプラグインをクリア（再読み込み時の重複を防ぐ）
       this.plugins = [];
 
@@ -107,6 +123,7 @@ export class PluginManager {
           event: 'timer-start',
           data: itemData,
           log: (level, message) => this.log(level, plugin.name, message),
+          settings: this.settings,
         };
         try {
           await Promise.resolve(plugin.onTimerStart(context));
@@ -129,6 +146,7 @@ export class PluginManager {
           event: 'timer-start', // TODO: 'timer-stop'に修正
           data: itemData,
           log: (level, message) => this.log(level, plugin.name, message),
+          settings: this.settings,
         };
         try {
           await Promise.resolve(plugin.onTimerStop(context));

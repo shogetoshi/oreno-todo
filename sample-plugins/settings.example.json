@@ -1,0 +1,5 @@
+{
+  "config": {
+    "logFilePath": "~/Documents/logseq-notes/journals/{YYYY_MM_DD}.md"
+  }
+}

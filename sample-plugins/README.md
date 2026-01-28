@@ -12,6 +12,42 @@
 
 **注意**: このリポジトリの`sample-plugins/`ディレクトリは参考用です。実際の実行には上記のディレクトリを使用してください。
 
+## 設定ファイル（settings.json）
+
+プラグインの動作をカスタマイズするために、設定ファイル`settings.json`を配置できます。
+
+### 配置場所
+
+- macOS: `~/Library/Application Support/oreno-todo/settings.json`
+- Windows: `%APPDATA%/oreno-todo/settings.json`
+- Linux: `~/.config/oreno-todo/settings.json`
+
+### 設定項目
+
+```json
+{
+  "config": {
+    "logFilePath": "~/Documents/logseq-notes/journals/{YYYY_MM_DD}.md"
+  }
+}
+```
+
+- `config.logFilePath`: ログファイルのパス
+  - プレースホルダー `{YYYY_MM_DD}` は今日の日付（JST）に自動置換されます
+  - 例: `{YYYY_MM_DD}` → `2026_01_28`
+
+### サンプル設定
+
+`sample-plugins/settings.example.json`にサンプル設定があります。必要に応じてコピーして使用してください。
+
+```bash
+# macOS/Linux
+cp sample-plugins/settings.example.json ~/.config/oreno-todo/settings.json
+
+# Windows（PowerShell）
+Copy-Item sample-plugins\settings.example.json "$env:APPDATA\oreno-todo\settings.json"
+```
+
 ## プラグインのインストール方法
 
 1. プラグインディレクトリを作成（存在しない場合）
@@ -40,13 +76,28 @@ Copy-Item sample-plugins\log-timer-start.js "$env:APPDATA\oreno-todo\plugins\"
 
 ## log-timer-start.js
 
-タイマー開始時に`/tmp/oreno-todo-log.txt`へタブ区切りでログを記録します。
+タイマー開始時にLogseq形式でログファイルに記録します。
 
-**出力フォーマット**:
+**設定要件**:
+- `settings.json`に`config.logFilePath`が設定されている必要があります
+- 設定がない場合、プラグインはエラーをログに記録し、処理をスキップします
+
+**出力フォーマット（Logseq形式）**:
+```markdown
+
+- ## [#]([[task-id-123]]) タスク名 #TASK-001
+	-
+
+
+- ## [#]([[task-id-456]]) 別のタスク #TASK-002
+	-
+
 ```
-2026-01-09 10:30:00	TASK-001	タスク名
-2026-01-09 11:00:00	TASK-002	別のタスク
-```
+
+**機能**:
+- 重複チェック: 同一IDのエントリがファイル内に既に存在する場合、スキップします
+- 日付プレースホルダー: `{YYYY_MM_DD}`が自動的に今日の日付（JST）に置換されます
+- taskcodeの条件付き出力: taskcodeがある場合のみ`#taskcode`を付与します
 
 ## プラグインAPI仕様
 
@@ -68,6 +119,11 @@ module.exports = {
 interface PluginContext {
   event: 'timer-start';
   log: (level: 'info' | 'warning' | 'error', message: string) => void;
+  settings: {
+    config: {
+      logFilePath: string;
+    };
+  };
   data: {
     id: string;
     type: 'todo' | 'calendar_event';
