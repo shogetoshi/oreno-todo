@@ -1,5 +1,5 @@
 {
   "log-timer-start": {
-    "logFilePath": "~/Documents/logseq-notes/journals/{YYYY_MM_DD}.md"
+    "logFilePath": "/tmp/oreno-todo/log-timer-start/{YYYY_MM_DD}.md"
   }
 }
