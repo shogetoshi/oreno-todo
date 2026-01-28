@@ -10,7 +10,7 @@ export interface PluginContext {
   event: 'timer-start';
   data: any; // ListItemのJSON表現
   log: (level: 'info' | 'warning' | 'error', message: string) => void;
-  settings: AppSettings; // アプリケーション設定
+  settings: any; // プラグイン固有の設定（プラグイン名でフィルタ済み）
 }
 
 /**
@@ -40,7 +40,8 @@ export class PluginManager {
     const userDataDir = app.getPath('userData');
     const orenoTodoDir = path.join(path.dirname(userDataDir), 'oreno-todo');
     this.pluginDir = path.join(orenoTodoDir, 'plugins');
-    this.settingsPath = path.join(orenoTodoDir, 'settings.json');
+    // settings.jsonをプラグインディレクトリ内に配置
+    this.settingsPath = path.join(this.pluginDir, 'settings.json');
     this.settings = DEFAULT_SETTINGS;
     this.onLogMessage = onLogMessage;
   }
@@ -134,11 +135,13 @@ export class PluginManager {
   async notifyTimerStart(itemData: any): Promise<void> {
     for (const plugin of this.plugins) {
       if (plugin.onTimerStart) {
+        // プラグイン名をキーにして該当プラグインの設定のみを取得
+        const pluginSettings = this.settings[plugin.name] || {};
         const context: PluginContext = {
           event: 'timer-start',
           data: itemData,
           log: (level, message) => this.log(level, plugin.name, message),
-          settings: this.settings,
+          settings: pluginSettings,
         };
         try {
           await Promise.resolve(plugin.onTimerStart(context));
@@ -157,11 +160,13 @@ export class PluginManager {
   async notifyTimerStop(itemData: any): Promise<void> {
     for (const plugin of this.plugins) {
       if (plugin.onTimerStop) {
+        // プラグイン名をキーにして該当プラグインの設定のみを取得
+        const pluginSettings = this.settings[plugin.name] || {};
         const context: PluginContext = {
           event: 'timer-start', // TODO: 'timer-stop'に修正
           data: itemData,
           log: (level, message) => this.log(level, plugin.name, message),
-          settings: this.settings,
+          settings: pluginSettings,
         };
         try {
           await Promise.resolve(plugin.onTimerStop(context));

@@ -88,14 +88,14 @@ module.exports = {
    */
   onTimerStart: async (context) => {
     try {
-      // settings.config.logFilePathからログファイルパスを取得
-      if (!context.settings || !context.settings.config || !context.settings.config.logFilePath) {
+      // settings.logFilePathからログファイルパスを取得
+      if (!context.settings || !context.settings.logFilePath) {
         context.log('error', 'logFilePath is not configured in settings.json');
         return;
       }
 
       // {YYYY_MM_DD}プレースホルダーを置換
-      let logFilePath = context.settings.config.logFilePath.replace('{YYYY_MM_DD}', getTodayDateString());
+      let logFilePath = context.settings.logFilePath.replace('{YYYY_MM_DD}', getTodayDateString());
 
       // ~をホームディレクトリに展開
       if (logFilePath.startsWith('~')) {

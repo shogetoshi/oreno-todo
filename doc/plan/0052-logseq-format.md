@@ -4,6 +4,11 @@
 
 サンプルプラグイン`log-timer-start.js`の出力フォーマットを、タブ区切り形式からLogseq形式に変更する。また、ログファイルパスをハードコードではなく、設定ファイル（settings.json）から取得するようにする。
 
+**追加修正（settings.json構成変更）**:
+- 配置場所を`~/Library/Application Support/oreno-todo/settings.json`から`~/Library/Application Support/oreno-todo/plugins/settings.json`に変更
+- 形式を`{"config": {...}}`からプラグイン名をキーにした`{"plugin-name": {...}}`に変更
+- プラグインには該当プラグインの設定のみが`context.settings`として渡される
+
 **参考プラグインコードから採用する要素:**
 - ログファイルパス: settings.jsonの`config.logFilePath`から取得し、`{YYYY_MM_DD}`プレースホルダーを今日の日付(JST)で置換
 - ログエントリ形式（Logseq形式）:
@@ -27,11 +32,11 @@
 
 #### 1.1 設定ファイルの配置場所と構造
 
-- **配置場所**: `~/Library/Application Support/oreno-todo/settings.json` (macOS)
-- **構造**:
+- **配置場所**: `~/Library/Application Support/oreno-todo/plugins/settings.json` (macOS)
+- **構造**（プラグイン名をキーにした構成）:
   ```json
   {
-    "config": {
+    "log-timer-start": {
       "logFilePath": "/path/to/log/{YYYY_MM_DD}.md"
     }
   }
@@ -85,7 +90,7 @@ export interface AppSettings {
 
 #### 2.4 onTimerStart()の書き換え
 
-- `context.settings.config.logFilePath`からログファイルパスを取得
+- `context.settings.logFilePath`からログファイルパスを取得（プラグイン名のキーはPluginManagerが解決済み）
 - `{YYYY_MM_DD}`プレースホルダーを`getTodayDateString()`で置換
 - `isDuplicateEntry()`で重複チェック
 - 重複していなければ`createLogEntry()`でエントリを生成し、`fs.appendFileSync()`で追記
@@ -98,7 +103,7 @@ export interface AppSettings {
 
 ```json
 {
-  "config": {
+  "log-timer-start": {
     "logFilePath": "~/Documents/logseq-notes/journals/{YYYY_MM_DD}.md"
   }
 }
@@ -110,8 +115,9 @@ export interface AppSettings {
 
 #### 4.1 設定ファイルのセクションを追加
 
-- settings.jsonの配置場所
-- 設定項目の説明（`config.logFilePath`）
+- settings.jsonの配置場所（プラグインディレクトリ内）
+- 設定形式の説明（プラグイン名をキーにした構成）
+- 設定項目の説明（`log-timer-start.logFilePath`）
 - プレースホルダー（`{YYYY_MM_DD}`）の説明
 
 #### 4.2 log-timer-startプラグインの説明を更新

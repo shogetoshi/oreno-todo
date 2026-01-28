@@ -14,25 +14,27 @@
 
 ## 設定ファイル（settings.json）
 
-プラグインの動作をカスタマイズするために、設定ファイル`settings.json`を配置できます。
+プラグインの動作をカスタマイズするために、設定ファイル`settings.json`をプラグインディレクトリ内に配置できます。
 
 ### 配置場所
 
-- macOS: `~/Library/Application Support/oreno-todo/settings.json`
-- Windows: `%APPDATA%/oreno-todo/settings.json`
-- Linux: `~/.config/oreno-todo/settings.json`
+- macOS: `~/Library/Application Support/oreno-todo/plugins/settings.json`
+- Windows: `%APPDATA%/oreno-todo/plugins/settings.json`
+- Linux: `~/.config/oreno-todo/plugins/settings.json`
 
-### 設定項目
+### 設定構造
+
+プラグイン名をキーとして、各プラグインの設定を記述します。
 
 ```json
 {
-  "config": {
+  "log-timer-start": {
     "logFilePath": "~/Documents/logseq-notes/journals/{YYYY_MM_DD}.md"
   }
 }
 ```
 
-- `config.logFilePath`: ログファイルのパス
+- `log-timer-start.logFilePath`: ログファイルのパス
   - プレースホルダー `{YYYY_MM_DD}` は今日の日付（JST）に自動置換されます
   - 例: `{YYYY_MM_DD}` → `2026_01_28`
 
@@ -42,10 +44,10 @@
 
 ```bash
 # macOS/Linux
-cp sample-plugins/settings.example.json ~/.config/oreno-todo/settings.json
+cp sample-plugins/settings.example.json ~/.config/oreno-todo/plugins/settings.json
 
 # Windows（PowerShell）
-Copy-Item sample-plugins\settings.example.json "$env:APPDATA\oreno-todo\settings.json"
+Copy-Item sample-plugins\settings.example.json "$env:APPDATA\oreno-todo\plugins\settings.json"
 ```
 
 ## プラグインのインストール方法
@@ -79,7 +81,7 @@ Copy-Item sample-plugins\log-timer-start.js "$env:APPDATA\oreno-todo\plugins\"
 タイマー開始時にLogseq形式でログファイルに記録します。
 
 **設定要件**:
-- `settings.json`に`config.logFilePath`が設定されている必要があります
+- `settings.json`に`log-timer-start.logFilePath`が設定されている必要があります
 - 設定がない場合、プラグインはエラーをログに記録し、処理をスキップします
 
 **出力フォーマット（Logseq形式）**:
@@ -119,11 +121,9 @@ module.exports = {
 interface PluginContext {
   event: 'timer-start';
   log: (level: 'info' | 'warning' | 'error', message: string) => void;
-  settings: {
-    config: {
-      logFilePath: string;
-    };
-  };
+  settings: any; // プラグイン固有の設定（プラグイン名でフィルタ済み）
+  // 例: log-timer-start プラグインの場合
+  // settings = { logFilePath: "~/Documents/logseq-notes/journals/{YYYY_MM_DD}.md" }
   data: {
     id: string;
     type: 'todo' | 'calendar_event';
