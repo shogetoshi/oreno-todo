@@ -193,6 +193,9 @@ export const useTodos = () => {
 
   // カレンダーイベントを開始（URL開く + 他タスク停止 + 完了状態にする）
   const startCalendarEvent = useCallback(async (id: string) => {
+    // プラグインに通知するために、開始前のListItemデータを取得
+    const targetItem = todos.find(item => item.getId() === id);
+
     // 1. MTG URLを開く
     await openMeetingUrl(id);
 
@@ -202,7 +205,14 @@ export const useTodos = () => {
       const itemsWithStoppedTimers = TodoRepository.stopAllRunningItems(prev);
       return TodoRepository.completeItem(itemsWithStoppedTimers, id);
     });
-  }, [openMeetingUrl, setTodosWithPersist]);
+
+    // 4. プラグインにカレンダーイベント開始を通知（非同期、エラーは無視）
+    if (targetItem) {
+      window.electronAPI.notifyTimerStart(targetItem.toJSON()).catch(error => {
+        console.error('Failed to notify plugins:', error);
+      });
+    }
+  }, [openMeetingUrl, setTodosWithPersist, todos]);
 
   return {
     todos,
