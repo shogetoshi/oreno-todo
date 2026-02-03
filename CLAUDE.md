@@ -33,12 +33,42 @@ module.exports = {
   onTimerStart: async (context) => {
     // context.data にListItemのJSONデータが格納されている
     // context.log でアプリのログ表示にメッセージを送信
+    // context.settings に該当プラグインの設定が格納されている
     context.log('info', `Timer started for: ${context.data.text}`);
   }
 };
 ```
 
 詳細は`sample-plugins/README.md`を参照してください。
+
+### プラグイン設定（settings.json）
+
+プラグインはアプリケーション設定ファイル（settings.json）を利用できます。
+
+**配置場所**:
+- macOS: `~/Library/Application Support/oreno-todo/plugins/settings.json`
+- Windows: `%APPDATA%/oreno-todo/plugins/settings.json`
+- Linux: `~/.config/oreno-todo/plugins/settings.json`
+
+**設定形式**（プラグイン名をキーとした構成）:
+```json
+{
+  "log-timer-start": {
+    "logFilePath": "~/Documents/logseq-notes/journals/{YYYY_MM_DD}.md"
+  }
+}
+```
+
+**プラグインからのアクセス**:
+```javascript
+onTimerStart: async (context) => {
+  // context.settingsには該当プラグインの設定のみが渡される
+  const logPath = context.settings.logFilePath;
+  // {YYYY_MM_DD}などのプレースホルダーを展開して使用
+}
+```
+
+settings.jsonが存在しない場合、または該当プラグインの設定がない場合、空オブジェクト`{}`が渡されます。
 
 ### アーキテクチャ上の位置付け
 

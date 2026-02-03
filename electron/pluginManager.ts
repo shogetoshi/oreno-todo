@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { promises as fsPromises } from 'fs';
 import { app } from 'electron';
+import { AppSettings, DEFAULT_SETTINGS } from './types/settings';
 
 /**
  * プラグインのコンテキスト（プラグインに渡すデータ）
@@ -9,6 +10,7 @@ export interface PluginContext {
   event: 'timer-start';
   data: any; // ListItemのJSON表現
   log: (level: 'info' | 'warning' | 'error', message: string) => void;
+  settings: any; // プラグイン固有の設定（プラグイン名でフィルタ済み）
 }
 
 /**
@@ -29,6 +31,8 @@ export interface Plugin {
 export class PluginManager {
   private plugins: Plugin[] = [];
   private pluginDir: string;
+  private settingsPath: string;
+  private settings: AppSettings;
   private onLogMessage?: (level: string, source: string, message: string) => void;
 
   constructor(onLogMessage?: (level: string, source: string, message: string) => void) {
@@ -36,6 +40,9 @@ export class PluginManager {
     const userDataDir = app.getPath('userData');
     const orenoTodoDir = path.join(path.dirname(userDataDir), 'oreno-todo');
     this.pluginDir = path.join(orenoTodoDir, 'plugins');
+    // settings.jsonをプラグインディレクトリ内に配置
+    this.settingsPath = path.join(this.pluginDir, 'settings.json');
+    this.settings = DEFAULT_SETTINGS;
     this.onLogMessage = onLogMessage;
   }
 
@@ -50,10 +57,35 @@ export class PluginManager {
   }
 
   /**
+   * settings.jsonを読み込む
+   */
+  private async loadSettings(): Promise<void> {
+    try {
+      const settingsData = await fsPromises.readFile(this.settingsPath, 'utf-8');
+      this.settings = JSON.parse(settingsData);
+      this.log('info', 'plugin-system', `Settings loaded from ${this.settingsPath}`);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        // ファイルが存在しない場合はデフォルト設定を使用
+        this.settings = DEFAULT_SETTINGS;
+        this.log('info', 'plugin-system', 'settings.json not found, using default settings');
+      } else {
+        // パースエラーなど、その他のエラー
+        this.settings = DEFAULT_SETTINGS;
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        this.log('warning', 'plugin-system', `Failed to load settings.json: ${errorMessage}, using default settings`);
+      }
+    }
+  }
+
+  /**
    * プラグインディレクトリから全ての.jsファイルを読み込む
    */
   async loadPlugins(): Promise<void> {
     try {
+      // settings.jsonを読み込む
+      await this.loadSettings();
+
       // 既存のプラグインをクリア（再読み込み時の重複を防ぐ）
       this.plugins = [];
 
@@ -103,10 +135,13 @@ export class PluginManager {
   async notifyTimerStart(itemData: any): Promise<void> {
     for (const plugin of this.plugins) {
       if (plugin.onTimerStart) {
+        // プラグイン名をキーにして該当プラグインの設定のみを取得
+        const pluginSettings = this.settings[plugin.name] || {};
         const context: PluginContext = {
           event: 'timer-start',
           data: itemData,
           log: (level, message) => this.log(level, plugin.name, message),
+          settings: pluginSettings,
         };
         try {
           await Promise.resolve(plugin.onTimerStart(context));
@@ -125,10 +160,13 @@ export class PluginManager {
   async notifyTimerStop(itemData: any): Promise<void> {
     for (const plugin of this.plugins) {
       if (plugin.onTimerStop) {
+        // プラグイン名をキーにして該当プラグインの設定のみを取得
+        const pluginSettings = this.settings[plugin.name] || {};
         const context: PluginContext = {
           event: 'timer-start', // TODO: 'timer-stop'に修正
           data: itemData,
           log: (level, message) => this.log(level, plugin.name, message),
+          settings: pluginSettings,
         };
         try {
           await Promise.resolve(plugin.onTimerStop(context));

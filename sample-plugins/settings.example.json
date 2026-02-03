@@ -1,0 +1,5 @@
+{
+  "log-timer-start": {
+    "logFilePath": "/tmp/oreno-todo/log-timer-start/{YYYY_MM_DD}.md"
+  }
+}
