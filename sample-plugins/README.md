@@ -84,14 +84,35 @@ Copy-Item sample-plugins\log-timer-start.js "$env:APPDATA\oreno-todo\plugins\"
 - `settings.json`に`log-timer-start.logFilePath`が設定されている必要があります
 - 設定がない場合、プラグインはエラーをログに記録し、処理をスキップします
 
+**ログ出力のタイミング**:
+
+1. **Todoタスクの計測開始時**
+   - タイマーボタン（▶️）をクリックした時
+   - `context.data.type = 'todo'`
+
+2. **カレンダーイベント（MTG）の開始時**
+   - スタートボタン（▶️）をクリックした時
+   - MTG URLが開かれ、完了状態になるタイミング
+   - `context.data.type = 'calendar_event'`
+   - カレンダーイベントの場合、以下の追加フィールドが利用可能:
+     - `startTime`: イベント開始時刻
+     - `endTime`: イベント終了時刻
+     - `meetingUrl`: MTG URL
+
 **出力フォーマット（Logseq形式）**:
+
+Todoタスクの場合:
 ```markdown
 
 - ## [#]([[task-id-123]]) タスク名 #TASK-001
 	-
 
+```
 
-- ## [#]([[task-id-456]]) 別のタスク #TASK-002
+カレンダーイベントの場合:
+```markdown
+
+- ## [#]([[cal-id-456]]) MTGタイトル #MTG-001
 	-
 
 ```
