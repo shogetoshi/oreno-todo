@@ -312,52 +312,40 @@ export class TodoRepository {
   ): ListItem[] {
     const newEvents = this.createCalendarEventsFromGoogleEvents(events, projectRepo);
 
-    // 新しいイベントのIDとイベントのマップを作成
-    const newEventMap = new Map<string, CalendarEvent>();
-    newEvents.forEach(event => {
-      newEventMap.set(event.getId(), event);
-    });
-
-    // 結果リスト
-    const resultItems: ListItem[] = [];
-
-    // 既存のアイテムを処理
+    // 既存のCalendarEventをIDでマッピング
+    const existingEventsMap = new Map<string, ListItem>();
     items.forEach(item => {
-      const itemId = item.getId();
-      const newEvent = newEventMap.get(itemId);
+      existingEventsMap.set(item.getId(), item);
+    });
 
-      if (newEvent) {
-        // 同じIDの新しいイベントが存在する場合
-        if (item.getType() === ListItemType.CALENDAR_EVENT) {
-          // 既存アイテムがカレンダーイベントの場合、上書き判定を行う
-          const existingEvent = item as CalendarEvent;
+    // 新しいイベントと既存イベントをマージ
+    const mergedEvents: ListItem[] = newEvents.map(newEvent => {
+      const existingItem = existingEventsMap.get(newEvent.getId());
 
-          if (this.shouldOverwriteCalendarEvent(existingEvent)) {
-            // 上書き可能な場合は新しいイベントを追加
-            resultItems.push(newEvent);
-          } else {
-            // 上書きしない場合は既存イベントを保持
-            resultItems.push(existingEvent);
-          }
-        } else {
-          // 既存アイテムがTodoの場合は既存を保持（通常は発生しない）
-          resultItems.push(item);
-        }
-
-        // 処理済みとしてマップから削除
-        newEventMap.delete(itemId);
-      } else {
-        // 同じIDの新しいイベントが存在しない場合は既存アイテムを保持
-        resultItems.push(item);
+      // 既存イベントが存在しない場合は新規追加
+      if (!existingItem) {
+        return newEvent;
       }
+
+      // 既存アイテムがCalendarEventでない場合は新しいイベントを採用
+      if (existingItem.getType() !== ListItemType.CALENDAR_EVENT) {
+        return newEvent;
+      }
+
+      const existingEvent = existingItem as CalendarEvent;
+
+      // 上書き判定: 上書き可能なら新しいイベント、そうでなければ既存を保持
+      return this.shouldOverwriteCalendarEvent(existingEvent) ? newEvent : existingEvent;
     });
 
-    // マップに残っている新規イベントを追加
-    newEventMap.forEach(event => {
-      resultItems.push(event);
-    });
+    // 新しいイベントのIDセットを作成
+    const newEventIds = new Set(newEvents.map(event => event.getId()));
 
-    return resultItems;
+    // 既存アイテムから新しいイベントと同じIDを持つものを除外
+    const remainingItems = items.filter(item => !newEventIds.has(item.getId()));
+
+    // 残った既存アイテム + マージされたイベント
+    return [...remainingItems, ...mergedEvents];
   }
 
   /**
