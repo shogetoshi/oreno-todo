@@ -355,11 +355,50 @@ export class CalendarEvent implements ListItem {
 
   /**
    * GoogleカレンダーイベントからMTG URLを抽出する
-   * TODO: 実際のイベントデータから抽出する（現在は仮実装）
+   * 優先順位:
+   * 1. description内のZoom URL
+   * 2. description内のTeams URL
+   * 3. hangoutLink（Google Meetなど）
+   * 4. なし（null）
    */
-  private static extractMeetingUrlFromGoogleEvent(_event: CalendarEventType): string | null {
-    // 仮実装: 固定文字列を返す
-    return "https://meet.google.com/xxx-xxxx-xxx";
+  private static extractMeetingUrlFromGoogleEvent(event: CalendarEventType): string | null {
+    return (
+      this.extractMeetingUrlFromDescription(event) ??
+      this.extractMeetingUrlFromHangoutLink(event) ??
+      null
+    );
+  }
+
+  /**
+   * イベントのdescriptionからZoomやTeamsのURLを正規表現で抽出する
+   */
+  private static extractMeetingUrlFromDescription(event: CalendarEventType): string | null {
+    if (!event.description) {
+      return null;
+    }
+
+    // Zoom URL
+    const zoomRegexp = /https:\/\/(\w+\.)?zoom\.us\/[\w!?/+\-_~;.,*&@#$%()'\[\]=]+/;
+    const zoomMatch = event.description.match(zoomRegexp);
+    if (zoomMatch !== null) {
+      return zoomMatch[0];
+    }
+
+    // Teams URL
+    const teamsRegexp = /https:\/\/teams\.microsoft\.com\/[\w!?/+\-_~;.,*&@#$%()'\[\]=]+/;
+    const teamsMatch = event.description.match(teamsRegexp);
+    if (teamsMatch !== null) {
+      return teamsMatch[0];
+    }
+
+    return null;
+  }
+
+  /**
+   * イベントのhangoutLinkフィールドからURLを取得する
+   */
+  private static extractMeetingUrlFromHangoutLink(event: CalendarEventType): string | null {
+    return event.hangoutLink ?? null;
   }
 
   /**

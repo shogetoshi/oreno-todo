@@ -392,6 +392,7 @@ function convertToCalendarEvent(
     summary: event.summary || '',
     description: event.description,
     location: event.location,
+    hangoutLink: event.hangoutLink,
     creator: {
       email: event.creator?.email || '',
       self: event.creator?.self,
@@ -443,6 +444,7 @@ export interface CalendarEventData {
   summary: string;
   description?: string | null;
   location?: string | null;
+  hangoutLink?: string | null;
   creator: {
     email: string;
     self?: boolean;
