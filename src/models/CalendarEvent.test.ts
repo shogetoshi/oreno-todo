@@ -1079,7 +1079,7 @@ describe('CalendarEvent', () => {
           created: '2023-10-20T09:00:00.000Z',
           updated: '2023-10-20T09:30:00.000Z',
           summary: '会議',
-          description: null,
+          description: undefined,
           creator: {
             email: 'user@example.com'
           },
