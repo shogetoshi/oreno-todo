@@ -793,6 +793,417 @@ describe('CalendarEvent', () => {
     });
   });
 
+  describe('MTG URL抽出', () => {
+    describe('Zoom URLの抽出', () => {
+      it('descriptionにZoom URLが含まれる場合、正しく抽出される', () => {
+        const googleEvent: GoogleCalendarEvent = {
+          kind: 'calendar#event',
+          etag: '"3123456789012345"',
+          id: '12345abcde67890fghij12345',
+          status: 'confirmed',
+          htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
+          created: '2023-10-20T09:00:00.000Z',
+          updated: '2023-10-20T09:30:00.000Z',
+          summary: 'Zoom会議',
+          description: 'ミーティングURL: https://zoom.us/j/1234567890?pwd=abcdefgh\n参加してください。',
+          creator: {
+            email: 'user@example.com'
+          },
+          organizer: {
+            email: 'user@example.com'
+          },
+          start: {
+            dateTime: '2023-11-01T10:00:00+09:00'
+          },
+          end: {
+            dateTime: '2023-11-01T11:00:00+09:00'
+          },
+          iCalUID: '12345abcde67890fghij12345@google.com',
+          sequence: 0,
+          eventType: 'default'
+        };
+
+        const event = CalendarEvent.fromGoogleCalendarEvent(googleEvent);
+
+        expect(event.getMeetingUrl()).toBe('https://zoom.us/j/1234567890?pwd=abcdefgh');
+      });
+
+      it('descriptionにサブドメイン付きZoom URLが含まれる場合、正しく抽出される', () => {
+        const googleEvent: GoogleCalendarEvent = {
+          kind: 'calendar#event',
+          etag: '"3123456789012345"',
+          id: '12345abcde67890fghij12345',
+          status: 'confirmed',
+          htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
+          created: '2023-10-20T09:00:00.000Z',
+          updated: '2023-10-20T09:30:00.000Z',
+          summary: 'Zoom会議',
+          description: 'Join: https://us02web.zoom.us/j/9876543210?pwd=xyz123',
+          creator: {
+            email: 'user@example.com'
+          },
+          organizer: {
+            email: 'user@example.com'
+          },
+          start: {
+            dateTime: '2023-11-01T10:00:00+09:00'
+          },
+          end: {
+            dateTime: '2023-11-01T11:00:00+09:00'
+          },
+          iCalUID: '12345abcde67890fghij12345@google.com',
+          sequence: 0,
+          eventType: 'default'
+        };
+
+        const event = CalendarEvent.fromGoogleCalendarEvent(googleEvent);
+
+        expect(event.getMeetingUrl()).toBe('https://us02web.zoom.us/j/9876543210?pwd=xyz123');
+      });
+    });
+
+    describe('Teams URLの抽出', () => {
+      it('descriptionにTeams URLが含まれる場合、正しく抽出される', () => {
+        const googleEvent: GoogleCalendarEvent = {
+          kind: 'calendar#event',
+          etag: '"3123456789012345"',
+          id: '12345abcde67890fghij12345',
+          status: 'confirmed',
+          htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
+          created: '2023-10-20T09:00:00.000Z',
+          updated: '2023-10-20T09:30:00.000Z',
+          summary: 'Teams会議',
+          description: 'Microsoft Teams会議に参加\nhttps://teams.microsoft.com/l/meetup-join/19%3ameeting_abc123',
+          creator: {
+            email: 'user@example.com'
+          },
+          organizer: {
+            email: 'user@example.com'
+          },
+          start: {
+            dateTime: '2023-11-01T10:00:00+09:00'
+          },
+          end: {
+            dateTime: '2023-11-01T11:00:00+09:00'
+          },
+          iCalUID: '12345abcde67890fghij12345@google.com',
+          sequence: 0,
+          eventType: 'default'
+        };
+
+        const event = CalendarEvent.fromGoogleCalendarEvent(googleEvent);
+
+        expect(event.getMeetingUrl()).toBe('https://teams.microsoft.com/l/meetup-join/19%3ameeting_abc123');
+      });
+    });
+
+    describe('hangoutLinkの抽出', () => {
+      it('hangoutLinkのみが存在する場合、正しく抽出される', () => {
+        const googleEvent: GoogleCalendarEvent = {
+          kind: 'calendar#event',
+          etag: '"3123456789012345"',
+          id: '12345abcde67890fghij12345',
+          status: 'confirmed',
+          htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
+          created: '2023-10-20T09:00:00.000Z',
+          updated: '2023-10-20T09:30:00.000Z',
+          summary: 'Google Meet会議',
+          hangoutLink: 'https://meet.google.com/abc-defg-hij',
+          creator: {
+            email: 'user@example.com'
+          },
+          organizer: {
+            email: 'user@example.com'
+          },
+          start: {
+            dateTime: '2023-11-01T10:00:00+09:00'
+          },
+          end: {
+            dateTime: '2023-11-01T11:00:00+09:00'
+          },
+          iCalUID: '12345abcde67890fghij12345@google.com',
+          sequence: 0,
+          eventType: 'default'
+        };
+
+        const event = CalendarEvent.fromGoogleCalendarEvent(googleEvent);
+
+        expect(event.getMeetingUrl()).toBe('https://meet.google.com/abc-defg-hij');
+      });
+    });
+
+    describe('優先順位の確認', () => {
+      it('description内のZoomとhangoutLinkが両方存在する場合、Zoomが優先される', () => {
+        const googleEvent: GoogleCalendarEvent = {
+          kind: 'calendar#event',
+          etag: '"3123456789012345"',
+          id: '12345abcde67890fghij12345',
+          status: 'confirmed',
+          htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
+          created: '2023-10-20T09:00:00.000Z',
+          updated: '2023-10-20T09:30:00.000Z',
+          summary: 'ハイブリッド会議',
+          description: 'Zoomで参加: https://zoom.us/j/1111111111?pwd=test',
+          hangoutLink: 'https://meet.google.com/xxx-yyyy-zzz',
+          creator: {
+            email: 'user@example.com'
+          },
+          organizer: {
+            email: 'user@example.com'
+          },
+          start: {
+            dateTime: '2023-11-01T10:00:00+09:00'
+          },
+          end: {
+            dateTime: '2023-11-01T11:00:00+09:00'
+          },
+          iCalUID: '12345abcde67890fghij12345@google.com',
+          sequence: 0,
+          eventType: 'default'
+        };
+
+        const event = CalendarEvent.fromGoogleCalendarEvent(googleEvent);
+
+        expect(event.getMeetingUrl()).toBe('https://zoom.us/j/1111111111?pwd=test');
+      });
+
+      it('description内のTeamsとhangoutLinkが両方存在する場合、Teamsが優先される', () => {
+        const googleEvent: GoogleCalendarEvent = {
+          kind: 'calendar#event',
+          etag: '"3123456789012345"',
+          id: '12345abcde67890fghij12345',
+          status: 'confirmed',
+          htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
+          created: '2023-10-20T09:00:00.000Z',
+          updated: '2023-10-20T09:30:00.000Z',
+          summary: 'ハイブリッド会議',
+          description: 'Teamsで参加: https://teams.microsoft.com/l/meetup-join/19%3ameeting_test',
+          hangoutLink: 'https://meet.google.com/xxx-yyyy-zzz',
+          creator: {
+            email: 'user@example.com'
+          },
+          organizer: {
+            email: 'user@example.com'
+          },
+          start: {
+            dateTime: '2023-11-01T10:00:00+09:00'
+          },
+          end: {
+            dateTime: '2023-11-01T11:00:00+09:00'
+          },
+          iCalUID: '12345abcde67890fghij12345@google.com',
+          sequence: 0,
+          eventType: 'default'
+        };
+
+        const event = CalendarEvent.fromGoogleCalendarEvent(googleEvent);
+
+        expect(event.getMeetingUrl()).toBe('https://teams.microsoft.com/l/meetup-join/19%3ameeting_test');
+      });
+
+      it('ZoomとTeamsが両方descriptionにある場合、Zoomが優先される', () => {
+        const googleEvent: GoogleCalendarEvent = {
+          kind: 'calendar#event',
+          etag: '"3123456789012345"',
+          id: '12345abcde67890fghij12345',
+          status: 'confirmed',
+          htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
+          created: '2023-10-20T09:00:00.000Z',
+          updated: '2023-10-20T09:30:00.000Z',
+          summary: 'マルチプラットフォーム会議',
+          description: 'Zoom: https://zoom.us/j/1234567890\nTeams: https://teams.microsoft.com/l/meetup-join/test',
+          creator: {
+            email: 'user@example.com'
+          },
+          organizer: {
+            email: 'user@example.com'
+          },
+          start: {
+            dateTime: '2023-11-01T10:00:00+09:00'
+          },
+          end: {
+            dateTime: '2023-11-01T11:00:00+09:00'
+          },
+          iCalUID: '12345abcde67890fghij12345@google.com',
+          sequence: 0,
+          eventType: 'default'
+        };
+
+        const event = CalendarEvent.fromGoogleCalendarEvent(googleEvent);
+
+        expect(event.getMeetingUrl()).toBe('https://zoom.us/j/1234567890');
+      });
+    });
+
+    describe('URLが存在しない場合', () => {
+      it('どちらも存在しない場合、nullが返される', () => {
+        const googleEvent: GoogleCalendarEvent = {
+          kind: 'calendar#event',
+          etag: '"3123456789012345"',
+          id: '12345abcde67890fghij12345',
+          status: 'confirmed',
+          htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
+          created: '2023-10-20T09:00:00.000Z',
+          updated: '2023-10-20T09:30:00.000Z',
+          summary: '対面会議',
+          description: '会議室Aで実施します。',
+          creator: {
+            email: 'user@example.com'
+          },
+          organizer: {
+            email: 'user@example.com'
+          },
+          start: {
+            dateTime: '2023-11-01T10:00:00+09:00'
+          },
+          end: {
+            dateTime: '2023-11-01T11:00:00+09:00'
+          },
+          iCalUID: '12345abcde67890fghij12345@google.com',
+          sequence: 0,
+          eventType: 'default'
+        };
+
+        const event = CalendarEvent.fromGoogleCalendarEvent(googleEvent);
+
+        expect(event.getMeetingUrl()).toBe(null);
+      });
+
+      it('descriptionがnullの場合、エラーにならない', () => {
+        const googleEvent: GoogleCalendarEvent = {
+          kind: 'calendar#event',
+          etag: '"3123456789012345"',
+          id: '12345abcde67890fghij12345',
+          status: 'confirmed',
+          htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
+          created: '2023-10-20T09:00:00.000Z',
+          updated: '2023-10-20T09:30:00.000Z',
+          summary: '会議',
+          description: undefined,
+          creator: {
+            email: 'user@example.com'
+          },
+          organizer: {
+            email: 'user@example.com'
+          },
+          start: {
+            dateTime: '2023-11-01T10:00:00+09:00'
+          },
+          end: {
+            dateTime: '2023-11-01T11:00:00+09:00'
+          },
+          iCalUID: '12345abcde67890fghij12345@google.com',
+          sequence: 0,
+          eventType: 'default'
+        };
+
+        const event = CalendarEvent.fromGoogleCalendarEvent(googleEvent);
+
+        expect(event.getMeetingUrl()).toBe(null);
+      });
+
+      it('descriptionがundefinedの場合、エラーにならない', () => {
+        const googleEvent: GoogleCalendarEvent = {
+          kind: 'calendar#event',
+          etag: '"3123456789012345"',
+          id: '12345abcde67890fghij12345',
+          status: 'confirmed',
+          htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
+          created: '2023-10-20T09:00:00.000Z',
+          updated: '2023-10-20T09:30:00.000Z',
+          summary: '会議',
+          creator: {
+            email: 'user@example.com'
+          },
+          organizer: {
+            email: 'user@example.com'
+          },
+          start: {
+            dateTime: '2023-11-01T10:00:00+09:00'
+          },
+          end: {
+            dateTime: '2023-11-01T11:00:00+09:00'
+          },
+          iCalUID: '12345abcde67890fghij12345@google.com',
+          sequence: 0,
+          eventType: 'default'
+        };
+
+        const event = CalendarEvent.fromGoogleCalendarEvent(googleEvent);
+
+        expect(event.getMeetingUrl()).toBe(null);
+      });
+    });
+
+    describe('URL文字クラスの検証', () => {
+      it('特殊文字を含むZoom URLを正しく抽出できる', () => {
+        const googleEvent: GoogleCalendarEvent = {
+          kind: 'calendar#event',
+          etag: '"3123456789012345"',
+          id: '12345abcde67890fghij12345',
+          status: 'confirmed',
+          htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
+          created: '2023-10-20T09:00:00.000Z',
+          updated: '2023-10-20T09:30:00.000Z',
+          summary: 'Zoom会議',
+          description: 'URL: https://zoom.us/j/123?pwd=Abc_123-test.foo~bar!@#$%&*()',
+          creator: {
+            email: 'user@example.com'
+          },
+          organizer: {
+            email: 'user@example.com'
+          },
+          start: {
+            dateTime: '2023-11-01T10:00:00+09:00'
+          },
+          end: {
+            dateTime: '2023-11-01T11:00:00+09:00'
+          },
+          iCalUID: '12345abcde67890fghij12345@google.com',
+          sequence: 0,
+          eventType: 'default'
+        };
+
+        const event = CalendarEvent.fromGoogleCalendarEvent(googleEvent);
+
+        expect(event.getMeetingUrl()).toBe('https://zoom.us/j/123?pwd=Abc_123-test.foo~bar!@#$%&*()');
+      });
+
+      it('角括弧を含むTeams URLを正しく抽出できる', () => {
+        const googleEvent: GoogleCalendarEvent = {
+          kind: 'calendar#event',
+          etag: '"3123456789012345"',
+          id: '12345abcde67890fghij12345',
+          status: 'confirmed',
+          htmlLink: 'https://www.google.com/calendar/event?eid=xxxxxxxx',
+          created: '2023-10-20T09:00:00.000Z',
+          updated: '2023-10-20T09:30:00.000Z',
+          summary: 'Teams会議',
+          description: 'Join: https://teams.microsoft.com/l/meetup-join/19%3a[test]=value',
+          creator: {
+            email: 'user@example.com'
+          },
+          organizer: {
+            email: 'user@example.com'
+          },
+          start: {
+            dateTime: '2023-11-01T10:00:00+09:00'
+          },
+          end: {
+            dateTime: '2023-11-01T11:00:00+09:00'
+          },
+          iCalUID: '12345abcde67890fghij12345@google.com',
+          sequence: 0,
+          eventType: 'default'
+        };
+
+        const event = CalendarEvent.fromGoogleCalendarEvent(googleEvent);
+
+        expect(event.getMeetingUrl()).toBe('https://teams.microsoft.com/l/meetup-join/19%3a[test]=value');
+      });
+    });
+  });
+
   describe('getExecutionTimeForDate', () => {
     it('指定日付に実行時間がない場合は0を返す', () => {
       const event = new CalendarEvent(

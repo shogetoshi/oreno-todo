@@ -25,6 +25,7 @@ export interface CalendarEvent {
   summary: string;
   description?: string;
   location?: string;
+  hangoutLink?: string; // Google MeetなどのMTG URL
   creator: {
     email: string;
     self?: boolean;
