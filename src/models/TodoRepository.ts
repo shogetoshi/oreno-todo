@@ -293,7 +293,13 @@ export class TodoRepository {
 
   /**
    * カレンダーイベントを既存のリストアイテムリストに追加する
-   * 同一IDのアイテムが既に存在する場合は、新しい情報で上書きする（重複防止）
+   *
+   * 上書き判定ロジック:
+   * - 既存イベントが存在しない → 新規追加
+   * - 既存イベントのtimeRanges.length > 0 → 既存を保持（上書きしない）
+   * - 既存イベントが完了状態 → 既存を保持（上書きしない）
+   * - それ以外 → 上書き
+   *
    * @param items 既存のListItemリスト（TodoまたはCalendarEvent）
    * @param events Googleカレンダーイベント配列
    * @param projectRepo プロジェクト定義リポジトリ（省略可）
@@ -306,14 +312,65 @@ export class TodoRepository {
   ): ListItem[] {
     const newEvents = this.createCalendarEventsFromGoogleEvents(events, projectRepo);
 
+    // 既存のCalendarEventをIDでマッピング
+    const existingEventsMap = new Map<string, ListItem>();
+    items.forEach(item => {
+      existingEventsMap.set(item.getId(), item);
+    });
+
+    // 新しいイベントと既存イベントをマージ
+    const mergedEvents: ListItem[] = newEvents.map(newEvent => {
+      const existingItem = existingEventsMap.get(newEvent.getId());
+
+      // 既存イベントが存在しない場合は新規追加
+      if (!existingItem) {
+        return newEvent;
+      }
+
+      // 既存アイテムがCalendarEventでない場合は新しいイベントを採用
+      if (existingItem.getType() !== ListItemType.CALENDAR_EVENT) {
+        return newEvent;
+      }
+
+      const existingEvent = existingItem as CalendarEvent;
+
+      // 上書き判定: 上書き可能なら新しいイベント、そうでなければ既存を保持
+      return this.shouldOverwriteCalendarEvent(existingEvent) ? newEvent : existingEvent;
+    });
+
     // 新しいイベントのIDセットを作成
     const newEventIds = new Set(newEvents.map(event => event.getId()));
 
-    // 既存のアイテムから、新しいイベントと同じIDを持つものを除外
-    const existingItemsWithoutDuplicates = items.filter(item => !newEventIds.has(item.getId()));
+    // 既存アイテムから新しいイベントと同じIDを持つものを除外
+    const remainingItems = items.filter(item => !newEventIds.has(item.getId()));
 
-    // 既存のアイテム（重複除外済み） + 新しいイベント
-    return [...existingItemsWithoutDuplicates, ...newEvents];
+    // 残った既存アイテム + マージされたイベント
+    return [...remainingItems, ...mergedEvents];
+  }
+
+  /**
+   * カレンダーイベントを上書きすべきかどうかを判定する
+   *
+   * 上書きしない条件:
+   * - timeRanges.length > 0 (時間記録がある)
+   * - isCompleted() === true (完了状態)
+   *
+   * @param event 既存のカレンダーイベント
+   * @returns 上書きすべき場合はtrue
+   */
+  private static shouldOverwriteCalendarEvent(event: CalendarEvent): boolean {
+    // timeRangesに値がある場合は上書きしない
+    if (event.getTimeRanges().length > 0) {
+      return false;
+    }
+
+    // 完了している場合は上書きしない
+    if (event.isCompleted()) {
+      return false;
+    }
+
+    // それ以外の場合は上書きする
+    return true;
   }
 
   /**

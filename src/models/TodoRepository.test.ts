@@ -1545,4 +1545,195 @@ describe('TodoRepository', () => {
     });
   });
 
+  describe('addCalendarEventsToItems - 上書き抑止', () => {
+    // テスト用のGoogleカレンダーイベントを作成するヘルパー関数
+    const createMockGoogleEvent = (id: string, summary: string, startTime: string): any => {
+      return {
+        id: `google-event-${id}`,
+        summary,
+        created: '2025-01-15T00:00:00Z',
+        updated: '2025-01-15T00:00:00Z',
+        start: { dateTime: startTime },
+        end: { dateTime: startTime }
+      };
+    };
+
+    it('新規カレンダーイベントを追加できる', () => {
+      const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
+      const items = [todo];
+
+      const googleEvents = [
+        createMockGoogleEvent('1', 'Meeting', '2025-01-20T14:00:00+09:00')
+      ];
+
+      const newItems = TodoRepository.addCalendarEventsToItems(items, googleEvents);
+
+      expect(newItems).toHaveLength(2);
+      expect(newItems[0].getId()).toBe(todo.getId());
+      expect(newItems[1].getType()).toBe('calendar_event');
+      expect(newItems[1].getText()).toBe('Meeting');
+    });
+
+    it('timeRangesが空で未完了のイベントは上書きされる', () => {
+      // 既存のカレンダーイベント（timeRanges空、未完了）
+      const googleEvent = createMockGoogleEvent('1', 'Old Meeting', '2025-01-20T14:00:00+09:00');
+      const existingEvent = CalendarEvent.fromGoogleCalendarEvent(googleEvent);
+      const items = [existingEvent];
+
+      // 同じIDで新しいイベント（タイトルが異なる）
+      const newGoogleEvent = createMockGoogleEvent('1', 'New Meeting', '2025-01-20T14:00:00+09:00');
+      const googleEvents = [newGoogleEvent];
+
+      const newItems = TodoRepository.addCalendarEventsToItems(items, googleEvents);
+
+      expect(newItems).toHaveLength(1);
+      expect(newItems[0].getText()).toBe('New Meeting'); // 上書きされている
+      expect(newItems[0].getTimeRanges()).toHaveLength(0);
+    });
+
+    it('timeRangesに値があるイベントは上書きされない', () => {
+      // 既存のカレンダーイベント（timeRangesあり）
+      const googleEvent = createMockGoogleEvent('1', 'Old Meeting', '2025-01-20T14:00:00+09:00');
+      const existingEvent = CalendarEvent.fromGoogleCalendarEvent(googleEvent);
+      const eventWithTimeRanges = new CalendarEvent(
+        existingEvent.getId(),
+        existingEvent.getTaskcode(),
+        existingEvent.getText(),
+        existingEvent.getCompletedAt(),
+        existingEvent.createdAt,
+        existingEvent.updatedAt,
+        existingEvent.getStartTime(),
+        existingEvent.getEndTime(),
+        existingEvent.getMeetingUrl(),
+        [{ start: '2025-01-20 14:00:00', end: '2025-01-20 15:00:00' }]
+      );
+      const items = [eventWithTimeRanges];
+
+      // 同じIDで新しいイベント（タイトルが異なる）
+      const newGoogleEvent = createMockGoogleEvent('1', 'New Meeting', '2025-01-20T14:00:00+09:00');
+      const googleEvents = [newGoogleEvent];
+
+      const newItems = TodoRepository.addCalendarEventsToItems(items, googleEvents);
+
+      expect(newItems).toHaveLength(1);
+      expect(newItems[0].getText()).toBe('Old Meeting'); // 上書きされていない
+      expect(newItems[0].getTimeRanges()).toHaveLength(1);
+    });
+
+    it('完了しているイベントは上書きされない', () => {
+      // 既存のカレンダーイベント（完了済み）
+      const googleEvent = createMockGoogleEvent('1', 'Old Meeting', '2025-01-20T14:00:00+09:00');
+      const existingEvent = CalendarEvent.fromGoogleCalendarEvent(googleEvent);
+      const completedEvent = existingEvent.toggleCompleted();
+      const items = [completedEvent];
+
+      // 同じIDで新しいイベント（タイトルが異なる）
+      const newGoogleEvent = createMockGoogleEvent('1', 'New Meeting', '2025-01-20T14:00:00+09:00');
+      const googleEvents = [newGoogleEvent];
+
+      const newItems = TodoRepository.addCalendarEventsToItems(items, googleEvents);
+
+      expect(newItems).toHaveLength(1);
+      expect(newItems[0].getText()).toBe('Old Meeting'); // 上書きされていない
+      expect(newItems[0].isCompleted()).toBe(true);
+    });
+
+    it('timeRangesと完了状態の両方が設定されているイベントは上書きされない', () => {
+      // 既存のカレンダーイベント（timeRangesあり、完了済み）
+      const googleEvent = createMockGoogleEvent('1', 'Old Meeting', '2025-01-20T14:00:00+09:00');
+      const existingEvent = CalendarEvent.fromGoogleCalendarEvent(googleEvent);
+      const completedEvent = existingEvent.toggleCompleted();
+      const items = [completedEvent];
+
+      // 同じIDで新しいイベント（タイトルが異なる）
+      const newGoogleEvent = createMockGoogleEvent('1', 'New Meeting', '2025-01-20T14:00:00+09:00');
+      const googleEvents = [newGoogleEvent];
+
+      const newItems = TodoRepository.addCalendarEventsToItems(items, googleEvents);
+
+      expect(newItems).toHaveLength(1);
+      expect(newItems[0].getText()).toBe('Old Meeting'); // 上書きされていない
+      expect(newItems[0].isCompleted()).toBe(true);
+      expect(newItems[0].getTimeRanges().length).toBeGreaterThan(0);
+    });
+
+    it('複数イベントの混在（保持/上書き/新規追加）を正しく処理できる', () => {
+      // 既存イベント1: timeRangesあり（保持されるべき）
+      const googleEvent1 = createMockGoogleEvent('1', 'Meeting 1', '2025-01-20T10:00:00+09:00');
+      const existingEvent1 = CalendarEvent.fromGoogleCalendarEvent(googleEvent1);
+      const eventWithTimeRanges = new CalendarEvent(
+        existingEvent1.getId(),
+        existingEvent1.getTaskcode(),
+        existingEvent1.getText(),
+        existingEvent1.getCompletedAt(),
+        existingEvent1.createdAt,
+        existingEvent1.updatedAt,
+        existingEvent1.getStartTime(),
+        existingEvent1.getEndTime(),
+        existingEvent1.getMeetingUrl(),
+        [{ start: '2025-01-20 10:00:00', end: '2025-01-20 11:00:00' }]
+      );
+
+      // 既存イベント2: timeRanges空、未完了（上書きされるべき）
+      const googleEvent2 = createMockGoogleEvent('2', 'Old Meeting 2', '2025-01-20T14:00:00+09:00');
+      const existingEvent2 = CalendarEvent.fromGoogleCalendarEvent(googleEvent2);
+
+      const items = [eventWithTimeRanges, existingEvent2];
+
+      // 新しいイベント: イベント1(タイトル変更), イベント2(タイトル変更), イベント3(新規)
+      const newGoogleEvent1 = createMockGoogleEvent('1', 'Updated Meeting 1', '2025-01-20T10:00:00+09:00');
+      const newGoogleEvent2 = createMockGoogleEvent('2', 'Updated Meeting 2', '2025-01-20T14:00:00+09:00');
+      const newGoogleEvent3 = createMockGoogleEvent('3', 'New Meeting 3', '2025-01-20T16:00:00+09:00');
+      const googleEvents = [newGoogleEvent1, newGoogleEvent2, newGoogleEvent3];
+
+      const newItems = TodoRepository.addCalendarEventsToItems(items, googleEvents);
+
+      expect(newItems).toHaveLength(3);
+
+      // イベント1は保持されている
+      const event1 = newItems.find(item => item.getId() === existingEvent1.getId());
+      expect(event1?.getText()).toBe('Meeting 1');
+
+      // イベント2は上書きされている
+      const event2 = newItems.find(item => item.getId() === existingEvent2.getId());
+      expect(event2?.getText()).toBe('Updated Meeting 2');
+
+      // イベント3は新規追加されている
+      const event3 = newItems.find(item => item.getText() === 'New Meeting 3');
+      expect(event3).toBeDefined();
+    });
+
+    it('カレンダーイベントとTodoの混在を正しく処理できる', () => {
+      // 既存のTodo
+      const todo = TodoRepository.createTodo('TASK-001', 'Task 1');
+
+      // 既存のカレンダーイベント（timeRanges空、未完了）
+      const googleEvent = createMockGoogleEvent('1', 'Old Meeting', '2025-01-20T14:00:00+09:00');
+      const existingEvent = CalendarEvent.fromGoogleCalendarEvent(googleEvent);
+
+      const items = [todo, existingEvent];
+
+      // 新しいカレンダーイベント（イベント1を上書き、イベント2を新規追加）
+      const newGoogleEvent1 = createMockGoogleEvent('1', 'New Meeting', '2025-01-20T14:00:00+09:00');
+      const newGoogleEvent2 = createMockGoogleEvent('2', 'Another Meeting', '2025-01-20T16:00:00+09:00');
+      const googleEvents = [newGoogleEvent1, newGoogleEvent2];
+
+      const newItems = TodoRepository.addCalendarEventsToItems(items, googleEvents);
+
+      expect(newItems).toHaveLength(3);
+
+      // Todoは保持されている
+      const foundTodo = newItems.find(item => item.getType() === 'todo');
+      expect(foundTodo?.getText()).toBe('Task 1');
+
+      // カレンダーイベント1は上書きされている
+      const event1 = newItems.find(item => item.getId() === existingEvent.getId());
+      expect(event1?.getText()).toBe('New Meeting');
+
+      // カレンダーイベント2は新規追加されている
+      const event2 = newItems.find(item => item.getText() === 'Another Meeting');
+      expect(event2).toBeDefined();
+    });
+  });
+
 });
